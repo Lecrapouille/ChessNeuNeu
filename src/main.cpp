@@ -33,11 +33,15 @@ int main()
               if (event.key.code == sf::Keyboard::Space)
                 {
                   auto movement = IA.nextMove();
-                  board.move(movement);
+                  board.animation(movement);
                 }
               else if (event.key.code == sf::Keyboard::BackSpace)
                 {
                   board.moveBack();
+                }
+              else
+                {
+                  IA.debug();
                 }
               break;
 

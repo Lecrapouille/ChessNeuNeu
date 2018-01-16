@@ -3,14 +3,16 @@
 
 #  include "IA.hpp"
 #  include "States.hpp"
+#  include "IPC.hpp"
 
-class Stockfish: public IIA
+class Stockfish: public IPC, public IIA
 {
 public:
 
   Stockfish(const States &states);
   ~Stockfish();
   virtual std::string nextMove() override;
+  void debug();
 
 private:
 
