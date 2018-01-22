@@ -1,7 +1,7 @@
 #ifndef BOARD_HPP
 #  define BOARD_HPP
 
-#  include "States.hpp"
+#  include "Rules.hpp"
 #  include <SFML/Graphics.hpp>
 
 // ***********************************************************************************************
@@ -13,6 +13,8 @@ namespace config
   const int          figure_size = 56;
   //! \brief The boder size (x, y) of the chessboard.
   const sf::Vector2f border{28, 28};
+  //! \brief Chessboard dimension
+  const sf::Vector2f dimension{8.0f * 2.0f * border.x, 8.0f * 2.0f * border.y};
 };
 
 // ***********************************************************************************************
@@ -23,23 +25,19 @@ class Board
 {
 public:
 
-  //! \brief Constructor get references on game states
+  //! \brief Constructor get references on game rules
   //! and the main window needed for drawing the GUI.
-  Board(States &, sf::RenderWindow &);
+  Board(Rules &, sf::RenderWindow &);
 
   //! \brief Destructor. Release only GUI resources
-  //! but not game states.
+  //! but not game rules.
   ~Board();
-
-  //! \brief Move a piece.
-  void move(const std::string& m);
-  void move(const char *m) { move(std::string(m)); }
 
   //! \brief Go back game moves.
   void moveBack();
 
-  //! \brief Move a piece with smooth move
-  void animation(const std::string& move);
+  //! \brief Oppent made a move.
+  void oppentMove(const std::string& movement);
 
   //! \brief Action on mouse button pressed event.
   //! Grab the piece (if present).
@@ -59,13 +57,21 @@ public:
     m_mouse = sf::Vector2f(p) - config::border;
   }
 
+  const Piece& getPiece(const sf::Vector2f& p) const;
+
 private:
 
   //! \brief Load chessboard and pieces textures.
   void loadTextures();
 
   //! \brief Place pieces on their position.
-  void loadPosition();
+  void loadPosition(bool const use_notes = true);
+
+  //! \brief Move a piece with smooth displacement on the chessboard.
+  void animation(const std::string& move);
+
+  //! \brief Move a piece with direct displacement on the chessboard.
+  void noAnimation(const std::string& move);
 
   //! \brief Convert a figure position into chess notation.
   //! \param p the position of the piece.
@@ -75,7 +81,7 @@ private:
     char s[3] =
       {
         char(p.x / config::figure_size + 'a'),
-        char(7 - p.y / config::figure_size + '1'),
+        char('8' - p.y / config::figure_size),
         '\0'
       };
     return s;
@@ -86,12 +92,12 @@ private:
   inline sf::Vector2f toCoord(const char a, const char b) const
   {
     int x = int(a) - 'a';
-    int y = 7 - int(b) + '1';
+    int y = '8' - int(b);
     return sf::Vector2f(x * config::figure_size, y * config::figure_size);
   }
-
-  //! \brief Reference on the game states.
-  States            &m_states;
+public:
+  //! \brief Reference on the game rules.
+  Rules             &m_rules;
   //! \brief Reference on the SFML main window.
   sf::RenderWindow  &m_window;
   //! \brief Textures of the chess board and figures.

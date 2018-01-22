@@ -1,14 +1,14 @@
 #include "Board.hpp"
 #include <iostream>
 
-Board::Board(States &states, sf::RenderWindow &window)
-  : m_states(states),
+Board::Board(Rules &rules, sf::RenderWindow &window)
+  : m_rules(rules), // FIXME ideal si on on peut le virer
     m_window(window),
     m_piece(0u),
     m_moving_figure(false)
 {
   loadTextures();
-  loadPosition();
+  loadPosition(false);
 }
 
 Board::~Board()
@@ -31,90 +31,73 @@ void Board::loadTextures()
   m_sboard.setTexture(m_textures[1]);
 }
 
-void Board::loadPosition()
+// TODO: 2 methodes: ne pas uiliser m_rules.xxx
+// 1/ loadPosition(echiquier)
+// 2/ loadPosition(moves)
+void Board::loadPosition(bool const use_notes)
 {
-  int k = 0;
+  uint8_t k = 0;
 
-  for (uint8_t i = 0u; i < 8u; ++i)
+  for (uint8_t ij = 0u; ij < 64u; ++ij)
     {
-      for (uint8_t j = 0u; j < 8u; ++j)
-        {
-          int n = m_states.board[i][j];
-          if (!n)
-            continue;
-          int x = abs(n) - 1;
-          int y = (n > 0) ? 1 : 0;
-          m_figures[k].setTextureRect(sf::IntRect(config::figure_size * x,
-                                                  config::figure_size * y,
-                                                  config::figure_size,
-                                                  config::figure_size));
-          m_figures[k].setPosition(config::figure_size * j,
-                                   config::figure_size * i);
-          ++k;
-        }
+      m_rules.m_current_position[ij] = c_init_board[ij];
+      const Piece n = c_init_board[ij];
+      if (n.type == PieceType::Empty)
+        continue;
+
+      const uint32_t x = n.type - 1u;
+      const uint32_t y = n.color;
+      m_figures[k].setTextureRect(sf::IntRect(config::figure_size * x,
+                                              config::figure_size * y,
+                                              config::figure_size,
+                                              config::figure_size));
+      m_figures[k].setPosition(config::figure_size * COL(ij),
+                               config::figure_size * ROW(ij));
+      ++k;
     }
 
-  for (uint32_t i = 0u; i < m_states.moves.length(); i += 5u)
+  for (; k < 32u; ++k)
+    m_figures[k].setPosition(-1000, -1000);
+
+  if (!use_notes)
+    return ;
+
+  for (uint32_t i = 0u; i < m_rules.m_moved.length(); i += 5u)
     {
-      move(m_states.moves.substr(i, 4u));
+      noAnimation(m_rules.m_moved.substr(i, 4u));
     }
 }
 
-void Board::move(const std::string& movement)
-{
-  sf::Vector2f oldPos = toCoord(movement[0], movement[1]);
-  sf::Vector2f newPos = toCoord(movement[2], movement[3]);
-
-  for (uint8_t i = 0u; i < 32u; ++i)
-    {
-      if (m_figures[i].getPosition() == newPos)
-        {
-          m_figures[i].setPosition(-100, -100);
-        }
-    }
-
-  for (uint8_t i = 0u; i < 32u; ++i)
-    {
-      if (m_figures[i].getPosition() == oldPos)
-        {
-          m_figures[i].setPosition(newPos);
-        }
-    }
-
-  // Castling if King did not move
-  if (movement == "e1g1")
-    {
-      if (m_states.moves.find("e1") == std::string::npos)
-        move("h1f1");
-    }
-  else if (movement == "e8g8")
-    {
-      if (m_states.moves.find("e8") == std::string::npos)
-        move("h8f8");
-    }
-  else if (movement == "e1c1")
-    {
-      if (m_states.moves.find("e1") == std::string::npos)
-        move("a1d1");
-    }
-  else if (movement == "e8c8")
-    {
-      if (m_states.moves.find("e8") == std::string::npos)
-        move("a8d8");
-    }
-}
-
+// FIXME: a placer dans Rules qui appelle Board::moveBack via un observer (ou meme pas: directement)
+// 5 is the string size for example "e2e4 "
 void Board::moveBack()
 {
-  // 5 is the string size for example "e2e4 "
-  if (m_states.moves.length() >= 5)
-    m_states.moves.erase(m_states.moves.length() - 5, 5);
-  loadPosition();
+  if (m_rules.m_moved.length() >= 5)
+    {
+      m_rules.sidePlayed();
+      std::cout << m_rules.m_side << " reverted the move "
+                << m_rules.m_moved.substr(m_rules.m_moved.length() - 5, 5)
+                << std::endl;
+      m_rules.m_moved.erase(m_rules.m_moved.length() - 5, 5);
+      loadPosition();
+
+      m_rules.m_status = Status::Playing;
+
+      std::cout << m_rules.m_current_position << std::endl;
+      std::cout << m_rules.m_side << " are playing";
+      Status status = m_rules.generateValidMoves();
+      //m_rules.dispLegalMoves();
+      if (status != Status::Playing)
+        {
+          std::cout << " and position is " << status;
+        }
+      std::cout << std::endl;
+    }
 }
 
 //! \param move the new valid move like "e2e4".
 //! \note: the move shall be valid !
-void Board::animation(const std::string& movement)
+void Board::animation(const std::string& movement) //  FIXME Move au lieu de movement
 {
   m_old_pos = toCoord(movement[0], movement[1]);
   m_new_pos = toCoord(movement[2], movement[3]);
@@ -135,10 +118,48 @@ void Board::animation(const std::string& movement)
       draw();
     }
 
-  move(movement);
-  m_states.moves += movement;
-  m_states.moves += ' ';
+  noAnimation(movement);
+}
+
+void Board::noAnimation(const std::string& movement) // FIXME Move au lieu de movement
+{
+  sf::Vector2f oldPos = toCoord(movement[0], movement[1]);
+  sf::Vector2f newPos = toCoord(movement[2], movement[3]);
+
+  for (uint8_t i = 0u; i < 32u; ++i)
+    {
+      if (m_figures[i].getPosition() == newPos)
+        {
+          m_figures[i].setPosition(-100, -100);
+        }
+    }
+
+  for (uint8_t i = 0u; i < 32u; ++i)
+    {
+      if (m_figures[i].getPosition() == oldPos)
+        {
+          m_figures[i].setPosition(newPos);
+        }
+    }
+
   m_figures[m_piece].setPosition(m_new_pos);
+}
+
+void Board::oppentMove(const std::string& next_move)
+{
+  animation(next_move);
+  m_rules.makeMove(next_move);
+}
+
+const Piece &Board::getPiece(const sf::Vector2f& p) const
+{
+  int x = p.x / config::figure_size;
+  int y = p.y / config::figure_size;
+
+  if (x < 0) x = 0; else if (x > 7) x = 7;
+  if (y < 0) y = 0; else if (y > 7) y = 7;
+
+  return m_rules.m_current_position[y * 8 + x];
 }
 
 void Board::takeFigure()
@@ -147,14 +168,28 @@ void Board::takeFigure()
   if (true == m_moving_figure)
     return ;
 
+  // End of the game
+  if (Status::Playing != m_rules.m_status)
+    return ;
+
+  // Mouse is out of bound of the chessboard
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dimension.x))
+    return ;
+  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dimension.y))
+    return ;
+
   for (uint8_t i = 0u; i < 32u; ++i)
     {
       if (m_figures[i].getGlobalBounds().contains(m_mouse.x, m_mouse.y))
         {
-          m_piece = i;
-          m_delta_pos = m_mouse - m_figures[i].getPosition();
-          m_old_pos = m_figures[i].getPosition();
-          m_moving_figure = true;
+          const Piece& piece = getPiece(m_mouse);
+          if (piece.color == m_rules.m_side)
+            {
+              m_piece = i;
+              m_delta_pos = m_mouse - m_figures[i].getPosition();
+              m_old_pos = m_figures[i].getPosition();
+              m_moving_figure = true;
+            }
         }
     }
 }
@@ -165,23 +200,49 @@ void Board::releaseFigure()
   if (false == m_moving_figure)
     return ;
 
-  m_moving_figure = false;
+  // End of the game
+  if (Status::Playing != m_rules.m_status)
+    return ;
+
+  // Mouse is out of bound of the chessboard
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dimension.x))
+    return ;
+  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dimension.y))
+    return ;
+
+  //
   sf::Vector2f p = m_figures[m_piece].getPosition()
                  +  sf::Vector2f(config::figure_size / 2, config::figure_size / 2);
-  m_new_pos =  sf::Vector2f(config::figure_size * int(p.x / config::figure_size),
-                            config::figure_size * int(p.y / config::figure_size));
+  m_new_pos = sf::Vector2f(config::figure_size * int(p.x / config::figure_size),
+                           config::figure_size * int(p.y / config::figure_size));
 
-  std::string movement(toChessNote(m_old_pos));
-  movement += toChessNote(m_new_pos);
-  move(movement);
-
-  if (m_old_pos != m_new_pos)
+  if (m_old_pos == m_new_pos)
     {
-      m_states.moves += movement;
-      m_states.moves += ' ';
+      m_figures[m_piece].setPosition(m_new_pos);
+      m_moving_figure = false;
+      return ;
     }
 
-  m_figures[m_piece].setPosition(m_new_pos);
+  // Fast filter of illegal move.
+  // Player is trying to release its picked figure on a figure of his side.
+  const Piece& piece = getPiece(m_mouse);
+  std::cout << piece << std::endl;
+  if ((piece.color == m_rules.m_side) && (piece.type != PieceType::Empty))
+    return ;
+
+  // Create the note move
+  std::string next_move(toChessNote(m_old_pos));
+  next_move += toChessNote(m_new_pos);
+
+  if (!m_rules.isValidMove(Move(next_move)))
+    return ;
+
+  noAnimation(next_move);
+  //m_figures[m_piece].setPosition(m_new_pos);
+
+  m_rules.makeMove(next_move);
+  m_moving_figure = false;
+  draw();
 }
 
 void Board::draw()

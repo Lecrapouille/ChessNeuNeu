@@ -21,7 +21,8 @@ int IPC::open(const std::string& command)
   int wpipe[2];
   int rpipe[2];
 
-  fflush(stdout);
+  //fflush(stdout);
+
   if (pipe(wpipe) || pipe(rpipe))
     {
       std::cerr << "Pipe creation failed" << std::endl;
@@ -49,8 +50,7 @@ int IPC::open(const std::string& command)
       ::close(rpipe[0]);
 
       // Ask kernel to deliver SIGTERM in case the parent dies
-      prctl(PR_SET_PDEATHSIG, SIGTERM);
-
+      //prctl(PR_SET_PDEATHSIG, SIGTERM);
       if (-1 == execl("/bin/sh", "sh", "-c", command.c_str(), (char *) NULL))
         {
           std::cerr << "execl failed" << std::endl;
@@ -64,7 +64,7 @@ int IPC::open(const std::string& command)
       ::close(wpipe[0]);
       ::close(rpipe[1]);
       int retval = fcntl(rpipe[0], F_SETFL, fcntl(rpipe[0], F_GETFL) | O_NONBLOCK);
-      std::cerr << "fcntl " << retval << std::endl;
+      //std::cerr << "fcntl " << retval << std::endl;
       m_wfd = wpipe[1];
       m_rfd = rpipe[0];
       return 0;
@@ -95,7 +95,7 @@ std::string IPC::read()
   int nb;
 
   do {
-    nb = ::read(m_rfd, buffer, 255);
+    nb = ::read(m_rfd, buffer, 1024);
     if (nb > 0)
       {
         buffer[nb] = '\0';

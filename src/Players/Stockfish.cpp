@@ -1,8 +1,8 @@
 #include "Stockfish.hpp"
 #include <iostream>
 
-Stockfish::Stockfish(const States &states)
-  : IPC("stockfish"), m_states(states)
+Stockfish::Stockfish(const Rules &rules, const Color side)
+  : IPC("stockfish"), IPlayer(PlayerType::StockfishIA, side), m_rules(rules)
 {
   std::cout << read() << std::endl;
 }
@@ -14,10 +14,12 @@ Stockfish::~Stockfish()
 std::string Stockfish::nextMove()
 {
   std::string position("position startpos moves ");
-  position += m_states.moves;
+  position += m_rules.m_moved;
   position += "\ngo\n";
   write(position);
-  usleep(50000);
+
+  // FIXME: a enlever
+  usleep(100000);
 
   std::string answer = read();
   int n = answer.find("bestmove");
@@ -28,6 +30,7 @@ std::string Stockfish::nextMove()
       return move;
     }
 
+  // FIXME: a retenter
   std::cout << "error" << std::endl;
   return "error";
 }
