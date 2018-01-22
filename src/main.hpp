@@ -7,7 +7,7 @@
 #  include "tcsp.hpp"
 #  include "NeuNeu.hpp"
 #  include "Human.hpp"
-#  include "cmdparser.hpp"
+#  include "CmdParser/cmdparser.hpp"
 
 class NeuNeuGUI: public GUIState
 {

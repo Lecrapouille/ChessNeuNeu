@@ -17,8 +17,8 @@ Board::~Board()
 
 void Board::loadTextures()
 {
-  bool res1 = m_textures[0].loadFromFile("../data/figures.png");
-  bool res2 = m_textures[1].loadFromFile("../data/board.png");
+  bool res1 = m_textures[0].loadFromFile("data/figures.png");
+  bool res2 = m_textures[1].loadFromFile("data/board.png");
   if ((false == res1) || (false == res2))
     {
       std::cerr << "Failed loading textures" << std::endl;

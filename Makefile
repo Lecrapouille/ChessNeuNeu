@@ -28,12 +28,18 @@ BUILD = build
 endif
 
 ###################################################
+# Third part: external libraries
+ifeq ($(THIRDPART),)
+THIRDPART = external
+endif
+
+###################################################
 # Inform Makefile where to find header files
-INCLUDES = -I$(BUILD) -Isrc -Isrc/Players
+INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/players -Isrc/utils -Isrc/GUI -I$(THIRDPART)/NeuralNetwork/Src -I$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH=$(BUILD):src:src/Players
+VPATH=$(BUILD):src:src/chess:src/players:src/utils:src/GUI:src/players:$(THIRDPART)/NeuralNetwork/Src/:$(THIRDPART)
 
 ###################################################
 # Store files dependencies in *.d files.  When a file
@@ -65,7 +71,7 @@ all: $(TARGET)
 
 ###################################################
 # Link sources
-$(TARGET): $(OBJ)
+$(TARGET): CmdParser NeuralNetwork $(OBJ)
 	@$(call print-to,"Linking","$(TARGET)","$(BUILD)/$@","$(VERSION)")
 	@cd $(BUILD) && $(CXX) $(OBJ) -o $(TARGET) $(LIBS) $(LDFLAGS)
 
@@ -75,6 +81,14 @@ $(TARGET): $(OBJ)
 	@$(call print-from,"Compiling C++","$(TARGET)","$<")
 	@$(CXX) $(DEPFLAGS) $(CXXFLAGS) $(DEFINES) $(OPTIM_FLAGS) $(INCLUDES) -c $(abspath $<) -o $(abspath $(BUILD)/$@)
 	@$(POSTCOMPILE)
+
+###################################################
+# Download external libs
+CmdParser:
+	cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null
+
+NeuralNetwork:
+	cd $(THIRDPART) && rm -fr NeuralNetwork && git clone https://github.com/BobbyAnguelov/NeuralNetwork.git --depth=1 2> /dev/null
 
 ###################################################
 # Compress SimTaDyn sources without its .git, build
@@ -104,6 +118,7 @@ $(OBJ): | $(BUILD)
 version.h: | $(BUILD)
 $(BUILD): which-gcc
 	@mkdir -p $(BUILD)
+	@mkdir -p $(THIRDPART)
 
 ###################################################
 # Auto-Dependency Generation
