@@ -8,7 +8,7 @@ Board::Board(Rules &rules, sf::RenderWindow &window)
     m_moving_figure(false)
 {
   loadTextures();
-  loadPosition(false);
+  loadPosition(m_rules.m_current_position);
 }
 
 Board::~Board()
@@ -31,17 +31,13 @@ void Board::loadTextures()
   m_sboard.setTexture(m_textures[1]);
 }
 
-// TODO: 2 methodes: ne pas uiliser m_rules.xxx
-// 1/ loadPosition(echiquier)
-// 2/ loadPosition(moves)
-void Board::loadPosition(bool const use_notes)
+void Board::loadPosition(const chessboard& board)
 {
   uint8_t k = 0;
 
   for (uint8_t ij = 0u; ij < 64u; ++ij)
     {
-      m_rules.m_current_position[ij] = c_init_board[ij];
-      const Piece n = c_init_board[ij];
+      const Piece n = board[ij];
       if (n.type == PieceType::Empty)
         continue;
 
@@ -58,41 +54,6 @@ void Board::loadPosition(bool const use_notes)
 
   for (; k < 32u; ++k)
     m_figures[k].setPosition(-1000, -1000);
-
-  if (!use_notes)
-    return ;
-
-  for (uint32_t i = 0u; i < m_rules.m_moved.length(); i += 5u)
-    {
-      noAnimation(m_rules.m_moved.substr(i, 4u));
-    }
-}
-
-// FIXME: a placer dans Rules qui appelle Board::moveBack via un observer (ou meme pas: directement)
-// 5 is the string size for example "e2e4 "
-void Board::moveBack()
-{
-  if (m_rules.m_moved.length() >= 5)
-    {
-      m_rules.sidePlayed();
-      std::cout << m_rules.m_side << " reverted the move "
-                << m_rules.m_moved.substr(m_rules.m_moved.length() - 5, 5)
-                << std::endl;
-      m_rules.m_moved.erase(m_rules.m_moved.length() - 5, 5);
-      loadPosition();
-
-      m_rules.m_status = Status::Playing;
-
-      std::cout << m_rules.m_current_position << std::endl;
-      std::cout << m_rules.m_side << " are playing";
-      Status status = m_rules.generateValidMoves();
-      //m_rules.dispLegalMoves();
-      if (status != Status::Playing)
-        {
-          std::cout << " and position is " << status;
-        }
-      std::cout << std::endl;
-    }
 }
 
 //! \param move the new valid move like "e2e4".

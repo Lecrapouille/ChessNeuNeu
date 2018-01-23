@@ -87,6 +87,8 @@ struct Move
 
 //! \brief
 std::string Move2str(const Move move);
+std::string Move2str(const uint8_t sq);
+std::string Move2str(const uint8_t from, const uint8_t to);
 
 //! \brief Pretty print a move note.
 std::ostream& operator<<(std::ostream& os, const Move& m);
@@ -119,6 +121,12 @@ public:
 
   //! \brief Move a piece.
   inline void makeMove(const char *m) { makeMove(std::string(m)); }
+
+  //! \brief Revert the last move (if any).
+  void moveBack();
+
+  void loadPosition(const std::string& moves);
+  void loadPosition(const chessboard& board);
 
   //! \brief
   inline void sidePlayed()
@@ -156,8 +164,10 @@ public: // FIXME should be private but ok because the class is used as const
   std::array<Piece, 64> m_current_position;
   //! \brief Temporary board for computations.
   std::array<Piece, 64> m_next_position;
+
+  bool hasNoKing = false;
 };
 
-std::ostream& operator<<(std::ostream& os, std::array<Piece, 64>& position);
+std::ostream& operator<<(std::ostream& os, chessboard& position);
 
 #endif

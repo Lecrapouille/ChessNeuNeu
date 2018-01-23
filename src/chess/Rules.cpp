@@ -151,7 +151,7 @@ std::ostream& operator<<(std::ostream& os, const Move& move)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, std::array<Piece, 64>& position)
+std::ostream& operator<<(std::ostream& os, chessboard& position)
 {
   Piece piece;
 
@@ -170,9 +170,63 @@ std::ostream& operator<<(std::ostream& os, std::array<Piece, 64>& position)
   return os;
 }
 
+// FIXME Rules devrait etre Observer et envoyer un event a IBoard et Board est un IBoard en SFML
+// alors que ConsolBoard affiche un echiquier et lit stdin
+void Rules::loadPosition(const chessboard& board)
+{
+  m_current_position = board;
+}
+
+void Rules::loadPosition(const std::string& moves)
+{
+  m_current_position = c_init_board;
+
+  for (uint32_t i = 0u; i < moves.length(); i += 5u)
+    {
+      makeMove(moves.substr(i, 4u));
+    }
+}
+
+std::string Move2str(const uint8_t sq)
+{
+  return std::string(c_mailboxToChar[sq]);
+}
+
 std::string Move2str(const Move move)
 {
   return std::string(c_mailboxToChar[move.from]) + std::string(c_mailboxToChar[move.to]);
+}
+
+std::string Move2str(const uint8_t from, const uint8_t to)
+{
+  return std::string(c_mailboxToChar[from]) + std::string(c_mailboxToChar[to]);
+}
+
+// FIXME: a placer dans Rules qui appelle Board::moveBack via un observer (ou meme pas: directement)
+// 5 is the string size for example "e2e4 "
+void Rules::moveBack()
+{
+  if (m_moved.length() >= 5)
+    {
+      sidePlayed();
+      std::cout << m_side << " reverted the move "
+                << m_moved.substr(m_moved.length() - 5, 5)
+                << std::endl;
+      m_moved.erase(m_moved.length() - 5, 5);
+      loadPosition(m_moved);
+
+      m_status = Status::Playing;
+
+      std::cout << m_current_position << std::endl;
+      std::cout << m_side << " are playing";
+      Status status = generateValidMoves();
+      //dispLegalMoves();
+      if (status != Status::Playing)
+        {
+          std::cout << " and position is " << status;
+        }
+      std::cout << std::endl;
+    }
 }
 
 // next_move shall be valid
@@ -230,7 +284,7 @@ bool Rules::tryMove(const Move move, const Color side)
     }
 
   //
-  Color xside = (Color::White == side ? Color::Black : Color::White);
+  Color xside = opposite(side);
   if (!attack(m_next_position, king, xside))
     {
       m_legal_moves.push_back(move);
@@ -246,13 +300,17 @@ bool Rules::tryMove(const Move move, const Color side)
 // FIXME: Optim memoriser la position du roi au lieu de la retrouver
 bool Rules::inCheck(const Color side) const
 {
+  // Special case for Neural network using empty chessboard with no Kings
+  if (hasNoKing)
+    return false;
+
   for (uint8_t i = 0u; i < 64u; ++i)
     {
       if ((m_current_position[i].type == PieceType::King) &&
           (m_current_position[i].color == side))
         {
-          std::cout << "Roi: " << (int) i << std::endl;
-          Color xside = (Color::White == side ? Color::Black : Color::White);
+          std::cout << "inCheck Roi: " << (int) i << std::endl;
+          Color xside = opposite(side);
           return attack(m_current_position, i, xside);
         }
     }

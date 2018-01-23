@@ -33,9 +33,6 @@ public:
   //! but not game rules.
   ~Board();
 
-  //! \brief Go back game moves.
-  void moveBack();
-
   //! \brief Oppent made a move.
   void oppentMove(const std::string& movement);
 
@@ -59,13 +56,13 @@ public:
 
   const Piece& getPiece(const sf::Vector2f& p) const;
 
+  //! \brief Place pieces on their position.
+  void loadPosition(const chessboard& board);
+
 private:
 
   //! \brief Load chessboard and pieces textures.
   void loadTextures();
-
-  //! \brief Place pieces on their position.
-  void loadPosition(bool const use_notes = true);
 
   //! \brief Move a piece with smooth displacement on the chessboard.
   void animation(const std::string& move);

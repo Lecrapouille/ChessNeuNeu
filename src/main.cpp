@@ -8,6 +8,7 @@ static void configure_parser(cli::Parser& parser)
   parser.set_optional<std::string>("b", "black", "Stockfish", "Define the black player: Human | Stockfish | NeuNeu");
 }
 
+// FIXME: deplacer la factory
 IPlayer *NeuNeuGUI::PlayerFactory(const PlayerType type, const Color side)
 {
   switch (type)
@@ -147,7 +148,8 @@ void NeuNeuGUI::handleInput()
         case sf::Event::KeyPressed:
           if (event.key.code == sf::Keyboard::BackSpace)
             {
-              m_board.moveBack();
+              m_rules.moveBack();
+              m_board.loadPosition(m_rules.m_current_position);
             }
           break;
 

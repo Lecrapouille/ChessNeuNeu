@@ -7,6 +7,8 @@
 //! \brief Define Side color.
 enum Color { Black, White };
 
+constexpr Color opposite(const Color c) { return Color::White == c ? Color::Black : Color::White; }
+
 //! \brief Define the different type of piece on the chessboard.
 enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed };
 
@@ -40,8 +42,10 @@ constexpr Piece BlackRook = { Color::Black, 0, 0, 0, PieceType::Rook };
 constexpr Piece BlackQueen = { Color::Black, 0, 0, 0, PieceType::Queen };
 constexpr Piece BlackKing = { Color::Black, 0, 0, 0, PieceType::King };
 
+using chessboard = std::array<Piece, 64u>;
+
 //! \brief Define the initial chessboard position. You can use the operator= for copy it.
-constexpr std::array<Piece, 64> c_init_board =
+constexpr chessboard c_init_board =
   {{
       BlackRook,   BlackKnight,  BlackBishop,  BlackQueen,  BlackKing,   BlackBishop,  BlackKnight,  BlackRook,
       BlackPawn,   BlackPawn,    BlackPawn,    BlackPawn,   BlackPawn,   BlackPawn,    BlackPawn,    BlackPawn,
@@ -51,6 +55,19 @@ constexpr std::array<Piece, 64> c_init_board =
       EmptySquare, EmptySquare,  EmptySquare,  EmptySquare, EmptySquare, EmptySquare,  EmptySquare,  EmptySquare,
       WhitePawn,   WhitePawn,    WhitePawn,    WhitePawn,   WhitePawn,   WhitePawn,    WhitePawn,    WhitePawn,
       WhiteRook,   WhiteKnight,  WhiteBishop,  WhiteQueen,  WhiteKing,   WhiteBishop,  WhiteKnight,  WhiteRook,
+    }};
+
+//! \brief Define a chessboard with no piece (and no kings). You can use the operator= for copy it.
+constexpr chessboard c_empty_board =
+  {{
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
+      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
     }};
 
 //! \brief Print the type of piece.
