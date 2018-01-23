@@ -35,11 +35,11 @@ endif
 
 ###################################################
 # Inform Makefile where to find header files
-INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/players -Isrc/utils -Isrc/GUI -I$(THIRDPART)/NeuralNetwork/Src -I$(THIRDPART)
+INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/players -Isrc/utils -Isrc/GUI -I$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH=$(BUILD):src:src/chess:src/players:src/utils:src/GUI:src/players:$(THIRDPART)/NeuralNetwork/Src/:$(THIRDPART)
+VPATH=$(BUILD):src:src/chess:src/players:src/utils:src/GUI:src/players:$(THIRDPART)
 
 ###################################################
 # Store files dependencies in *.d files.  When a file
@@ -49,7 +49,7 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Pieces.o Rules.o Board.o IPC.o Stockfish.o tcsp.o NeuNeu.o Human.o GUI.o main.o
+OBJ = Pieces.o Rules.o Board.o IPC.o Stockfish.o tcsp.o NeuNeu.o Neural.o Human.o GUI.o main.o
 
 ###################################################
 # Compilation options.
@@ -71,7 +71,7 @@ all: $(TARGET)
 
 ###################################################
 # Link sources
-$(TARGET): CmdParser NeuralNetwork $(OBJ)
+$(TARGET): CmdParser $(OBJ)
 	@$(call print-to,"Linking","$(TARGET)","$(BUILD)/$@","$(VERSION)")
 	@cd $(BUILD) && $(CXX) $(OBJ) -o $(TARGET) $(LIBS) $(LDFLAGS)
 
@@ -84,11 +84,8 @@ $(TARGET): CmdParser NeuralNetwork $(OBJ)
 
 ###################################################
 # Download external libs
-CmdParser:
+CmdParser: $(THIRDPART)
 	cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null
-
-NeuralNetwork:
-	cd $(THIRDPART) && rm -fr NeuralNetwork && git clone https://github.com/BobbyAnguelov/NeuralNetwork.git --depth=1 2> /dev/null
 
 ###################################################
 # Compress SimTaDyn sources without its .git, build
@@ -116,6 +113,7 @@ which-gcc:
 $(DEPFILES): | $(BUILD)
 $(OBJ): | $(BUILD)
 version.h: | $(BUILD)
+$(THIRDPART): $(BUILD)
 $(BUILD): which-gcc
 	@mkdir -p $(BUILD)
 	@mkdir -p $(THIRDPART)
