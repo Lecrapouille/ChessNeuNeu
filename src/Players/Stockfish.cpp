@@ -11,7 +11,7 @@ Stockfish::~Stockfish()
 {
 }
 
-std::string Stockfish::nextMove()
+std::string Stockfish::play()
 {
   std::string position("position startpos moves ");
   position += m_rules.m_moved;

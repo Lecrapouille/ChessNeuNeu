@@ -3,18 +3,22 @@
 
 #  include "GUI.hpp"
 #  include "Board.hpp"
-#  include "Stockfish.hpp"
-#  include "tcsp.hpp"
-#  include "NeuNeu.hpp"
-#  include "Human.hpp"
+#  include "Player.hpp"
 #  include "CmdParser/cmdparser.hpp"
 
-class NeuNeuGUI: public GUIState
+// ***********************************************************************************************
+//! \brief Main window showing the chessboard and allowing two players to play chess on this board.
+// ***********************************************************************************************
+class ChessGame: public GUIState
 {
 public:
 
-  NeuNeuGUI(GUI* gui, cli::Parser& parser);
-  void play(IPlayer *player, const Color color);
+  ChessGame(GUI* gui, cli::Parser& parser);
+
+private:
+
+  void play(IPlayer& player, const Color color);
+  void debug();
 
   virtual void draw(const float dt) override;
   virtual void update(const float dt) override;
@@ -24,8 +28,13 @@ public:
   GUI* m_gui;
   Rules m_rules;
   Board m_board;
-  IPlayer* m_players[2];
+  std::unique_ptr<IPlayer> m_players[2];
   Status m_previous_status = Status::Playing;
 };
+
+// ***********************************************************************************************
+//! \brief Window allowing to the user to choose the piece to promote.
+// ***********************************************************************************************
+//TODO class PawnPromotion: public GUIState
 
 #endif

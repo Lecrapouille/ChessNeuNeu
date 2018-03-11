@@ -1,7 +1,7 @@
 #ifndef NEUNEU_HPP
 #  define NEUNEU_HPP
 
-#  include "IPlayer.hpp"
+#  include "Player.hpp"
 #  include "Rules.hpp"
 
 enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight, NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
@@ -18,7 +18,7 @@ public:
 
   NeuNeu(const Rules &rules, const Color side);
   ~NeuNeu();
-  virtual std::string nextMove() override;
+  virtual std::string play() override;
   void debug(const NeuralPiece piece);
 
 private:

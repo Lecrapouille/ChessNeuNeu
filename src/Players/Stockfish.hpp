@@ -1,7 +1,7 @@
 #ifndef STOCKFISH_HPP
 #  define STOCKFISH_HPP
 
-#  include "IPlayer.hpp"
+#  include "Player.hpp"
 #  include "Rules.hpp"
 #  include "IPC.hpp"
 
@@ -11,7 +11,7 @@ public:
 
   Stockfish(const Rules &rules, const Color side);
   ~Stockfish();
-  virtual std::string nextMove() override;
+  virtual std::string play() override;
   void debug();
 
 private:

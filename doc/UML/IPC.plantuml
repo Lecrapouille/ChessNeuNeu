@@ -1,0 +1,11 @@
+@startuml
+
+node ChessNN {
+}
+
+node Stockfish {
+}
+
+ChessNN -0)- Stockfish: "  IPC
+
+@enduml

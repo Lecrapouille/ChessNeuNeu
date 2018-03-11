@@ -1,22 +1,18 @@
 #include "main.hpp"
-#include <algorithm>
+#include "Stockfish.hpp"
+#include "TSCP.hpp"
+#include "NeuNeu.hpp"
+#include "Human.hpp"
 #include <cassert>
 
-static void configure_parser(cli::Parser& parser)
-{
-  parser.set_optional<std::string>("w", "white", "Human", "Define the white player: Human | Stockfish | NeuNeu");
-  parser.set_optional<std::string>("b", "black", "Stockfish", "Define the black player: Human | Stockfish | NeuNeu");
-}
-
-// FIXME: deplacer la factory
-IPlayer *NeuNeuGUI::PlayerFactory(const PlayerType type, const Color side)
+IPlayer *ChessGame::PlayerFactory(const PlayerType type, const Color side)
 {
   switch (type)
     {
     case PlayerType::StockfishIA:
       return new Stockfish(m_rules, side);
-    case PlayerType::TcspIA:
-      return new Tcsp(m_rules, side);
+    case PlayerType::TscpIA:
+      return new Tscp(m_rules, side);
     case PlayerType::NeuNeuIA:
       return new NeuNeu(m_rules, side);
     case PlayerType::HumanPlayer:
@@ -26,30 +22,33 @@ IPlayer *NeuNeuGUI::PlayerFactory(const PlayerType type, const Color side)
     }
 }
 
-static PlayerType toPlayerType(const std::string& player)
+ChessGame::ChessGame(GUI* gui, cli::Parser& parser)
+  : m_gui(gui), /*m_rules(Color::Black),*/ m_board(m_rules, gui->m_window)
 {
-  std::string name(player);
-  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-  if (name == "stockfish") return PlayerType::StockfishIA;
-  if (name == "neuneu") return PlayerType::NeuNeuIA;
-  if (name == "human") return PlayerType::HumanPlayer;
-  if (name == "tcsp") return PlayerType::TcspIA;
+  // Get Player types from program options --white and --black.
+  // An exception is trhown if player type is badly typed.
+  PlayerType white = playerType(parser.get<std::string>("w"));
+  PlayerType black = playerType(parser.get<std::string>("b"));
 
-  std::cerr << "Unknonw PlayerType: " << player << std::endl;
-  exit(1);
+  // Create two players
+  m_players[Color::White].reset(PlayerFactory(white, Color::White));
+  m_players[Color::Black].reset(PlayerFactory(black, Color::Black));
+
+  // Debug
+  std::cout
+    << m_players[Color::White]->type()
+    << " is playing as "
+    << m_players[Color::White]->side()
+    << std::endl
+    << m_players[Color::Black]->type()
+    << " is playing as "
+    << m_players[Color::Black]->side()
+    << std::endl;
+  debug();
 }
 
-NeuNeuGUI::NeuNeuGUI(GUI* gui, cli::Parser& parser)
-  : GUIState(), m_gui(gui), /*m_rules(Color::Black),*/ m_board(m_rules, gui->m_window)
+void ChessGame::debug()
 {
-  m_players[Color::White] = PlayerFactory(toPlayerType(parser.get<std::string>("w")), Color::White);
-  m_players[Color::Black] = PlayerFactory(toPlayerType(parser.get<std::string>("b")), Color::Black);
-
-  for (uint8_t i = 0; i < 2u; ++i)
-   {
-     std::cout << m_players[i]->type() << " is playing as " << m_players[i]->side() << std::endl;
-   }
-
   std::cout << m_rules.m_current_position << std::endl;
   std::cout << m_rules.m_side << " are playing";
   Status status = m_rules.generateValidMoves();
@@ -60,12 +59,12 @@ NeuNeuGUI::NeuNeuGUI(GUI* gui, cli::Parser& parser)
   std::cout << std::endl;
 }
 
-void NeuNeuGUI::draw(const float dt)
+void ChessGame::draw(const float dt)
 {
   m_board.draw();
 }
 
-void NeuNeuGUI::play(IPlayer *player, const Color color)
+void ChessGame::play(IPlayer& player, const Color color)
 {
   std::string next_move;
   int max_errors = 0;
@@ -73,53 +72,50 @@ void NeuNeuGUI::play(IPlayer *player, const Color color)
   if (m_rules.m_status != Status::Playing)
     return ;
 
-  if ((player->type() != PlayerType::HumanPlayer) && (color == m_rules.m_side))
-    {
-      std::cout << player->type() << " is thinking" << std::endl;
+  // FIXME
+  if (PlayerType::HumanPlayer == player.type())
+    return ;
 
-      // "error" message instead of chess move can comes from of the following bugs (to be fixed):
-      // -- Stockfish had no time for computing a move.
-      // -- Rules class did not manage a rule (en passant, promotion, castle, mat)
-      do {
-        next_move = player->nextMove();
-        if (0 == next_move.compare("error"))
-          {
-            ++max_errors;
-            std::cout << player->type() << " failed x" << max_errors << std::endl;
-          }
-        else
-          {
-            m_board.oppentMove(next_move);
-            return ;
-          }
-        if (max_errors > 7)
-          m_rules.m_status = Status::InternalError;
-      } while (max_errors <= 7);
-    }
+  if (color != m_rules.m_side)
+    return ;
+
+  std::cout << player.type() << " is thinking" << std::endl;
+
+  // "error" message instead of chess move can comes from of the following bugs (to be fixed):
+  // -- Stockfish had no time for computing a move.
+  // -- Rules class did not manage a rule (en passant, promotion, castle, mat)
+  do {
+    next_move = player.play();
+    if (0 == next_move.compare("error"))
+      {
+        ++max_errors;
+        std::cout << player.type() << " failed x" << max_errors << std::endl;
+      }
+    else
+      {
+        std::cout << "Move: " << next_move << std::endl;
+        m_board.moveWithAnimation(next_move);
+        m_rules.makeMove(next_move);
+        return ;
+      }
+    if (max_errors > 7)
+      m_rules.m_status = Status::InternalError;
+  } while (max_errors <= 7);
 }
 
-void NeuNeuGUI::update(const float dt)
+void ChessGame::update(const float dt)
 {
-  play(m_players[Color::White], Color::White);
-  play(m_players[Color::Black], Color::Black);
+  play(*m_players[Color::White], Color::White);
+  play(*m_players[Color::Black], Color::Black);
 
-  /*if ((g_end_of_game) && (g_previous_end_of_game != g_end_of_game))
-    {
-      if (m_rules.m_status == Status::Playing)
-        std::cout << "End of game because NeuNeu got internal failures" << std::endl;
-      else
-        std::cout << "End of game: " << m_rules.m_status << std::endl;
-    }
-    g_previous_end_of_game = g_end_of_game;*/
-
-  if ((m_rules.m_status) && (m_previous_status  != m_rules.m_status))
+  if ((m_rules.m_status) && (m_previous_status != m_rules.m_status))
     {
       std::cout << "End of game: " << m_rules.m_status << std::endl;
     }
   m_previous_status = m_rules.m_status;
 }
 
-void NeuNeuGUI::handleInput()
+void ChessGame::handleInput()
 {
   sf::Event event;
   m_board.mousePosition(sf::Mouse::getPosition(m_gui->m_window));
@@ -159,10 +155,18 @@ void NeuNeuGUI::handleInput()
     }
 }
 
+static void configure_parser(cli::Parser& parser)
+{
+  parser.set_optional<std::string>
+    ("w", "white", "Human", "Define the white player: Human | Stockfish | NeuNeu");
+  parser.set_optional<std::string>
+    ("b", "black", "Stockfish", "Define the black player: Human | Stockfish | NeuNeu");
+}
+
 int main(int argc, char** argv)
 {
   // Initialize random seed
-  srand (time(NULL));
+  srand(time(NULL));
 
   // Init the 'argv' parser
   cli::Parser parser(argc, argv);
@@ -171,7 +175,7 @@ int main(int argc, char** argv)
 
   // Init and run the graphical user interface (GUI)
   GUI gui;
-  gui.pushState(new NeuNeuGUI(&gui, parser));
+  gui.pushState(new ChessGame(&gui, parser));
   gui.mainLoop();
 
   return 0;

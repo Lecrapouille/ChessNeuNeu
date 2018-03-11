@@ -1,10 +1,11 @@
 #include "Board.hpp"
 #include <iostream>
+#include <cassert>
 
 Board::Board(Rules &rules, sf::RenderWindow &window)
   : m_rules(rules), // FIXME ideal si on on peut le virer
     m_window(window),
-    m_piece(0u),
+    m_taken_piece(0u),
     m_moving_figure(false)
 {
   loadTextures();
@@ -24,7 +25,7 @@ void Board::loadTextures()
       std::cerr << "Failed loading textures" << std::endl;
     }
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     {
       m_figures[i].setTexture(m_textures[0]);
     }
@@ -35,59 +36,68 @@ void Board::loadPosition(const chessboard& board)
 {
   uint8_t k = 0;
 
-  for (uint8_t ij = 0u; ij < 64u; ++ij)
+  for (uint8_t ij = 0u; ij < NbSquares; ++ij)
     {
-      const Piece n = board[ij];
-      if (n.type == PieceType::Empty)
+      const Piece p = board[ij];
+      if (p.type == PieceType::Empty)
         continue;
 
-      const uint32_t x = n.type - 1u;
-      const uint32_t y = n.color;
-      m_figures[k].setTextureRect(sf::IntRect(config::figure_size * x,
-                                              config::figure_size * y,
-                                              config::figure_size,
-                                              config::figure_size));
-      m_figures[k].setPosition(config::figure_size * COL(ij),
-                               config::figure_size * ROW(ij));
+      const uint32_t x = p.type - 1u;
+      const uint32_t y = p.color;
+      m_figures[k].setTextureRect(sf::IntRect(config::dim::figure * x,
+                                              config::dim::figure * y,
+                                              config::dim::figure,
+                                              config::dim::figure));
+      m_figures[k].setPosition(config::dim::figure * COL(ij),
+                               config::dim::figure * ROW(ij));
       ++k;
     }
 
-  for (; k < 32u; ++k)
+  // Hide unused pieces
+  for (; k < NbPieces; ++k)
     m_figures[k].setPosition(-1000, -1000);
 }
 
-//! \param move the new valid move like "e2e4".
+//! \param move the newly played move in format like "e2e4".
 //! \note: the move shall be valid !
-void Board::animation(const std::string& movement) //  FIXME Move au lieu de movement
+void Board::moveWithAnimation(const std::string& move)
 {
-  m_old_pos = toCoord(movement[0], movement[1]);
-  m_new_pos = toCoord(movement[2], movement[3]);
+  m_old_pos = toCoord(move[0], move[1]);
+  m_new_pos = toCoord(move[2], move[3]);
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  uint8_t taken_piece = NbPieces;
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     {
       if (m_figures[i].getPosition() == m_old_pos)
         {
-          m_piece = i;
+          taken_piece = i;
         }
     }
 
+  // Assert piece taken (else that would mean that
+  // given move was illegal)
+  assert(taken_piece != NbPieces);
+  m_taken_piece = taken_piece;
+
   // Smooth animation
-  for (uint32_t k = 0; k < 50; ++k)
+  const uint32_t smooth = 50;
+  for (uint32_t k = 0; k < smooth; ++k)
     {
       sf::Vector2f p = m_new_pos - m_old_pos;
-      m_figures[m_piece].move(p.x / 50, p.y / 50);
+      m_figures[m_taken_piece].move(p.x / smooth,
+                                    p.y / smooth);
       draw();
     }
 
-  noAnimation(movement);
+  moveWithoutAnimation(move);
 }
 
-void Board::noAnimation(const std::string& movement) // FIXME Move au lieu de movement
+void Board::moveWithoutAnimation(const std::string& move)
 {
-  sf::Vector2f oldPos = toCoord(movement[0], movement[1]);
-  sf::Vector2f newPos = toCoord(movement[2], movement[3]);
+  sf::Vector2f oldPos = toCoord(move[0], move[1]);
+  sf::Vector2f newPos = toCoord(move[2], move[3]);
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     {
       if (m_figures[i].getPosition() == newPos)
         {
@@ -95,7 +105,7 @@ void Board::noAnimation(const std::string& movement) // FIXME Move au lieu de mo
         }
     }
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     {
       if (m_figures[i].getPosition() == oldPos)
         {
@@ -103,20 +113,16 @@ void Board::noAnimation(const std::string& movement) // FIXME Move au lieu de mo
         }
     }
 
-  m_figures[m_piece].setPosition(m_new_pos);
+  m_figures[m_taken_piece].setPosition(m_new_pos);
 }
 
-void Board::oppentMove(const std::string& next_move)
+const Piece &Board::getPiece(const sf::Vector2f& mouse) const
 {
-  animation(next_move);
-  m_rules.makeMove(next_move);
-}
+  int x = mouse.x / config::dim::figure;
+  int y = mouse.y / config::dim::figure;
 
-const Piece &Board::getPiece(const sf::Vector2f& p) const
-{
-  int x = p.x / config::figure_size;
-  int y = p.y / config::figure_size;
-
+  // Paranoia: SFML allow click event with mouse position
+  // outside the chessboard.
   if (x < 0) x = 0; else if (x > 7) x = 7;
   if (y < 0) y = 0; else if (y > 7) y = 7;
 
@@ -129,24 +135,25 @@ void Board::takeFigure()
   if (true == m_moving_figure)
     return ;
 
-  // End of the game
+  // Do not allow moving piece if the game ended
   if (Status::Playing != m_rules.m_status)
     return ;
 
   // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dimension.x))
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x))
     return ;
-  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dimension.y))
+  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
     return ;
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  // Find which piece is in the mouse cursor
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     {
       if (m_figures[i].getGlobalBounds().contains(m_mouse.x, m_mouse.y))
         {
           const Piece& piece = getPiece(m_mouse);
           if (piece.color == m_rules.m_side)
             {
-              m_piece = i;
+              m_taken_piece = i;
               m_delta_pos = m_mouse - m_figures[i].getPosition();
               m_old_pos = m_figures[i].getPosition();
               m_moving_figure = true;
@@ -166,20 +173,20 @@ void Board::releaseFigure()
     return ;
 
   // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dimension.x))
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x))
     return ;
-  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dimension.y))
+  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
     return ;
 
   //
-  sf::Vector2f p = m_figures[m_piece].getPosition()
-                 +  sf::Vector2f(config::figure_size / 2, config::figure_size / 2);
-  m_new_pos = sf::Vector2f(config::figure_size * int(p.x / config::figure_size),
-                           config::figure_size * int(p.y / config::figure_size));
+  sf::Vector2f p = m_figures[m_taken_piece].getPosition()
+                 +  sf::Vector2f(config::dim::figure / 2, config::dim::figure / 2);
+  m_new_pos = sf::Vector2f(config::dim::figure * int(p.x / config::dim::figure),
+                           config::dim::figure * int(p.y / config::dim::figure));
 
   if (m_old_pos == m_new_pos)
     {
-      m_figures[m_piece].setPosition(m_new_pos);
+      m_figures[m_taken_piece].setPosition(m_new_pos);
       m_moving_figure = false;
       return ;
     }
@@ -198,9 +205,8 @@ void Board::releaseFigure()
   if (!m_rules.isValidMove(Move(next_move)))
     return ;
 
-  noAnimation(next_move);
-  //m_figures[m_piece].setPosition(m_new_pos);
-
+  // FIXME: en conflit avec main::play()
+  moveWithoutAnimation(next_move);
   m_rules.makeMove(next_move);
   m_moving_figure = false;
   draw();
@@ -211,21 +217,21 @@ void Board::draw()
   // Draw the figure when the user is grabbing it
   if (m_moving_figure)
     {
-      m_figures[m_piece].setPosition(m_mouse - m_delta_pos);
+      m_figures[m_taken_piece].setPosition(m_mouse - m_delta_pos);
     }
 
   m_window.draw(m_sboard);
 
-  for (uint8_t i = 0u; i < 32u; ++i)
-    m_figures[i].move(config::border);
+  for (uint8_t i = 0u; i < NbPieces; ++i)
+    m_figures[i].move(config::dim::border);
 
-  for (uint8_t i = 0u; i < 32u; ++i)
+  for (uint8_t i = 0u; i < NbPieces; ++i)
     m_window.draw(m_figures[i]);
 
-  m_window.draw(m_figures[m_piece]);
+  m_window.draw(m_figures[m_taken_piece]);
 
-  for (uint8_t i = 0u; i < 32u; ++i)
-    m_figures[i].move(-config::border);
+  for (uint8_t i = 0u; i < NbPieces; ++i)
+    m_figures[i].move(-config::dim::border);
 
   m_window.display();
 }

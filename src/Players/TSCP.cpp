@@ -1,8 +1,8 @@
-#include "tcsp.hpp"
+#include "TSCP.hpp"
 #include <iostream>
 
-Tcsp::Tcsp(const Rules &rules, const Color side)
-  : IPC("tscp"), IPlayer(PlayerType::TcspIA, side), m_rules(rules)
+Tscp::Tscp(const Rules &rules, const Color side)
+  : IPC("tscp"), IPlayer(PlayerType::TscpIA, side), m_rules(rules)
 {
   usleep(10000);
   read();
@@ -18,12 +18,12 @@ Tcsp::Tcsp(const Rules &rules, const Color side)
   //std::cout << read() << std::endl;
 }
 
-Tcsp::~Tcsp()
+Tscp::~Tscp()
 {
   write("bye\n");
 }
 
-std::string Tcsp::nextMove()
+std::string Tscp::play()
 {
   //if (m_rules.m_moved.size() >= 5)
   std::string next_move(m_rules.m_moved.substr(m_rules.m_moved.size() - 5 , 4));
@@ -43,7 +43,7 @@ std::string Tcsp::nextMove()
   if (n != -1)
     {
       std::string move = answer.substr(n, 4);
-      std::cout << "Tcsp move is '" << move << "'" << std::endl;
+      std::cout << "TSCP move is '" << move << "'" << std::endl;
       return move;
     }
 

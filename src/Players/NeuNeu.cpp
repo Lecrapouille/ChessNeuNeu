@@ -228,7 +228,7 @@ Piece NeuNeu::NeuralPiece2Piece(const NeuralPiece piece) const
 }
 
 // FIXME mettre en place la liste des pieces dans Rules pour eviter de rechercher une piece
-std::string NeuNeu::nextMove()
+std::string NeuNeu::play()
 {
   // No move possible
   int len = m_rules.m_legal_moves.size();

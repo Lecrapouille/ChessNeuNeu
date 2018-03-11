@@ -19,7 +19,7 @@ print-to = \
 
 ###################################################
 # Executable name
-TARGET = NeuNeu
+TARGET = ChessNeuNeu
 
 ###################################################
 # Default path storing compilation files (*.o ...)
@@ -35,11 +35,11 @@ endif
 
 ###################################################
 # Inform Makefile where to find header files
-INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/players -Isrc/utils -Isrc/GUI -I$(THIRDPART)
+INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/Players -Isrc/utils -Isrc/GUI -I$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH=$(BUILD):src:src/chess:src/players:src/utils:src/GUI:src/players:$(THIRDPART)
+VPATH=$(BUILD):src:src/chess:src/Players:src/utils:src/GUI:src/players:$(THIRDPART)
 
 ###################################################
 # Store files dependencies in *.d files.  When a file
@@ -49,7 +49,7 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Pieces.o Rules.o Board.o IPC.o Stockfish.o tcsp.o NeuNeu.o Human.o GUI.o main.o
+OBJ = Pieces.o Rules.o Board.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
 
 ###################################################
 # Compilation options.
@@ -86,6 +86,13 @@ $(TARGET): CmdParser $(OBJ)
 # Download external libs
 CmdParser: $(THIRDPART)
 	cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null
+
+###################################################
+# Generate the code source documentation with doxygen.
+.PHONY: doc
+doc:
+	@doxygen Doxyfile
+	@xdg-open doc/html/index.html >/dev/null
 
 ###################################################
 # Compress SimTaDyn sources without its .git, build

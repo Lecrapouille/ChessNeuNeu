@@ -4,9 +4,16 @@
 #  include <iostream>
 #  include <array>
 
+//! \brief Number of squares in a chessboard.
+constexpr uint8_t NbSquares = 64u;
+
+//! \brief Max number of pieces in a chessboard.
+constexpr uint8_t NbPieces = 32u;
+
 //! \brief Define Side color.
 enum Color { Black, White };
 
+//! \brief Return the opposite color.
 constexpr Color opposite(const Color c) { return Color::White == c ? Color::Black : Color::White; }
 
 //! \brief Define the different type of piece on the chessboard.
@@ -15,7 +22,7 @@ enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed };
 //! \brief The type of a piece is not the only important informations: we also need the color.
 //! and if a piece have moved (for castle for example). Some informations are stored to avoid
 //! searching them many times.
-struct Piece
+struct Piece // FIXME _foo are not yet used
 {
   unsigned int color : 1;    // Bit 7: store Color enum
   unsigned int _attacked: 1; // Bit 6: if an opponent piece attacks this piece (check for the King)

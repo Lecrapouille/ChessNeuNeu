@@ -1,0 +1,84 @@
+@startuml
+
+class IPC {
++IPC(program: string)
++write(message: string)
++read(): string
+}
+
+class GUI {
++push(GUIState)
++pop(): GUIState
++pick(): GUIState
+-GUIState* stack
+}
+
+interface GUIState {
+-{abstract} draw()
+-{abstract} update()
+-{abstract} handleInput()
+}
+
+class ChessGame {
+-draw()
+-update()
+-handleInput()
+-createPlayers(): Player[2]
+}
+
+class UIBoard {
++draw()
++takeFigure(mouse_position: x/y)
++releaseFigure(mouse_position: x/y)
++oppentPlay(Move)
++loadPosition(chessboard)
+}
+
+class Rules {
+-Square[8][8]: chessboard
++isValidMove(Move): bool
++getValidMoves(): list
++makeMove(Move)
++loadPosition(chessboard)
++loadPostion(listMoves)
+}
+
+interface Player {
++IPlayer(color)
++{abstract} play(): Move
+}
+
+class Human {
++play(): Move
+}
+
+class Stockfish {
++play(): Move
+}
+
+class ChessNN {
++play(): Move
+}
+
+class Square {
++ Color/Type: Piece
++ bool: empty
+}
+
+GUI -> "*" GUIState: "stack"
+GUIState <|-- ChessGame
+ChessGame -> "1" Rules
+ChessGame --> "2" Player
+ChessGame --> "1" UIBoard
+UIBoard <.. Human: "use"
+Rules <.. UIBoard: "use"
+
+Player <|-- Human
+Player <|-- Stockfish
+Player <|-- ChessNN
+IPC <.. Stockfish: "use"
+
+Rules <.. Player: "use"
+Rules --> "64" Square: chessboard
+
+@enduml

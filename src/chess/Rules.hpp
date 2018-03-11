@@ -2,7 +2,6 @@
 #  define RULES_HPP
 
 #  include "Pieces.hpp"
-#  include <array>
 #  include <string>
 #  include <vector>
 
