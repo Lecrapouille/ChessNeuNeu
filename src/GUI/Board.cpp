@@ -1,4 +1,4 @@
-#include "Board.hpp"
+#include "GUI/Board.hpp"
 #include <iostream>
 #include <cassert>
 
@@ -9,7 +9,7 @@ Board::Board(Rules &rules, sf::RenderWindow &window)
     m_moving_figure(false)
 {
   loadTextures();
-  loadPosition(m_rules.m_current_position);
+  loadPosition(m_rules.m_board);
 }
 
 Board::~Board()
@@ -76,7 +76,7 @@ void Board::moveWithAnimation(const std::string& move)
 
   // Assert piece taken (else that would mean that
   // given move was illegal)
-  assert(taken_piece != NbPieces);
+  assert(taken_piece != NbPieces && "Illegal move");
   m_taken_piece = taken_piece;
 
   // Smooth animation
@@ -126,7 +126,7 @@ const Piece &Board::getPiece(const sf::Vector2f& mouse) const
   if (x < 0) x = 0; else if (x > 7) x = 7;
   if (y < 0) y = 0; else if (y > 7) y = 7;
 
-  return m_rules.m_current_position[y * 8 + x];
+  return m_rules.m_board[y * 8 + x];
 }
 
 void Board::takeFigure()
@@ -135,14 +135,13 @@ void Board::takeFigure()
   if (true == m_moving_figure)
     return ;
 
-  // Do not allow moving piece if the game ended
+  // No end game (checkmate, stalemate ...)
   if (Status::Playing != m_rules.m_status)
     return ;
 
   // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x))
-    return ;
-  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x) ||
+      (m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
     return ;
 
   // Find which piece is in the mouse cursor
@@ -173,9 +172,8 @@ void Board::releaseFigure()
     return ;
 
   // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x))
-    return ;
-  if ((m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
+  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x) ||
+      (m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
     return ;
 
   //
@@ -194,7 +192,6 @@ void Board::releaseFigure()
   // Fast filter of illegal move.
   // Player is trying to release its picked figure on a figure of his side.
   const Piece& piece = getPiece(m_mouse);
-  std::cout << piece << std::endl;
   if ((piece.color == m_rules.m_side) && (piece.type != PieceType::Empty))
     return ;
 

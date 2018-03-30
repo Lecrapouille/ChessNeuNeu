@@ -2,7 +2,7 @@
 #  define HUMAN_HPP
 
 #  include "Player.hpp"
-#  include "Board.hpp"
+#  include "GUI/Board.hpp"
 
 class Human: public IPlayer
 {

@@ -1,15 +1,9 @@
-#ifndef RULES_HPP
-#  define RULES_HPP
+#ifndef CHESS_RULES_HPP
+#  define CHESS_RULES_HPP
 
-#  include "Pieces.hpp"
+#  include "Chess/Board.hpp" // FIXME FEN.hpp
 #  include <string>
 #  include <vector>
-
-//! \brief Access to the chessboard rows.
-#  define ROW(x)                        (x >> 3)
-
-//! \brief Access to the chessboard columns.
-#  define COL(x)                        (x & 7)
 
 //! \brief Print the type of piece.
 enum Castle { NoCastle, Little, Big };
@@ -18,7 +12,15 @@ enum Castle { NoCastle, Little, Big };
 //! that means the game has ended and for example: -- GUI should stop accepting
 //! moving pieces from user mouse clicks; -- disable communication with other
 //! chess engines.
-enum Status { Playing, Pat, WhiteWon, BlackWon, Draw, InternalError };
+enum Status { Playing, WhiteWon, BlackWon, Stalemate, NoMoveAvailable, /*FIXME a separer*/ InternalError };
+
+//! \brief Give this information to the Rules class if you desired no Kings on the chessboard.
+//! This violates the chess rules but is useful for neural network trainings or unit tests.
+constexpr bool WithNoKings = true;
+
+//! \brief Give this information to the Rules class for playing official chess rules with Kings
+//! This is the default behavior.
+constexpr bool WithKings = false;
 
 //! \brief Print the game status.
 std::ostream& operator<<(std::ostream& os, const Status& s);
@@ -28,11 +30,13 @@ std::ostream& operator<<(std::ostream& os, const Status& s);
 // ***********************************************************************************************
 struct Move
 {
+public:
+
   Move(const std::string move)
   {
     from = ('8' - move[1]) * 8 + move[0] - 'a';
     to = ('8' - move[3]) * 8 + move[2] - 'a';
-    piece = EmptySquare;
+    piece = NoPiece;
     promote = false;
     castle = Castle::NoCastle;
     ep = false;
@@ -43,7 +47,7 @@ struct Move
   {
     from = f;
     to = t;
-    piece = EmptySquare; // FIXME (false == e) ? EmptySquare : position du pion pris;
+    piece = NoPiece; // FIXME (false == e) ? NoPiece : position du pion pris;
     promote = false;
     castle = Castle::NoCastle;
     ep = e;
@@ -71,6 +75,11 @@ struct Move
     check = false;
   }
 
+  inline bool operator==(Move const &other) const
+  {
+    return (from == other.from) && (to == other.to);
+  }
+
   uint8_t from;
   uint8_t to;
   Piece   piece;
@@ -80,7 +89,7 @@ struct Move
     unsigned int promote       : 1; // See Piece for promotion
     unsigned int ep            : 1; // En passant move
     unsigned int check         : 1; // King check
-    unsigned int foo           : 3;
+    unsigned int piece_moved   : 3;
   };
 };
 
@@ -100,8 +109,14 @@ class Rules // TODO add Kings positions, add number of pieces
 {
 public:
 
-  Rules(const Color s = Color::White)
-    : m_status(Status::Playing), m_side(s), m_current_position(c_init_board), m_next_position(c_init_board)
+  Rules(const Color side = Color::White,
+        const chessboard &board = Chessboard::Init,
+        bool noking = WithKings)
+    : m_status(Status::Playing),
+      m_side(side),
+      m_board(board),
+      m_tmp_board(board),
+      hasNoKing(noking)
   {
     generateValidMoves();
   }
@@ -155,18 +170,16 @@ public: // FIXME should be private but ok because the class is used as const
   Status                m_status;
   //! \brief The Indicate which player can move.
   Color                 m_side;
-  //! \brief Save the list of moves which made m_current_position.
+  //! \brief Save the list of moves which made m_board.
   std::string           m_moved;
-  //! \brief List of legal moves from m_current_position.
+  //! \brief List of legal moves from m_board.
   std::vector<Move>     m_legal_moves;
   //! \brief Current pieces positions after playing all moves stored in m_moved.
-  std::array<Piece, 64> m_current_position;
+  chessboard            m_board;
   //! \brief Temporary board for computations.
-  std::array<Piece, 64> m_next_position;
+  chessboard            m_tmp_board;
 
-  bool hasNoKing = false;
+  bool hasNoKing;
 };
-
-std::ostream& operator<<(std::ostream& os, chessboard& position);
 
 #endif

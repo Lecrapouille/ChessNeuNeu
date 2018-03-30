@@ -1,11 +1,8 @@
-#ifndef PIECES_HPP
-#  define PIECES_HPP
+#ifndef CHESS_PIECES_HPP
+#  define CHESS_PIECES_HPP
 
 #  include <iostream>
-#  include <array>
-
-//! \brief Number of squares in a chessboard.
-constexpr uint8_t NbSquares = 64u;
+#  include <map>
 
 //! \brief Max number of pieces in a chessboard.
 constexpr uint8_t NbPieces = 32u;
@@ -31,52 +28,42 @@ struct Piece // FIXME _foo are not yet used
   unsigned int type : 4;     // Bit 3-0: store PieceType enum
 };
 
+//! \brief Piece comparator. We only compare color and type of piece.
+//! Other informations are ignored.
+inline bool operator==(const Piece& lhs, const Piece& rhs)
+{
+  return (lhs.color == rhs.color) && (lhs.type == rhs.type);
+}
+
+//! \brief Piece comparator. We only compare color and type of piece.
+//! Other informations are ignored.
+inline bool operator!=(const Piece& lhs, const Piece& rhs)
+{
+  return !(lhs == rhs);
+}
+
 //! \brief Empty square when there is no piece on the square.
 //! FIXME the fake White color creates problem
-constexpr Piece EmptySquare = { Color::White, 0, 0, 0, PieceType::Empty };
+constexpr Piece NoPiece     = { Color::White, 0, 0, 0, PieceType::Empty };
 
-constexpr Piece WhitePawn = { Color::White, 0, 0, 0, PieceType::Pawn };
+constexpr Piece WhitePawn   = { Color::White, 0, 0, 0, PieceType::Pawn };
 constexpr Piece WhiteKnight = { Color::White, 0, 0, 0, PieceType::Knight };
 constexpr Piece WhiteBishop = { Color::White, 0, 0, 0, PieceType::Bishop };
-constexpr Piece WhiteRook = { Color::White, 0, 0, 0, PieceType::Rook };
-constexpr Piece WhiteQueen = { Color::White, 0, 0, 0, PieceType::Queen };
-constexpr Piece WhiteKing = { Color::White, 0, 0, 0, PieceType::King };
+constexpr Piece WhiteRook   = { Color::White, 0, 0, 0, PieceType::Rook };
+constexpr Piece WhiteQueen  = { Color::White, 0, 0, 0, PieceType::Queen };
+constexpr Piece WhiteKing   = { Color::White, 0, 0, 0, PieceType::King };
 
-constexpr Piece BlackPawn = { Color::Black, 0, 0, 0, PieceType::Pawn };
+constexpr Piece BlackPawn   = { Color::Black, 0, 0, 0, PieceType::Pawn };
 constexpr Piece BlackKnight = { Color::Black, 0, 0, 0, PieceType::Knight };
 constexpr Piece BlackBishop = { Color::Black, 0, 0, 0, PieceType::Bishop };
-constexpr Piece BlackRook = { Color::Black, 0, 0, 0, PieceType::Rook };
-constexpr Piece BlackQueen = { Color::Black, 0, 0, 0, PieceType::Queen };
-constexpr Piece BlackKing = { Color::Black, 0, 0, 0, PieceType::King };
+constexpr Piece BlackRook   = { Color::Black, 0, 0, 0, PieceType::Rook };
+constexpr Piece BlackQueen  = { Color::Black, 0, 0, 0, PieceType::Queen };
+constexpr Piece BlackKing   = { Color::Black, 0, 0, 0, PieceType::King };
 
-using chessboard = std::array<Piece, 64u>;
-
-//! \brief Define the initial chessboard position. You can use the operator= for copy it.
-constexpr chessboard c_init_board =
-  {{
-      BlackRook,   BlackKnight,  BlackBishop,  BlackQueen,  BlackKing,   BlackBishop,  BlackKnight,  BlackRook,
-      BlackPawn,   BlackPawn,    BlackPawn,    BlackPawn,   BlackPawn,   BlackPawn,    BlackPawn,    BlackPawn,
-      EmptySquare, EmptySquare,  EmptySquare,  EmptySquare, EmptySquare, EmptySquare,  EmptySquare,  EmptySquare,
-      EmptySquare, EmptySquare,  EmptySquare,  EmptySquare, EmptySquare, EmptySquare,  EmptySquare,  EmptySquare,
-      EmptySquare, EmptySquare,  EmptySquare,  EmptySquare, EmptySquare, EmptySquare,  EmptySquare,  EmptySquare,
-      EmptySquare, EmptySquare,  EmptySquare,  EmptySquare, EmptySquare, EmptySquare,  EmptySquare,  EmptySquare,
-      WhitePawn,   WhitePawn,    WhitePawn,    WhitePawn,   WhitePawn,   WhitePawn,    WhitePawn,    WhitePawn,
-      WhiteRook,   WhiteKnight,  WhiteBishop,  WhiteQueen,  WhiteKing,   WhiteBishop,  WhiteKnight,  WhiteRook,
-    }};
-
-//! \brief Define a chessboard with no piece (and no kings). You can use the operator= for copy it.
-constexpr chessboard c_empty_board =
-  {{
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-      EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare, EmptySquare,
-    }};
-
+//! \brief Convert an ascii char to a Piece class.
+//! \param c shall be one char from "prbnkqPRBNKQ"
+//! \return the Piece if c is valid else return NoPiece.
+Piece char2Piece(const char c);
 //! \brief Print the type of piece.
 std::ostream& operator<<(std::ostream& os, const PieceType& p);
 //! \brief Print the type of piece.

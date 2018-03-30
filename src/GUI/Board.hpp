@@ -1,7 +1,7 @@
 #ifndef BOARD_HPP
 #  define BOARD_HPP
 
-#  include "Rules.hpp"
+#  include "Chess/Rules.hpp"
 #  include <SFML/Graphics.hpp>
 
 // ***********************************************************************************************

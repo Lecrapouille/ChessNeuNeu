@@ -1,8 +1,8 @@
 #include "main.hpp"
-#include "Stockfish.hpp"
-#include "TSCP.hpp"
-#include "NeuNeu.hpp"
-#include "Human.hpp"
+#include "Players/Stockfish.hpp"
+#include "Players/TSCP.hpp"
+#include "Players/NeuNeu.hpp"
+#include "Players/Human.hpp"
 #include <cassert>
 
 IPlayer *ChessGame::PlayerFactory(const PlayerType type, const Color side)
@@ -49,7 +49,7 @@ ChessGame::ChessGame(GUI* gui, cli::Parser& parser)
 
 void ChessGame::debug()
 {
-  std::cout << m_rules.m_current_position << std::endl;
+  std::cout << m_rules.m_board << std::endl;
   std::cout << m_rules.m_side << " are playing";
   Status status = m_rules.generateValidMoves();
   if (status != Status::Playing)
@@ -145,7 +145,7 @@ void ChessGame::handleInput()
           if (event.key.code == sf::Keyboard::BackSpace)
             {
               m_rules.moveBack();
-              m_board.loadPosition(m_rules.m_current_position);
+              m_board.loadPosition(m_rules.m_board);
             }
           break;
 

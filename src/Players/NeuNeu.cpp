@@ -151,7 +151,7 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
           }
 
         // Place a single piece on a dummy chessboard
-        board = c_empty_board;
+        board = Chessboard::Empty;
         board[from] = piece;
         local_rules.m_side = static_cast<Color>(piece.color);
         local_rules.loadPosition(board);
@@ -246,8 +246,8 @@ std::string NeuNeu::play()
   uint8_t from = 255;
   for (uint8_t i = 0u; i < 64u; ++i)
     {
-      if ((m_rules.m_current_position[i].type == p) &&
-          (m_rules.m_current_position[i].color == m_rules.m_side))
+      if ((m_rules.m_board[i].type == p) &&
+          (m_rules.m_board[i].color == m_rules.m_side))
         {
           from = i;
           break;

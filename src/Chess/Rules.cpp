@@ -1,33 +1,6 @@
-#include "Rules.hpp"
-#include <array>
+#include "Chess/Rules.hpp"
 #include <valarray>
 #include <cassert>
-
-//! \brief Give a name to each chessboard squares.
-//! Used For castle and pawn moves.
-enum Square {
-  sqA8, sqB8, sqC8, sqD8, sqE8, sqF8, sqG8, sqH8,
-  sqA7, sqB7, sqC7, sqD7, sqE7, sqF7, sqG7, sqH7,
-  sqA6, sqB6, sqC6, sqD6, sqE6, sqF6, sqG6, sqH6,
-  sqA5, sqB5, sqC5, sqD5, sqE5, sqF5, sqG5, sqH5,
-  sqA4, sqB4, sqC4, sqD4, sqE4, sqF4, sqG4, sqH4,
-  sqA3, sqB3, sqC3, sqD3, sqE3, sqF3, sqG3, sqH3,
-  sqA2, sqB2, sqC2, sqD2, sqE2, sqF2, sqG2, sqH2,
-  sqA1, sqB1, sqC1, sqD1, sqE1, sqF1, sqG1, sqH1
-};
-
-//! \brief Store square names. Used for creating move notes.
-static const std::array<const char[3], 64> c_mailboxToChar =
-  {{
-      "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
-      "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-      "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-      "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-      "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-      "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-      "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-      "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
-    }};
 
 //! \brief
 static const std::array<int, 64> c_mailbox64 =
@@ -59,6 +32,14 @@ static const std::array<int, 120> c_mailbox120 =
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
     }};
 
+enum Rosas
+  {
+    North = -10,
+    West  = -1,
+    East  =  1,
+    South =  10
+  };
+
 //! \brief Define for each pieces their displacement in the c_mailbox64.
 //! Let's suppose a King is placed on the chessboard square e4. This
 //! corresponds to the square 65 of the c_mailbox64. The King can moves to
@@ -68,118 +49,68 @@ static const std::array<int, 120> c_mailbox120 =
 //! pieces which can slide we store the displacement of a distance of 1.
 static const std::valarray<int> c_relative_movements[8] =
   {
-    [PieceType::Empty] = {},
-    [PieceType::Rook] = { -10, -1, 1, 10 },
-    [PieceType::Knight] = { -21, -19, -12, -8, 8, 12, 19, 21 },
-    [PieceType::Bishop] = { -11, -9, 9, 11 },
-    [PieceType::Queen] = { -11, -10, -9, -1, 1, 9, 10, 11 },
-    [PieceType::King] = { -11, -10, -9, -1, 1, 9, 10, 11 },
-    [PieceType::Pawn] = {},
-    [PieceType::NotUsed] = {},
+    [PieceType::Empty]   = { },
+    [PieceType::Rook]    = { North,
+                             East,
+                             South,
+                             West },
+    [PieceType::Knight]  = { North + North + East,
+                             North + East  + East,
+                             South + East  + East,
+                             South + South + East,
+                             South + South + West,
+                             South + West  + West,
+                             North + West  + West,
+                             North + North + West },
+    [PieceType::Bishop]  = { North + East,
+                             North + West,
+                             South + East,
+                             South + West },
+    [PieceType::Queen]   = { North,
+                             South,
+                             East,
+                             West,
+                             North + West,
+                             North + East,
+                             South + East,
+                             South + West },
+    [PieceType::King]    = { North,
+                             East,
+                             South,
+                             West,
+                             North + West,
+                             North + East,
+                             South + East,
+                             South + West },
+    [PieceType::Pawn]    = { North,
+                             North + North,
+                             North + East,
+                             North + West },
+    [PieceType::NotUsed] = { }
   };
 
 //! \brief Define pieces which can do more than one c_relative_movements
 //! in a single step.
 static const std::array<bool, 8> c_can_slide =
   {{
-      [PieceType::Empty] = false,
-      [PieceType::Rook] = true,
-      [PieceType::Knight] = false,
-      [PieceType::Bishop] = true,
-      [PieceType::Queen] = true,
-      [PieceType::King] = false,
-      [PieceType::Pawn] = false,
+      [PieceType::Empty]   = false,
+      [PieceType::Rook]    = true,
+      [PieceType::Knight]  = false,
+      [PieceType::Bishop]  = true,
+      [PieceType::Queen]   = true,
+      [PieceType::King]    = false,
+      [PieceType::Pawn]    = false,
       [PieceType::NotUsed] = false,
     }};
 
-std::ostream& operator<<(std::ostream& os, const Status& s)
-{
-  switch (s)
-    {
-    case Status::WhiteWon:
-      os << "White won";
-      break;
-    case Status::BlackWon:
-      os << "Black won";
-      break;
-    case Status::Pat:
-      os << "Pat";
-      break;
-    case Status::Draw:
-      os << "Draw";
-      break;
-    case Status::InternalError:
-      os << "InternalError";
-      break;
-    default:
-      os << "Playing";
-      break;
-    }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Move& move)
-{
-  if (move.castle == Castle::Little)
-    {
-      os << "O-O";
-    }
-  else if (move.castle == Castle::Big)
-    {
-      os << "O-O-O";
-    }
-  else
-    {
-      os << c_mailboxToChar[move.from] << '-' << c_mailboxToChar[move.to];
-    }
-
-  if (move.ep)
-    {
-      os << "ep";
-    }
-
-  if (move.promote)
-    {
-      os << move.piece.type;
-    }
-
-  if (move.check)
-    {
-      os << "+";
-    }
-
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, chessboard& position)
-{
-  Piece piece;
-
-  os << " +---+---+---+---+---+---+---+---+" << std::endl;
-  for (uint8_t ij = 0u; ij < 64u; ++ij)
-    {
-      piece = static_cast<Piece>(position[ij]);
-      os << " | " << piece;
-
-      if (0 == ((ij+1) & 7))
-        {
-          os << " |" << std::endl;
-          os << " +---+---+---+---+---+---+---+---+" << std::endl;
-        }
-    }
-  return os;
-}
-
-// FIXME Rules devrait etre Observer et envoyer un event a IBoard et Board est un IBoard en SFML
-// alors que ConsolBoard affiche un echiquier et lit stdin
 void Rules::loadPosition(const chessboard& board)
 {
-  m_current_position = board;
+  m_board = board;
 }
 
 void Rules::loadPosition(const std::string& moves)
 {
-  m_current_position = c_init_board;
+  m_board = Chessboard::Init;
 
   for (uint32_t i = 0u; i < moves.length(); i += 5u)
     {
@@ -187,23 +118,8 @@ void Rules::loadPosition(const std::string& moves)
     }
 }
 
-std::string Move2str(const uint8_t sq)
-{
-  return std::string(c_mailboxToChar[sq]);
-}
-
-std::string Move2str(const Move move)
-{
-  return std::string(c_mailboxToChar[move.from]) + std::string(c_mailboxToChar[move.to]);
-}
-
-std::string Move2str(const uint8_t from, const uint8_t to)
-{
-  return std::string(c_mailboxToChar[from]) + std::string(c_mailboxToChar[to]);
-}
-
-// FIXME: a placer dans Rules qui appelle Board::moveBack via un observer (ou meme pas: directement)
 // 5 is the string size for example "e2e4 "
+// FIXME non 5 ou 7 a cause de la prise en passant et de la promotion
 void Rules::moveBack()
 {
   if (m_moved.length() >= 5)
@@ -217,7 +133,7 @@ void Rules::moveBack()
 
       m_status = Status::Playing;
 
-      std::cout << m_current_position << std::endl;
+      std::cout << m_board << std::endl;
       std::cout << m_side << " are playing";
       Status status = generateValidMoves();
       //dispLegalMoves();
@@ -242,21 +158,56 @@ void Rules::makeMove(const std::string& next_move)
   // Update internal position
   // FIXME: code pas fini (manque promotion, en passant)
   // et en double avec makeMovetryMove (mais sur l'echiquier final)
-  m_current_position[m2] = m_current_position[m1];
-  m_current_position[m2].moved = true;
-  m_current_position[m1] = EmptySquare;
+  m_board[m2] = m_board[m1];
+  m_board[m2].moved = true;
+  m_board[m1] = NoPiece;
+
+  // Move rook if castling
+  if (m1 == sqE1)
+    {
+      // White King castle
+      if (m2 == sqG1)
+        {
+          m_board[sqF1] = m_board[sqH1];
+          m_board[sqF1].moved = true;
+          m_board[sqH1] = NoPiece;
+        }
+      // White Queen castle
+      else if (m2 == sqC1)
+        {
+          m_board[sqD1] = m_board[sqA1];
+          m_board[sqD1].moved = true;
+          m_board[sqA1] = NoPiece;
+        }
+    }
+  else if (m1 == sqE8)
+    {
+      // Black King castle
+      if (m2 == sqG8)
+        {
+          m_board[sqF8] = m_board[sqH8];
+          m_board[sqF8].moved = true;
+          m_board[sqH8] = NoPiece;
+        }
+      // Black Queen castle
+      else if (m2 == sqC8)
+        {
+          m_board[sqD8] = m_board[sqA8];
+          m_board[sqD8].moved = true;
+          m_board[sqA8] = NoPiece;
+        }
+    }
 
   // Add the note move to moved notes
   m_moved += next_move;
   m_moved += ' ';
 
   // Switch player
-  std::cout << m_side << " played " << next_move << std::endl;
+  //std::cout << m_side << " played " << next_move << std::endl;
   sidePlayed();
-  std::cout << m_current_position << std::endl;
-  std::cout << m_side << " are playing" << std::endl;
+  //std::cout << m_board << std::endl;
+  //std::cout << m_side << " are playing" << std::endl;
   generateValidMoves();
-  dispLegalMoves();
 }
 
 bool Rules::tryMove(const Move move, const Color side)
@@ -266,17 +217,17 @@ bool Rules::tryMove(const Move move, const Color side)
   // Simulate the next move.
   // FIXME: code pas fini (manque promotion, en passant)
   // et en double avec makeMove (mais sur un echiquier temporaire)
-  m_next_position = m_current_position;
-  m_next_position[move.to] = m_next_position[move.from];
-  m_next_position[move.to].moved = true;
-  m_next_position[move.from] = EmptySquare;
+  m_tmp_board = m_board;
+  m_tmp_board[move.to] = m_tmp_board[move.from];
+  m_tmp_board[move.to].moved = true;
+  m_tmp_board[move.from] = NoPiece;
 
   // Get the King position
   // FIXME: Optim memoriser la position du roi au lieu de la retrouver
-  for (king = 0u; king < 64u; ++king)
+  for (king = 0u; king < NbSquares; ++king)
     {
-      if ((m_next_position[king].type == PieceType::King) &&
-          (m_next_position[king].color == side))
+      if ((m_tmp_board[king].type == PieceType::King) &&
+          (m_tmp_board[king].color == side))
         {
           //std::cout << "Le roi est en " << (int) king << std::endl;
           break;
@@ -285,7 +236,7 @@ bool Rules::tryMove(const Move move, const Color side)
 
   //
   Color xside = opposite(side);
-  if (!attack(m_next_position, king, xside))
+  if (!attack(m_tmp_board, king, xside))
     {
       m_legal_moves.push_back(move);
       return true;
@@ -304,25 +255,24 @@ bool Rules::inCheck(const Color side) const
   if (hasNoKing)
     return false;
 
-  for (uint8_t i = 0u; i < 64u; ++i)
+  for (uint8_t i = 0u; i < NbSquares; ++i)
     {
-      if ((m_current_position[i].type == PieceType::King) &&
-          (m_current_position[i].color == side))
+      if ((m_board[i].type == PieceType::King) &&
+          (m_board[i].color == side))
         {
-          std::cout << "inCheck Roi: " << (int) i << std::endl;
           Color xside = opposite(side);
-          return attack(m_current_position, i, xside);
+          return attack(m_board, i, xside);
         }
     }
   assert(1 && "inCheck() did not find the King");
   return false;
 }
 
-bool Rules::attack(const std::array<Piece, 64>& position, const uint8_t sq, const Color side) const
+bool Rules::attack(const chessboard& position, const uint8_t sq, const Color side) const
 {
   int n;
 
-  for (uint8_t i = 0u; i < 64u; ++i)
+  for (uint8_t i = 0u; i < NbSquares; ++i)
     {
       const Piece pinfo = position[i];
       if ((pinfo.type == PieceType::Empty) || (pinfo.color != side))
@@ -391,10 +341,10 @@ Status Rules::generateValidMoves()
   //  return m_status;
 
   m_legal_moves.clear();
-  for (uint8_t ij = 0u; ij < 64u; ++ij)
+  for (uint8_t ij = 0u; ij < NbSquares; ++ij)
     {
       // Ignore: empty position and pieces of the opposite side
-      p = m_current_position[ij];
+      p = m_board[ij];
       if ((p.type == PieceType::Empty) || (p.color != m_side))
         continue ;
 
@@ -411,7 +361,7 @@ Status Rules::generateValidMoves()
                   if (n == -1)
                     break;
 
-                  p = m_current_position[n];
+                  p = m_board[n];
                   if (p.type != PieceType::Empty)
                     {
                       if (p.color != m_side)
@@ -421,7 +371,7 @@ Status Rules::generateValidMoves()
                       break;
                     }
                   tryMove(Move(ij, n), m_side);
-                  if (c_can_slide[m_current_position[ij].type] == false)
+                  if (c_can_slide[m_board[ij].type] == false)
                     break;
                 }
             }
@@ -431,40 +381,40 @@ Status Rules::generateValidMoves()
           if (m_side == Color::White)
             {
               // Take opponent piece
-              if (COL(ij) != 0 && m_current_position[ij - 9u].type != PieceType::Empty && m_current_position[ij - 9u].color != Color::White)
+              if (COL(ij) != 0 && m_board[ij - 9u].type != PieceType::Empty && m_board[ij - 9u].color != Color::White)
                 tryMove(Move(ij, ij - 9u), m_side);
 
               // Take opponent piece
-              if (COL(ij) != 7u && m_current_position[ij - 7u].type != PieceType::Empty && m_current_position[ij - 7u].color != Color::White)
+              if (COL(ij) != 7u && m_board[ij - 7u].type != PieceType::Empty && m_board[ij - 7u].color != Color::White)
                 tryMove(Move(ij, ij - 7u), m_side);
 
-              if (m_current_position[ij - 8u].type == PieceType::Empty)
+              if (m_board[ij - 8u].type == PieceType::Empty)
                 {
                   // Move one square
                   tryMove(Move(ij, ij - 8u), m_side);
 
                   // Move two squares
-                  if (ij >= sqA2 && m_current_position[ij - 16u].type == PieceType::Empty)
+                  if (ij >= sqA2 && m_board[ij - 16u].type == PieceType::Empty)
                     tryMove(Move(ij, ij - 16u), m_side);
                 }
             }
           else
             {
               // Take opponent piece
-              if (COL(ij) != 7u && m_current_position[ij + 9u].type != PieceType::Empty && m_current_position[ij + 9u].color != Color::Black)
+              if (COL(ij) != 7u && m_board[ij + 9u].type != PieceType::Empty && m_board[ij + 9u].color != Color::Black)
                 tryMove(Move(ij, ij + 9u), m_side);
 
               // Take opponent piece
-              if (COL(ij) != 0u && m_current_position[ij + 7u].type != PieceType::Empty && m_current_position[ij + 7u].color != Color::Black)
+              if (COL(ij) != 0u && m_board[ij + 7u].type != PieceType::Empty && m_board[ij + 7u].color != Color::Black)
                 tryMove(Move(ij, ij + 7u), m_side);
 
-              if (m_current_position[ij + 8u].type == PieceType::Empty)
+              if (m_board[ij + 8u].type == PieceType::Empty)
                 {
                   // Move one square
                   tryMove(Move(ij, ij + 8u), m_side);
 
                   // Move two squares
-                  if (ij <= sqH7 && m_current_position[ij + 16u].type == PieceType::Empty)
+                  if (ij <= sqH7 && m_board[ij + 16u].type == PieceType::Empty)
                     tryMove(Move(ij, ij + 16u), m_side);
                 }
             }
@@ -475,16 +425,16 @@ Status Rules::generateValidMoves()
   if (m_side == Color::White)
     {
       // King status
-      p = m_current_position[sqE1];
+      p = m_board[sqE1];
       if ((p.type == PieceType::King) && (p.color == Color::White) && (!p.moved) && (!inCheck(Color::White)))
         {
           // Rook H1 status for little castle
-          p = m_current_position[sqH1];
+          p = m_board[sqH1];
           if ((p.type == PieceType::Rook) && (p.color == Color::White) && (!p.moved))
             {
               // Squares F1 and G1 status
-              if ((m_current_position[sqF1].type == PieceType::Empty) && (!attack(m_current_position, sqF1, Color::Black)) &&
-                  (m_current_position[sqG1].type == PieceType::Empty))
+              if ((m_board[sqF1].type == PieceType::Empty) && (!attack(m_board, sqF1, Color::Black)) &&
+                  (m_board[sqG1].type == PieceType::Empty))
                 {
                   // tryMove will test if G1 is not in check
                   tryMove(Move(sqE1, sqG1), m_side);
@@ -492,12 +442,12 @@ Status Rules::generateValidMoves()
             }
 
           // Rook A1 status for big castle
-          p = m_current_position[sqA1];
+          p = m_board[sqA1];
           if ((p.type == PieceType::Rook) && (p.color == Color::White) && (!p.moved))
             {
               // Squares B1, C1 and D1 status
-              if ((m_current_position[sqD1].type == PieceType::Empty) && (!attack(m_current_position, sqD1, Color::Black)) &&
-                  (m_current_position[sqB1].type == PieceType::Empty) && (m_current_position[sqC1].type == PieceType::Empty))
+              if ((m_board[sqD1].type == PieceType::Empty) && (!attack(m_board, sqD1, Color::Black)) &&
+                  (m_board[sqB1].type == PieceType::Empty) && (m_board[sqC1].type == PieceType::Empty))
                 {
                   // Allowed if C1 is not in check
                   tryMove(Move(sqE1, sqC1), m_side);
@@ -508,16 +458,16 @@ Status Rules::generateValidMoves()
   else // Generate Black castle move
     {
       // King status
-      p = m_current_position[sqE8];
+      p = m_board[sqE8];
       if ((p.type == PieceType::King) && (p.color == Color::Black) && (!p.moved) && (!inCheck(Color::Black)))
         {
           // Rook H8 status for little castle
-          p = m_current_position[sqH8];
+          p = m_board[sqH8];
           if ((p.type == PieceType::Rook) && (p.color == Color::Black) && (!p.moved))
             {
               // Rook F8 and G8 squares status
-              if ((m_current_position[sqF8].type == PieceType::Empty) && (!attack(m_current_position, sqF8, Color::White)) &&
-                  (m_current_position[sqG8].type == PieceType::Empty))
+              if ((m_board[sqF8].type == PieceType::Empty) && (!attack(m_board, sqF8, Color::White)) &&
+                  (m_board[sqG8].type == PieceType::Empty))
                 {
                   // Allowed if G1 is not in check
                   tryMove(Move(sqE8, sqG8), m_side);
@@ -525,12 +475,12 @@ Status Rules::generateValidMoves()
             }
 
           // Rook A8 status for big castle
-          p = m_current_position[sqA8];
+          p = m_board[sqA8];
           if ((p.type == PieceType::Rook) && (p.color == Color::Black) && (!p.moved))
             {
               // Squares B8, C8 and D8 status
-              if ((m_current_position[sqD8].type == PieceType::Empty) && (!attack(m_current_position, sqD8, Color::White)) &&
-                  (m_current_position[sqB8].type == PieceType::Empty) && (m_current_position[sqC8].type == PieceType::Empty))
+              if ((m_board[sqD8].type == PieceType::Empty) && (!attack(m_board, sqD8, Color::White)) &&
+                  (m_board[sqB8].type == PieceType::Empty) && (m_board[sqC8].type == PieceType::Empty))
                 {
                   // Allowed if C8 is not in check
                   tryMove(Move(sqE8, sqC8), m_side);
@@ -555,9 +505,17 @@ Status Rules::getStatus() const
   if ((check) && (Color::Black == m_side))
     return Status::WhiteWon;
 
-  return Status::Pat;
+  // Hack: If there are no Kings on chessboard
+  // (for neural training or unit test) this
+  // error will be returned instead of Pat.
+  if (hasNoKing)
+    return Status::NoMoveAvailable;
+
+  return Status::Stalemate;
 }
 
+// generateValidMoves() shall be called before
+// FIXME: comparer le champ promotion ???
 bool Rules::isValidMove(const Move move) const
 {
   assert(m_legal_moves.size() != 0);

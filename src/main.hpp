@@ -1,9 +1,9 @@
 #ifndef MAIN_HPP
 #  define MAIN_HPP
 
-#  include "GUI.hpp"
-#  include "Board.hpp"
-#  include "Player.hpp"
+#  include "GUI/GUI.hpp"
+#  include "GUI/Board.hpp"
+#  include "Players/Player.hpp"
 #  include "CmdParser/cmdparser.hpp"
 
 // ***********************************************************************************************
