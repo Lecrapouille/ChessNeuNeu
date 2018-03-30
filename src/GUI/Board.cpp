@@ -48,7 +48,7 @@ void Board::play()
           std::cout << move << " " << failures << std::endl << std::endl;
           if (failures > 7)
             {
-              m_rules.m_status = Status::InternalError;
+              //m_rules.m_status = Status::InternalError;
               continue ;
             }
         }

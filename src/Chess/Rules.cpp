@@ -1,4 +1,5 @@
 #include "Chess/Rules.hpp"
+#include "Chess/FEN.hpp"
 #include <valarray>
 #include <cassert>
 
@@ -102,6 +103,19 @@ static const std::array<bool, 8> c_can_slide =
       [PieceType::Pawn]    = false,
       [PieceType::NotUsed] = false,
     }};
+
+Rules::Rules(std::string const& fen, bool noking)
+  : m_status(Status::Playing),
+    hasNoKing(noking)
+{
+  bool res = load(fen, m_board, m_side, m_ep);
+  if (false == res)
+    {
+      throw std::string("Incorrect FEN string");
+    }
+  m_tmp_board = m_board; // FIXME: useless ?
+  generateValidMoves();
+}
 
 void Rules::loadPosition(const chessboard& board)
 {

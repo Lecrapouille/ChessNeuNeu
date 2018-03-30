@@ -49,7 +49,7 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Debug.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+OBJ = FEN.o Debug.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
 
 ###################################################
 # Compilation options.

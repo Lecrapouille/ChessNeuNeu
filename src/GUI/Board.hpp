@@ -19,7 +19,7 @@ public:
 
   //! \brief Constructor get references on game rules
   //! and the main window needed for drawing the GUI.
-  Board(Application&, Rules &, IPlayer* players[2]);
+  Board(Application&, Rules&, IPlayer* players[2]);
 
   //! \brief Destructor. Release only GUI resources
   //! but not game rules.

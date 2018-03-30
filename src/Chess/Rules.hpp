@@ -109,13 +109,15 @@ class Rules // TODO add Kings positions, add number of pieces
 {
 public:
 
+  Rules(std::string const& fen, bool noking = WithKings);
+
   Rules(const Color side = Color::White,
         const chessboard &board = Chessboard::Init,
         bool noking = WithKings)
     : m_status(Status::Playing),
       m_side(side),
       m_board(board),
-      m_tmp_board(board),
+      m_tmp_board(board), // FIXME: utile ?
       hasNoKing(noking)
   {
     generateValidMoves();
@@ -180,6 +182,7 @@ public: // FIXME should be private but ok because the class is used as const
   chessboard            m_tmp_board;
 
   bool hasNoKing;
+  int m_ep = -1;
 };
 
 #endif

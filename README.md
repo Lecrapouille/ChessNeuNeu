@@ -36,15 +36,18 @@ ChessNeuNeu internal documents are placed in doc/*.ml:
 * [Code source architecture](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/archi.md).
 * [Credits](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/credits.md).
 
-## Options
+## Command-Line Usage
 
-Launch the project with the following arguments:
+### Launch the project without arguments
 
 ```
 ./ChessNeuNeu
 ```
 
 Will make human player play with White color against Stockfish with Black color.
+
+
+### Launch the project without arguments
 
 ```
 ./ChessNeuNeu --white <player> --black <player> --fen <board>
@@ -58,3 +61,9 @@ Where different players are:
 
 Where:
 * `board` is the board position using the Forsyth-Edwards notation. Use this [https://lichess.org/editor](link) for generating this input.
+
+### Example:
+
+```
+./ChessNeuNeu --white stockfish --black human --fen "4k3/8/8/8/8/8/4P3/4K3 w - -"
+```

@@ -35,20 +35,34 @@ make -j8
 
 A binary name ChessNeuNeu is created in the directory build/
 
-## ChessNeuNeu Usage
+## Command-Line Usage
 
-```sh
-./build/ChessNeuNeu --white <PLAYER> --black <PLAYER>
+### Launch the project without arguments
+
+```
+./ChessNeuNeu
 ```
 
-With <PLAYER>:
-* `human` for human player
-* `stockfish` for playing against Stockfish (need to be installed).
-* `tscp` for playing against TSCP (need to be installed).
-* `neuneu` for playing against our Neural Network IA.
+Will make human player play with White color against Stockfish with Black color.
 
-If no parameters are given:
-```sh
-./build/ChessNeuNeu
+
+### Launch the project without arguments
+
 ```
-will force human player to play Whites and Stockfish Blacks.
+./ChessNeuNeu --white <player> --black <player> --fen <board>
+```
+
+Where different players are:
+* `human` for letting a human player plays through the interaction of a GUI board.
+* `neuneu` for letting the Neural Network plays.
+* `stockfish` for letting Stockfish plays.
+* `tcsp` for letting TCSP plays.
+
+Where:
+* `board` is the board position using the Forsyth-Edwards notation. Use this [https://lichess.org/editor](link) for generating this input.
+
+### Example:
+
+```
+./ChessNeuNeu --white stockfish --black human --fen "4k3/8/8/8/8/8/4P3/4K3 w - -"
+```

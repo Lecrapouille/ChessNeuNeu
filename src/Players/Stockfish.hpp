@@ -9,7 +9,7 @@ class Stockfish: public IPC, public IPlayer
 {
 public:
 
-  Stockfish(const Rules &rules, const Color side);
+  Stockfish(const Rules &rules, const Color side, std::string const& fen);
   ~Stockfish();
   virtual std::string play() override;
   virtual void abort() override;
@@ -17,6 +17,7 @@ public:
 
 private:
 
+  std::string m_fen;
   const Rules &m_rules;
   bool m_aborting = false;
 };
