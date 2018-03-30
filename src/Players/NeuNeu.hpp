@@ -19,6 +19,7 @@ public:
   NeuNeu(const Rules &rules, const Color side);
   ~NeuNeu();
   virtual std::string play() override;
+  virtual void abort() override;
   void debug(const NeuralPiece piece);
 
 private:

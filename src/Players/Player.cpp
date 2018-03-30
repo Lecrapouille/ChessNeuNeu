@@ -1,5 +1,4 @@
 #include "Player.hpp"
-#include <iostream>
 #include <algorithm>
 
 static const char *c_player_names[] =
@@ -24,7 +23,7 @@ PlayerType playerType(const std::string& player)
   if (name == "human") return PlayerType::HumanPlayer;
   if (name == "tscp") return PlayerType::TscpIA;
 
-  throw std::string("Unknonw PlayerType");
+  throw std::string("Unknonw PlayerType '" + player + "'");
 }
 
 std::ostream& operator<<(std::ostream& os, const PlayerType& p)

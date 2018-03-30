@@ -12,6 +12,7 @@ public:
   Tscp(const Rules &rules, const Color side);
   ~Tscp();
   virtual std::string play() override;
+  virtual void abort() override;
 
 private:
 

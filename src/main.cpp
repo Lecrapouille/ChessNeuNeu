@@ -1,11 +1,12 @@
 #include "main.hpp"
+#include "GUI/Board.hpp"
 #include "Players/Stockfish.hpp"
 #include "Players/TSCP.hpp"
 #include "Players/NeuNeu.hpp"
 #include "Players/Human.hpp"
-#include <cassert>
+#include "CmdParser/cmdparser.hpp"
 
-IPlayer *ChessGame::PlayerFactory(const PlayerType type, const Color side)
+IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
   switch (type)
     {
@@ -16,143 +17,37 @@ IPlayer *ChessGame::PlayerFactory(const PlayerType type, const Color side)
     case PlayerType::NeuNeuIA:
       return new NeuNeu(m_rules, side);
     case PlayerType::HumanPlayer:
-      return new Human(m_board, side);
+      return new Human(m_rules, side);
     default:
-      return nullptr;
+      throw std::string("createPlayer: Unknown PlayerType");
+      break;
     }
 }
 
-ChessGame::ChessGame(GUI* gui, cli::Parser& parser)
-  : m_gui(gui), /*m_rules(Color::Black),*/ m_board(m_rules, gui->m_window)
+ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
 {
-  // Get Player types from program options --white and --black.
-  // An exception is trhown if player type is badly typed.
-  PlayerType white = playerType(parser.get<std::string>("w"));
-  PlayerType black = playerType(parser.get<std::string>("b"));
+  //FIXME m_players[Color::White].reset(createPlayer(white, Color::White));
+  //FIXME m_players[Color::Black].reset(createPlayer(black, Color::Black));
+  m_players[Color::White] = createPlayer(white, Color::White);
+  m_players[Color::Black] = createPlayer(black, Color::Black);
 
-  // Create two players
-  m_players[Color::White].reset(PlayerFactory(white, Color::White));
-  m_players[Color::Black].reset(PlayerFactory(black, Color::Black));
+  // Be sure to play with Kings (chessboard with no Kings is only
+  // used for Neural trainings and unit tests).
+  assert(false == m_rules.hasNoKing);
 
   // Debug
   std::cout
-    << m_players[Color::White]->type()
-    << " is playing as "
     << m_players[Color::White]->side()
+    << " color is played by: "
+    << m_players[Color::White]->type()
     << std::endl
-    << m_players[Color::Black]->type()
-    << " is playing as "
     << m_players[Color::Black]->side()
-    << std::endl;
-  debug();
-}
-
-void ChessGame::debug()
-{
-  std::cout << m_rules.m_board << std::endl;
-  std::cout << m_rules.m_side << " are playing";
-  Status status = m_rules.generateValidMoves();
-  if (status != Status::Playing)
-    {
-      std::cout << " and position is " << status;
-    }
-  std::cout << std::endl;
-}
-
-void ChessGame::draw(const float dt)
-{
-  m_board.draw();
-}
-
-void ChessGame::play(IPlayer& player, const Color color)
-{
-  std::string next_move;
-  int max_errors = 0;
-
-  if (m_rules.m_status != Status::Playing)
-    return ;
-
-  // FIXME
-  if (PlayerType::HumanPlayer == player.type())
-    return ;
-
-  if (color != m_rules.m_side)
-    return ;
-
-  std::cout << player.type() << " is thinking" << std::endl;
-
-  // "error" message instead of chess move can comes from of the following bugs (to be fixed):
-  // -- Stockfish had no time for computing a move.
-  // -- Rules class did not manage a rule (en passant, promotion, castle, mat)
-  do {
-    next_move = player.play();
-    if (0 == next_move.compare("error"))
-      {
-        ++max_errors;
-        std::cout << player.type() << " failed x" << max_errors << std::endl;
-      }
-    else
-      {
-        std::cout << "Move: " << next_move << std::endl;
-        m_board.moveWithAnimation(next_move);
-        m_rules.makeMove(next_move);
-        return ;
-      }
-    if (max_errors > 7)
-      m_rules.m_status = Status::InternalError;
-  } while (max_errors <= 7);
-}
-
-void ChessGame::update(const float dt)
-{
-  play(*m_players[Color::White], Color::White);
-  play(*m_players[Color::Black], Color::Black);
-
-  if ((m_rules.m_status) && (m_previous_status != m_rules.m_status))
-    {
-      std::cout << "End of game: " << m_rules.m_status << std::endl;
-    }
-  m_previous_status = m_rules.m_status;
-}
-
-void ChessGame::handleInput()
-{
-  sf::Event event;
-  m_board.mousePosition(sf::Mouse::getPosition(m_gui->m_window));
-  while (m_gui->m_window.pollEvent(event))
-    {
-      switch (event.type)
-        {
-        case sf::Event::Closed:
-          m_gui->m_window.close();
-          break;
-
-        case sf::Event::MouseButtonPressed:
-          if (m_players[m_rules.m_side]->type() == PlayerType::HumanPlayer) // && (side == m_rules.side))
-            {
-              m_board.takeFigure();
-            }
-          break;
-
-        case sf::Event::MouseButtonReleased:
-          if (m_players[m_rules.m_side]->type() == PlayerType::HumanPlayer) // && (side == m_rules.side))
-            {
-              m_board.releaseFigure();
-            }
-          break;
-
-        case sf::Event::KeyPressed:
-          if (event.key.code == sf::Keyboard::BackSpace)
-            {
-              m_rules.moveBack();
-              m_board.loadPosition(m_rules.m_board);
-            }
-          break;
-
-        default:
-          break;
-        }
-    }
+    << " color is played by: "
+    << m_players[Color::Black]->type()
+    << std::endl << std::endl
+    << m_rules.m_board << std::endl
+    << m_rules.m_side << " are thinking ... "
+    << std::flush;
 }
 
 static void configure_parser(cli::Parser& parser)
@@ -165,6 +60,8 @@ static void configure_parser(cli::Parser& parser)
 
 int main(int argc, char** argv)
 {
+  int err = 0;
+
   // Initialize random seed
   srand(time(NULL));
 
@@ -173,10 +70,20 @@ int main(int argc, char** argv)
   configure_parser(parser);
   parser.run_and_exit_if_error();
 
-  // Init and run the graphical user interface (GUI)
-  GUI gui;
-  gui.pushState(new ChessGame(&gui, parser));
-  gui.mainLoop();
+  // Get Player types from program options --white and --black.
+  // An exception is trhown if player type is badly typed.
+  try
+    {
+      PlayerType Whites = playerType(parser.get<std::string>("w"));
+      PlayerType Blacks = playerType(parser.get<std::string>("b"));
+      std::unique_ptr<ChessNeuNeu> chess = std::make_unique<ChessNeuNeu>(Whites, Blacks);
+      chess->loop(new Board(*chess, chess->rules(), chess->m_players));
+    }
+  catch (std::string const& e)
+    {
+      std::cerr << "Fatal: " << e << std::endl;
+      err = 1;
+    }
 
-  return 0;
+  return err;
 }

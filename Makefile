@@ -49,12 +49,12 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Debug.o Rules.o Board.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+OBJ = Debug.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
 
 ###################################################
 # Compilation options.
 CXXFLAGS = -W -Wall -Wextra -std=c++14 -O2 -g
-LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -pthread
 
 ###################################################
 # Common defines

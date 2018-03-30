@@ -1,5 +1,4 @@
 #include "Stockfish.hpp"
-#include <iostream>
 
 Stockfish::Stockfish(const Rules &rules, const Color side)
   : IPC("stockfish"), IPlayer(PlayerType::StockfishIA, side), m_rules(rules)
@@ -9,6 +8,11 @@ Stockfish::Stockfish(const Rules &rules, const Color side)
 
 Stockfish::~Stockfish()
 {
+}
+
+void Stockfish::abort()
+{
+  m_aborting = true;
 }
 
 std::string Stockfish::play()
@@ -26,13 +30,14 @@ std::string Stockfish::play()
   if (n != -1)
     {
       std::string move = answer.substr(n + 9, 4);
-      //std::cout << "Next move is '" << move << "'" << std::endl;
+
+      if (m_aborting)
+        return IPlayer::error;
       return move;
     }
 
   // FIXME: a retenter
-  std::cout << "error" << std::endl;
-  return "error";
+  return IPlayer::error;
 }
 
 void Stockfish::debug()

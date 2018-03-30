@@ -70,6 +70,11 @@ bool NeuNeu::isValidPawnPosition(const uint8_t from) const
   return (from >= 8) && (from <= 55);
 }
 
+void NeuNeu::abort()
+{
+  //FIXME
+}
+
 uint8_t NeuNeu::play(const uint8_t from, Neurone &neurone, bool rand_move)
 {
   float e[64u];

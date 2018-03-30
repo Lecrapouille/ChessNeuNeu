@@ -1,19 +1,92 @@
 #include "GUI/Board.hpp"
-#include <iostream>
-#include <cassert>
 
-Board::Board(Rules &rules, sf::RenderWindow &window)
-  : m_rules(rules), // FIXME ideal si on on peut le virer
-    m_window(window),
+Board::Board(Application& application, Rules& rules, IPlayer** players)
+  : GUI(application),
+    m_rules(rules),
     m_taken_piece(0u),
-    m_moving_figure(false)
+    m_moving_figure(false),
+    m_players(players)
 {
   loadTextures();
   loadPosition(m_rules.m_board);
+  m_thread = std::thread(&Board::play, this);
 }
 
 Board::~Board()
 {
+  m_players[m_rules.m_side]->abort();
+  if (m_thread.joinable())
+    {
+      m_thread.join();
+    }
+}
+
+void Board::play()
+{
+  uint8_t failures = 0u;
+  Status previous_status = m_rules.m_status;
+
+  while (running())
+    {
+      // End of game ?
+      if ((Status::Playing != m_rules.m_status) && (previous_status != m_rules.m_status))
+        {
+          std::cout << "End of the game: " << m_rules.m_status << " !!!" << std::endl;
+          previous_status = m_rules.m_status;
+          continue ;
+        }
+      previous_status = m_rules.m_status;
+
+      // Get the player move
+      std::string move = m_players[m_rules.m_side]->play();
+      if (move == IPlayer::error)
+        {
+          if (!running())
+            return ;
+
+          ++failures;
+          std::cout << move << " " << failures << std::endl << std::endl;
+          if (failures > 7)
+            {
+              m_rules.m_status = Status::InternalError;
+              continue ;
+            }
+        }
+      else
+        {
+          failures = 0;
+          std::cout << Move(move) << std::endl << std::endl;
+        }
+
+      // Ask the GUI board to animated the move of the non-human player
+      // and wait for the end of the animation.
+      // Note: Human players use the mouse for playing so the figure has
+      // already been moved.
+      if (HumanPlayer != m_players[m_rules.m_side]->type()) // FIXME && using GUI
+        {
+          {
+            MuxGuard g(m_lock);
+            m_opponent_move = move;
+          }
+          while (!m_animating)
+            ;
+          while (m_animating)
+            ;
+        }
+
+      // After the GUI animation
+      m_rules.makeMove(move);
+
+      // Debug
+      if (m_rules.m_status == Status::Playing)
+        {
+          std::cout << m_rules.m_board
+                    << std::endl
+                    << m_rules.m_side
+                    << " are thinking ... "
+                    << std::flush;
+        }
+    }
 }
 
 void Board::loadTextures()
@@ -86,7 +159,7 @@ void Board::moveWithAnimation(const std::string& move)
       sf::Vector2f p = m_new_pos - m_old_pos;
       m_figures[m_taken_piece].move(p.x / smooth,
                                     p.y / smooth);
-      draw();
+      draw(0.0f);
     }
 
   moveWithoutAnimation(move);
@@ -114,6 +187,27 @@ void Board::moveWithoutAnimation(const std::string& move)
     }
 
   m_figures[m_taken_piece].setPosition(m_new_pos);
+
+  if (move == "e1g1")
+    {
+      if (m_rules.m_moved.find("e1") == std::string::npos)
+        moveWithoutAnimation("h1f1");
+    }
+  else if (move == "e8g8")
+    {
+      if (m_rules.m_moved.find("e8") == std::string::npos)
+        moveWithoutAnimation("h8f8");
+    }
+  else if (move == "e1c1")
+    {
+      if (m_rules.m_moved.find("e1") == std::string::npos)
+        moveWithoutAnimation("a1d1");
+    }
+ else if (move == "e8c8")
+    {
+      if (m_rules.m_moved.find("e8") == std::string::npos)
+        moveWithoutAnimation("a8d8");
+    }
 }
 
 const Piece &Board::getPiece(const sf::Vector2f& mouse) const
@@ -133,6 +227,10 @@ void Board::takeFigure()
 {
   // Filter useless events
   if (true == m_moving_figure)
+    return ;
+
+  // Do not touch opponent figures
+  if (PlayerType::HumanPlayer != m_players[m_rules.m_side]->type())
     return ;
 
   // No end game (checkmate, stalemate ...)
@@ -171,6 +269,10 @@ void Board::releaseFigure()
   if (Status::Playing != m_rules.m_status)
     return ;
 
+  // Do not touch opponent figures
+  if (PlayerType::HumanPlayer != m_players[m_rules.m_side]->type())
+    return ;
+
   // Mouse is out of bound of the chessboard
   if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x) ||
       (m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
@@ -202,14 +304,12 @@ void Board::releaseFigure()
   if (!m_rules.isValidMove(Move(next_move)))
     return ;
 
-  // FIXME: en conflit avec main::play()
   moveWithoutAnimation(next_move);
-  m_rules.makeMove(next_move);
+  reinterpret_cast<Human*>(m_players[m_rules.m_side])->notified(next_move);
   m_moving_figure = false;
-  draw();
 }
 
-void Board::draw()
+void Board::draw(const float /*dt*/)
 {
   // Draw the figure when the user is grabbing it
   if (m_moving_figure)
@@ -217,18 +317,87 @@ void Board::draw()
       m_figures[m_taken_piece].setPosition(m_mouse - m_delta_pos);
     }
 
-  m_window.draw(m_sboard);
+  window().draw(m_sboard);
 
   for (uint8_t i = 0u; i < NbPieces; ++i)
     m_figures[i].move(config::dim::border);
 
   for (uint8_t i = 0u; i < NbPieces; ++i)
-    m_window.draw(m_figures[i]);
+    window().draw(m_figures[i]);
 
-  m_window.draw(m_figures[m_taken_piece]);
+  window().draw(m_figures[m_taken_piece]);
 
   for (uint8_t i = 0u; i < NbPieces; ++i)
     m_figures[i].move(-config::dim::border);
 
-  m_window.display();
+  window().display();
+}
+
+void Board::update(const float /*dt*/)
+{
+  std::string move;
+  {
+    MuxGuard g(m_lock);
+    if (m_opponent_move.empty())
+      return ;
+    move = m_opponent_move;
+    m_opponent_move.clear();
+  }
+  m_animating = true;
+  moveWithAnimation(move);
+  m_animating = false;
+}
+
+bool Board::running()
+{
+  //m_running_thread = window().isOpen();
+  return m_running_thread;
+}
+
+void Board::handleInput()
+{
+  //          Piece p = NoPiece;
+
+  sf::Event event;
+
+  mousePosition(sf::Mouse::getPosition(window()));
+
+  while (window().pollEvent(event))
+    {
+      switch (event.type)
+        {
+        case sf::Event::Closed:
+          std::cout << std::endl << "Halting ChessNeuNeu ..." << std::endl;
+          m_running_thread = false;
+          while (window().pollEvent(event))
+            ;
+          m_players[m_rules.m_side]->abort();
+          //window().close();
+          break;
+
+        case sf::Event::MouseButtonPressed:
+          //FIXME temporaire
+          //m_application.loop(new Promotion(m_application, p,
+          //                                 m_rules.m_side));
+          //std::cout << "Board::Promotion: " << p << std::endl;
+
+          takeFigure();
+          break;
+
+        case sf::Event::MouseButtonReleased:
+          releaseFigure();
+          break;
+
+        case sf::Event::KeyPressed:
+          if (event.key.code == sf::Keyboard::BackSpace)
+            {
+              m_rules.moveBack();
+              loadPosition(m_rules.m_board);
+            }
+          break;
+
+        default:
+          break;
+        }
+    }
 }

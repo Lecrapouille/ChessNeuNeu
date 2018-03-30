@@ -25,8 +25,14 @@ public:
   {
   }
 
-  //! \brief Return a legal move.
+  //! \brief Compute and return a legal move.
+  //! This method can take long minutes it's ok
+  //! because this method should be called from
+  //! a thread.
   virtual std::string play() = 0;
+
+  //! \bref Abort signal for halting properlu play()
+  virtual void abort() = 0;
 
   inline Color side() const
   {
@@ -37,6 +43,8 @@ public:
   {
     return m_type;
   }
+
+  static constexpr const char* error = "error";
 
 private:
 

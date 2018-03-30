@@ -1,57 +1,71 @@
-#ifndef GUI_HPP
-#  define GUI_HPP
+#ifndef GUI_GUI_HPP
+#  define GUI_GUI_HPP
 
 #  include <SFML/Graphics.hpp>
 #  include <SFML/System.hpp>
 #  include <stack>
+#  include <cassert>
 
 //! \file Inspired by
 //! https://www.binpress.com/tutorial/creating-a-city-building-game-with-sfml/137
 
-class GUIState;
+class GUI;
 
 // ***********************************************************************************************
-//! \brief Manage a stack of GUIState class
+//! \brief Manage a stack of GUI class
 // ***********************************************************************************************
-class GUI
-{
-public:
-
-  GUI();
-  ~GUI();
-
-  void pushState(GUIState* state);
-  void popState();
-  void changeState(GUIState* state);
-  GUIState* peekState();
-  void mainLoop();
-
-  sf::RenderWindow m_window;
-
-private:
-
-  std::stack<GUIState*> m_states_stack;
-};
-
-// ***********************************************************************************************
-//! \brief Interface class for drawing a windows and handling to mouse and keyboard events.
-// ***********************************************************************************************
-class GUIState
+class Application
 {
   friend class GUI;
 
 public:
 
-  GUIState() {}
-  virtual ~GUIState() {}
+  Application();
+  ~Application();
+
+  void loop(GUI* gui);
+  void run(GUI* state);
+  void push(GUI* state);
+  void pop();
+  GUI* peek();
 
 private:
 
+  std::stack<GUI*> m_guis; // FIXME: use unique_ptr and move
+  sf::RenderWindow m_window;
+};
+
+// ***********************************************************************************************
+//! \brief Interface class for drawing a windows and handling to mouse and keyboard events.
+// ***********************************************************************************************
+class GUI
+{
+  friend class Application;
+
+public:
+
+  GUI(Application& application)
+    : m_application(application)
+  {
+  }
+
+  virtual ~GUI() {}
+
+  sf::RenderWindow& window()
+  {
+    return m_application.m_window;
+  }
+
+private:
+
+  virtual bool running() = 0;
   virtual void draw(const float dt) = 0;
   virtual void update(const float dt) = 0;
   virtual void handleInput() = 0;
 
-  GUI* m_gui;
+public:
+
+  Application& m_application;
 };
 
 #endif

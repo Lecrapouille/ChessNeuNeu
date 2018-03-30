@@ -1,5 +1,4 @@
 #include "TSCP.hpp"
-#include <iostream>
 
 Tscp::Tscp(const Rules &rules, const Color side)
   : IPC("tscp"), IPlayer(PlayerType::TscpIA, side), m_rules(rules)
@@ -21,6 +20,11 @@ Tscp::Tscp(const Rules &rules, const Color side)
 Tscp::~Tscp()
 {
   write("bye\n");
+}
+
+void Tscp::abort()
+{
+  //FIXME
 }
 
 std::string Tscp::play()
@@ -48,5 +52,5 @@ std::string Tscp::play()
     }
 
   std::cout << "error" << std::endl;
-  return "error";
+  return IPlayer::error;
 }

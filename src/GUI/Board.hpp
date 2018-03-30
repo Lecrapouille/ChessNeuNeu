@@ -1,44 +1,39 @@
-#ifndef BOARD_HPP
-#  define BOARD_HPP
+#ifndef GUI_BOARD_HPP
+#  define GUI_BOARD_HPP
 
+#  include "GUI/GUI.hpp"
+#  include "GUI/Dimension.hpp"
 #  include "Chess/Rules.hpp"
-#  include <SFML/Graphics.hpp>
-
-// ***********************************************************************************************
-//! \brief Define constants for the board
-// ***********************************************************************************************
-namespace config
-{
-  namespace dim
-  {
-    //! \brief the dimension of the squared texture for each piece.
-    const int          figure = 56;
-    //! \brief The boder dimension (x, y) of the chessboard.
-    const sf::Vector2f border{28, 28};
-    //! \brief Chessboard dimension
-    const sf::Vector2f board
-    {
-      8.0f * 2.0f * config::dim::border.x,
-      8.0f * 2.0f * config::dim::border.y
-    };
-  }
-};
+#  include "Players/Human.hpp"
+#  include <thread>
+#  include <atomic>
+#  include <mutex>
 
 // ***********************************************************************************************
 //! \brief Class displaying a Chess board, its figures and let to the player moving
 //! pieces. Inspired by the Youtube video 'Let's make 16 games in C++: Chess' by FamTrinli.
 // ***********************************************************************************************
-class Board
+class Board: public GUI
 {
 public:
 
   //! \brief Constructor get references on game rules
   //! and the main window needed for drawing the GUI.
-  Board(Rules &, sf::RenderWindow &);
+  Board(Application&, Rules &, IPlayer* players[2]);
 
   //! \brief Destructor. Release only GUI resources
   //! but not game rules.
   ~Board();
+
+private:
+
+  void play();
+
+  //! \brief Draw the chessboard and pieces.
+  virtual void draw(const float dt) override;
+  virtual void update(const float dt) override;
+  virtual void handleInput() override;
+  virtual bool running() override;
 
   //! \brief Move a piece with smooth displacement on the chessboard.
   void moveWithAnimation(const std::string& move);
@@ -51,9 +46,6 @@ public:
   //! Grab the piece (if present).
   void releaseFigure();
 
-  //! \brief Draw the chessboard and pieces.
-  void draw();
-
   //! \brief Save the current mouse position and remove
   //! the board border dimension.
   inline void mousePosition(const sf::Vector2i p)
@@ -65,10 +57,6 @@ public:
 
   //! \brief Place pieces on their position.
   void loadPosition(const chessboard& board);
-
-  //const std::string &lastMove() { return m_move; }
-
-private:
 
   //! \brief Load chessboard and pieces textures.
   void loadTextures();
@@ -99,11 +87,11 @@ private:
     return sf::Vector2f(x * config::dim::figure,
                         y * config::dim::figure);
   }
-public:
+
+//private:
+
   //! \brief Reference on the game rules.
   Rules             &m_rules;
-  //! \brief Reference on the SFML main window.
-  sf::RenderWindow  &m_window;
   //! \brief Textures of the chess board and figures.
   sf::Texture        m_textures[2];
   //! \brief Chess pieces are a textured square knowing its position.
@@ -122,6 +110,15 @@ public:
   sf::Vector2f       m_new_pos;
   //! \brief delta position when the user is moving a piece.
   sf::Vector2f       m_delta_pos;
+
+  IPlayer** m_players;
+  std::atomic_bool   m_running_thread{true};
+  std::thread        m_thread;
+
+  using MuxGuard = std::lock_guard<std::mutex>;
+  mutable std::mutex m_lock;
+  std::atomic_bool  m_animating{false};
+  std::string m_opponent_move;
 };
 
 #endif
