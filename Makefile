@@ -35,11 +35,11 @@ endif
 
 ###################################################
 # Inform Makefile where to find header files
-INCLUDES = -I$(BUILD) -Isrc -Isrc/chess -Isrc/Players -Isrc/utils -Isrc/GUI -I$(THIRDPART)
+INCLUDES = -I$(BUILD) -Isrc -Isrc/Chess -Isrc/Players -Isrc/Utils -Isrc/GUI -I$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH=$(BUILD):src:src/chess:src/Players:src/utils:src/GUI:src/players:$(THIRDPART)
+VPATH=$(BUILD):src:src/Chess:src/Players:src/Utils:src/GUI:src/Players:$(THIRDPART)
 
 ###################################################
 # Store files dependencies in *.d files.  When a file
