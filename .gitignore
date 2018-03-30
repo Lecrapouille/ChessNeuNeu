@@ -55,6 +55,8 @@
 build/*
 external/*
 _*
+tests/build/*
+tests/doc/coverage/*
 
 # Debian packages
 doc-pak

@@ -1,34 +1,41 @@
-The project code source get its inspiration from books:
+# Bibliography and code source inspirations.
 
-* (french) Programmation efficace: Echecs et C
-by Yann Takvorian, Editions Radio, 1991.
+The code source of this project gets its inspiration from different books, ethernet documents and code sources of opensource chess engines.
 
-Explain C structures and routines needed for implementing a chess engine. Very complete book. An absolute need !
+## Books
 
-* How Computers Play Chess
-by David N. L. Levy, Batsford Chess Edition, 1983.
+* `(french) Programmation efficace: Echecs et C` by _Yann Takvorian, Editions Radio, 1991._
 
-Interesting book but more based on chess philosophy than code book. Algorithms are just described with no implementation.
+This book explains C structures and routines needed for implementing a chess engine. This is a very complete book and is an absolute need
+for your booksheld. The code style is old and does not use modern programming patterns !
 
-The project code source get its inspiration from other projects:
+* `How Computers Play Chess` by _David N. L. Levy, Batsford Chess Edition, 1983._
 
-* Legal moves:
-http://www.tckerrigan.com/Chess/TSCP/
+Interesting book but it's more based on chess philosophy than pure coding book (no code, no implementation).
+Algorithms described with the help of chess diagrams and grand masters games.
 
-* GUI made in SFML: Youtube Let's make 16 games in C++
-https://www.youtube.com/watch?v=_4EuZI8Q8cs
+## Chess projects
 
-* GUI made in SFML:
-https://www.binpress.com/tutorial/creating-a-city-building-game-with-sfml/137
+Some code source of this project got its inspiration from other chess projects:
 
-This project is connected with the Chess engines:
+* Legal moves is mainly inspired by:
+  - http://www.tckerrigan.com/Chess/TSCP/
+  - http://home.hccnet.nl/h.g.muller/max-src2.html
+  - https://github.com/thomasahle/sunfish
 
-* Stockfish:
-https://github.com/mcostalba/Stockfish
+* GUI made in SFML was based on Youtube tutorial: [Let's make 16 games in C++](https://www.youtube.com/watch?v=_4EuZI8Q8cs)
 
-IA is inspired by papers and code source:
+* GUI state machine: [this tutorial](https://github.com/eXpl0it3r/SmallGameEngine)
+and this [library](https://www.binpress.com/tutorial/creating-a-city-building-game-with-sfml/137)
 
-* Mastering Chess and Shogi by Self-Play with a General Reinforcement Learning Algorithm
+## IA
+
+With did not use external libraries or get inspiration from other code source. Anyway, here some nice tutorials:
+
+* Convolutional Neural Networks learn chess moves:
+https://github.com/ashudeep/ConvChess
+
+* Mastering Chess and Shogi by Self-Play with a General Reinforcement Learning Algorithm:
 https://arxiv.org/pdf/1712.01815.pdf
 
 * Neural network (C++):
@@ -37,7 +44,6 @@ https://takinginitiative.wordpress.com/category/artificial-intelligence/neural-n
 * Neural network (C):
 https://rimstar.org/science_electronics_projects/backpropagation_neural_network_software_3_layer.htm
 
-Other:
+## Curiosity
 
-* Forth version of TSCP (working with gforth):
-http://www.quirkster.com/iano/forth/FCP.html
+* [Forth version of TSCP made in FORTH language](http://www.quirkster.com/iano/forth/FCP.html)

@@ -19,7 +19,7 @@ print-to = \
 
 ###################################################
 # Executable name
-TARGET = ChessNeuNeu
+TARGET = ChessNeuNeu-UnitTest
 
 ###################################################
 # Default path storing compilation files (*.o ...)
@@ -28,18 +28,18 @@ BUILD = build
 endif
 
 ###################################################
-# Third part: external libraries
-ifeq ($(THIRDPART),)
-THIRDPART = external
-endif
+# Path where to store the generated coverage docs
+DOC = doc/coverage
+# Path where to store lcov rapport
+RAPPORT = $(BUILD)/rapport.info
 
 ###################################################
 # Inform Makefile where to find header files
-INCLUDES = -I$(BUILD) -Isrc -Isrc/Players -Isrc/Utils -I$(THIRDPART)
+INCLUDES = -I$(BUILD) -I../src -I../src/Players -I../src/Utils
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH=$(BUILD):src:src/Players:src/Utils:src/Chess:src/GUI:$(THIRDPART)
+VPATH=$(BUILD):../src:../src/Players:../src/Utils:../src/Chess:../src/GUI
 
 ###################################################
 # Store files dependencies in *.d files.  When a file
@@ -49,12 +49,18 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Debug.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+OBJ = Rules.o Debug.o FEN.o FENTests.o RulesTests.o UnitTests.o
 
 ###################################################
 # Compilation options.
-CXXFLAGS = -W -Wall -Wextra -std=c++14 -O2 -g
-LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -pthread
+CXXFLAGS = -W -Wall -Wextra -std=c++11 -O2 -g
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lcrpcut -ldl
+
+###################################################
+# Code coverage. Comment these lines if coveraging
+# is not desired.
+CXXFLAGS += --coverage
+LDFLAGS += --coverage
 
 ###################################################
 # Common defines
@@ -67,53 +73,47 @@ DEFINES +=
 LIBS =
 
 ###################################################
+# Compile ChessNeuNeu unit tests
 all: $(TARGET)
 
 ###################################################
 # Link sources
-$(TARGET): CmdParser.done $(OBJ)
+$(TARGET): $(OBJ)
 	@$(call print-to,"Linking","$(TARGET)","$(BUILD)/$@","$(VERSION)")
 	@cd $(BUILD) && $(CXX) $(OBJ) -o $(TARGET) $(LIBS) $(LDFLAGS)
 
 ###################################################
-# Compile sources
-%.o: %.cpp CmdParser.done $(BUILD)/%.d Makefile
+# Compile unit test sources
+%.o: %.cpp $(BUILD)/%.d Makefile
 	@$(call print-from,"Compiling C++","$(TARGET)","$<")
 	@$(CXX) $(DEPFLAGS) $(CXXFLAGS) $(DEFINES) $(OPTIM_FLAGS) $(INCLUDES) -c $(abspath $<) -o $(abspath $(BUILD)/$@)
 	@$(POSTCOMPILE)
 
 ###################################################
-# Download external libs
-CmdParser.done: CmdParser
-CmdParser: $(THIRDPART)
-	@$(call print-to,"Downloading","$@","$</")
-	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch CmdParser.done
+# Compile an run unit tests with address sanitizer (if present).
+.PHONY: unit-tests
+unit-tests: $(TARGET)
+	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
+	$(SANITIZER) ./build/$(TARGET) $(TU_OPTIONS) || (cat ChessNeuNeu.log; return 1)
 
 ###################################################
-# Generate the code source documentation with doxygen.
-.PHONY: doc
-doc:
-	@doxygen Doxyfile
-	@xdg-open doc/html/index.html >/dev/null
+# Generate the code coverage html rapport.
+.PHONY: coverage
+coverage: $(TARGET)
+	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
+	@./build/$(TARGET) || exit 0;
+	@$(call print-to,"Documentation","$(RAPPORT)","$(DOC)","")
+	@lcov --quiet --directory .. -c -o $(RAPPORT)
+	@lcov --quiet --remove $(RAPPORT) '/usr*' 'external/*' 'tests/*' -o $(RAPPORT)
+	@genhtml --quiet -o $(DOC) -t "$(TARGET)" $(RAPPORT)
+	@xdg-open $(DOC)/index.html >/dev/null
 
 ###################################################
-# Compress SimTaDyn sources without its .git, build
-# folders and doc generated files. If a tarball
-# already exists, it'll not be smashed.
-.PHONY: targz
-targz:
-	@./.makefile/targz.sh $(PWD)
-
-###################################################
+# Clean the local build/ directory.
 .PHONY: clean
 clean:
 	@$(call print-simple,"Cleaning","$(PWD)")
-	@rm -fr $(BUILD) 2> /dev/null
-
-###################################################
-.PHONY: veryclean
-veryclean: clean
-	@rm -fr $(THIRDPART) 2> /dev/null
+	@rm -fr $(BUILD) $(DOC) 2> /dev/null
 
 ###################################################
 # Display the compilator version (g++, clang ...)
@@ -126,11 +126,8 @@ which-gcc:
 # Create a temporary folder to store *.o and *.d files
 $(DEPFILES): | $(BUILD)
 $(OBJ): | $(BUILD)
-version.h: | $(BUILD)
-$(THIRDPART): $(BUILD)
 $(BUILD): which-gcc
 	@mkdir -p $(BUILD)
-	@mkdir -p $(THIRDPART)
 
 ###################################################
 # Auto-Dependency Generation
