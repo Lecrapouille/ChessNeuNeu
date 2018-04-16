@@ -75,7 +75,7 @@ void Board::play()
         }
 
       // After the GUI animation
-      m_rules.makeMove(move);
+      m_rules.applyMove(move);
 
       // Debug
       if (m_rules.m_status == Status::Playing)
@@ -85,6 +85,10 @@ void Board::play()
                     << m_rules.m_side
                     << " are thinking ... "
                     << std::flush;
+        }
+      else
+        {
+          std::cout << m_rules.status() << std::endl;
         }
     }
 }
@@ -294,14 +298,25 @@ void Board::releaseFigure()
   // Fast filter of illegal move.
   // Player is trying to release its picked figure on a figure of his side.
   const Piece& piece = getPiece(m_mouse);
-  if ((piece.color == m_rules.m_side) && (piece.type != PieceType::Empty))
+  if (piece.color == m_rules.m_side)
     return ;
 
   // Create the note move
   std::string next_move(toChessNote(m_old_pos));
   next_move += toChessNote(m_new_pos);
 
-  if (!m_rules.isValidMove(Move(next_move)))
+  // Pawn promotion
+  const Piece& piece2 = getPiece(m_old_pos);
+#if 0
+  if ((piece2.type == PieceType::Pawn) /*&& ()*/)
+    {
+      Piece promote = NoPiece;
+      m_application.loop(new Promotion(m_application, promote, m_rules.m_side));
+      next_move += piece2char(promote);
+    }
+#endif
+  // Accept or refuse the move
+  if (!m_rules.isValidMove(next_move))
     return ;
 
   moveWithoutAnimation(next_move);
@@ -356,8 +371,6 @@ bool Board::running()
 
 void Board::handleInput()
 {
-  //          Piece p = NoPiece;
-
   sf::Event event;
 
   mousePosition(sf::Mouse::getPosition(window()));
@@ -391,7 +404,7 @@ void Board::handleInput()
         case sf::Event::KeyPressed:
           if (event.key.code == sf::Keyboard::BackSpace)
             {
-              m_rules.moveBack();
+              m_rules.revertLastMove();
               loadPosition(m_rules.m_board);
             }
           break;

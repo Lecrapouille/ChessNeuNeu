@@ -2,7 +2,6 @@
 #  define HUMAN_HPP
 
 #  include "Player.hpp"
-#  include "Chess/Rules.hpp"
 #  include <mutex>
 #  include <condition_variable>
 

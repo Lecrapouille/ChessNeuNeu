@@ -2,7 +2,6 @@
 #  define NEUNEU_HPP
 
 #  include "Player.hpp"
-#  include "Chess/Rules.hpp"
 
 enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight, NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
 

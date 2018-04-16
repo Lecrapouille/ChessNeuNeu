@@ -1,7 +1,7 @@
 #ifndef MAIN_HPP
 #  define MAIN_HPP
 
-#  include "GUI/GUI.hpp"
+#  include "Utils/GUI.hpp"
 #  include "Chess/Rules.hpp"
 #  include "Players/Player.hpp"
 

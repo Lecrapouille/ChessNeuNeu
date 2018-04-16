@@ -4,10 +4,10 @@ Promotion::Promotion(Application& application, Piece &taken_piece, Color color)
   : GUI(application), m_taken_piece(taken_piece)
 {
   m_board = Chessboard::Empty;
-  m_board[sqC4] = { color, 0, 0, 0, PieceType::Rook };
-  m_board[sqD4] = { color, 0, 0, 0, PieceType::Knight };
-  m_board[sqE4] = { color, 0, 0, 0, PieceType::Bishop };
-  m_board[sqF4] = { color, 0, 0, 0, PieceType::Queen };
+  m_board[sqC4] = { color, 0, 0, PieceType::Rook };
+  m_board[sqD4] = { color, 0, 0, PieceType::Knight };
+  m_board[sqE4] = { color, 0, 0, PieceType::Bishop };
+  m_board[sqF4] = { color, 0, 0, PieceType::Queen };
 
   loadTextures();
   loadPosition();

@@ -49,6 +49,16 @@ Piece char2Piece(const char c)
   return NoPiece;
 }
 
+char piece2char(const Piece p)
+{
+  return c_black_piece_char[p.type];
+}
+
+char piece2char(const PieceType p)
+{
+  return c_black_piece_char[p];
+}
+
 //! \brief Print the piece color.
 std::ostream& operator<<(std::ostream& os, const Color& c)
 {
@@ -117,7 +127,7 @@ std::ostream& operator<<(std::ostream& os, const Status& s)
       os << "Stalemate";
       break;
     case Status::InternalError:
-      os << "InternalError";
+      os << "Internal error";
       break;
     default:
       os << "Playing";
@@ -128,11 +138,11 @@ std::ostream& operator<<(std::ostream& os, const Status& s)
 
 std::ostream& operator<<(std::ostream& os, const Move& move)
 {
-  if (move.castle == Castle::Little)
+  if (move.castle & Castle::Little)
     {
       os << "O-O";
     }
-  else if (move.castle == Castle::Big)
+  else if (move.castle & Castle::Big)
     {
       os << "O-O-O";
     }
@@ -146,9 +156,9 @@ std::ostream& operator<<(std::ostream& os, const Move& move)
     {
       os << "ep";
     }
-  else if (move.promote)
+  else if (move.promote != PieceType::Empty)
     {
-      os << move.piece.type;
+      os << ':' << c_black_piece_char[move.promote];
     }
 
   if (move.check)
@@ -157,21 +167,4 @@ std::ostream& operator<<(std::ostream& os, const Move& move)
     }
 
   return os;
-}
-
-// FIXME: class Move: public std::sting puis ajouter les methodes:
-// FIXME a deplacer ailleurs car dependance de compil
-std::string Move2str(const uint8_t sq)
-{
-  return std::string(c_square_names[sq]);
-}
-
-std::string Move2str(const Move move)
-{
-  return std::string(c_square_names[move.from]) + std::string(c_square_names[move.to]);
-}
-
-std::string Move2str(const uint8_t from, const uint8_t to)
-{
-  return std::string(c_square_names[from]) + std::string(c_square_names[to]);
 }

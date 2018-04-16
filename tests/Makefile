@@ -49,11 +49,12 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = Rules.o Debug.o FEN.o FENTests.o RulesTests.o UnitTests.o
+OBJ = Rules.o FEN.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
+#PositionTests.o
 
 ###################################################
 # Compilation options.
-CXXFLAGS = -W -Wall -Wextra -std=c++11 -O2 -g
+CXXFLAGS = -W -Wall -Wextra -std=c++14 -O2 -g
 LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lcrpcut -ldl
 
 ###################################################

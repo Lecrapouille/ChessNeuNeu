@@ -3,7 +3,7 @@
 
 #  include "Chess/Pieces.hpp"
 #  include <array>
-#  include <cassert>
+#  include <string>
 
 //! \brief Number of squares in a chessboard.
 constexpr uint8_t NbSquares = 64u;
@@ -24,7 +24,7 @@ using chessboard = std::array<Piece, NbSquares>;
 //! \brief Give an number for all of the chessboard squares.
 //! Note: 'sq' prefix is necessary because of conflicts with
 //! SFML names.
-enum SquareNames
+enum Square
   {
     sqA8, sqB8, sqC8, sqD8, sqE8, sqF8, sqG8, sqH8,
     sqA7, sqB7, sqC7, sqD7, sqE7, sqF7, sqG7, sqH7,
@@ -33,7 +33,9 @@ enum SquareNames
     sqA4, sqB4, sqC4, sqD4, sqE4, sqF4, sqG4, sqH4,
     sqA3, sqB3, sqC3, sqD3, sqE3, sqF3, sqG3, sqH3,
     sqA2, sqB2, sqC2, sqD2, sqE2, sqF2, sqG2, sqH2,
-    sqA1, sqB1, sqC1, sqD1, sqE1, sqF1, sqG1, sqH1
+    sqA1, sqB1, sqC1, sqD1, sqE1, sqF1, sqG1, sqH1,
+    // Out of Bound
+    OOB
   };
 
 //! \brief Store square names. Mainly used for creating
@@ -50,11 +52,16 @@ constexpr std::array<const char[3], NbSquares> c_square_names =
       "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
     }};
 
-constexpr SquareNames toSquare(const char* square)
+constexpr Square toSquare(const char* square)
 {
   int val = ('8' - square[1]) * 8 + (square[0] - 'a');
   assert(val < NbSquares);
-  return static_cast<SquareNames>(val);
+  return static_cast<Square>(val);
+}
+
+inline std::string toStrMove(const uint8_t from, const uint8_t to)
+{
+  return std::string(c_square_names[from]) + std::string(c_square_names[to]);
 }
 
 namespace Chessboard
@@ -87,6 +94,7 @@ namespace Chessboard
       }};
 }
 
+//! \brief Pretty print a chessboard in console
 std::ostream& operator<<(std::ostream& os, chessboard& position);
 
 #endif

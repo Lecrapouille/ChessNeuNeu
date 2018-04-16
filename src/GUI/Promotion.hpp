@@ -1,7 +1,7 @@
 #ifndef GUI_PROMOTION_HPP
 #  define GUI_PROMOTION_HPP
 
-#  include "GUI/GUI.hpp"
+#  include "Utils/GUI.hpp"
 #  include "GUI/Dimension.hpp"
 #  include "Chess/Rules.hpp"
 

@@ -1,13 +1,11 @@
 #ifndef GUI_BOARD_HPP
 #  define GUI_BOARD_HPP
 
-#  include "GUI/GUI.hpp"
+#  include "Utils/GUI.hpp"
 #  include "GUI/Dimension.hpp"
-#  include "Chess/Rules.hpp"
 #  include "Players/Human.hpp"
 #  include <thread>
 #  include <atomic>
-#  include <mutex>
 
 // ***********************************************************************************************
 //! \brief Class displaying a Chess board, its figures and let to the player moving

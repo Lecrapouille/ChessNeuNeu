@@ -1,4 +1,4 @@
-#include "GUI/GUI.hpp"
+#include "Utils/GUI.hpp"
 #include <iostream>
 
 Application::Application()

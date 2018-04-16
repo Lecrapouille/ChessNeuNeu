@@ -2,7 +2,6 @@
 #  define TSCP_HPP
 
 #  include "Player.hpp"
-#  include "Chess/Rules.hpp"
 #  include "Utils/IPC.hpp"
 
 class Tscp: public IPC, public IPlayer

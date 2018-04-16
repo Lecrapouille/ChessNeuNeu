@@ -1,7 +1,6 @@
 #include "NeuNeu.hpp"
 #include <random>
 #include <iomanip>
-#include <cassert>
 
 // Random
 std::random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -44,13 +43,13 @@ void NeuNeu::debug(const NeuralPiece piece)
 
   // Header: piece movement destination
   for (uint8_t i = 0; i < 64u; ++i)
-    std::cout << Move2str(i) << "  ";
+    std::cout << c_square_names[i] << "  ";
   std::cout << std::endl;
 
   for (uint8_t i = 0; i < 64u; ++i)
     {
       // Left border: piece movement origin
-      std::cout << Move2str(i);
+      std::cout << c_square_names[i];
 
       // Display synaps
       for (uint8_t j = 0; j < 64u; ++j)
@@ -159,7 +158,7 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
         board = Chessboard::Empty;
         board[from] = piece;
         local_rules.m_side = static_cast<Color>(piece.color);
-        local_rules.loadPosition(board);
+        local_rules.m_board = board;
         local_rules.generateValidMoves();
 
         //
@@ -172,7 +171,7 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
         // Increment or decrement the weight of the move
         // depending if its a legal or illegal move.
         // Negative values are directly killed.
-        res = local_rules.isValidMove(Move(from, to));
+        res = local_rules.isValidMove(toStrMove(from, to));
 
       l_update_A:
 #ifdef RANDOM_MOVES
@@ -265,11 +264,11 @@ std::string NeuNeu::play()
   uint8_t to = play(from, *m_pieces[p], true);
 
   // TODO by neural network
-  if (!m_rules.isValidMove(Move(from, to)))
+  if (!m_rules.isValidMove(toStrMove(from, to)))
     goto l_find_piece;
 
   if (from == to)
     goto l_find_piece;
 
-  return Move2str(from, to);
+  return toStrMove(from, to);
 }

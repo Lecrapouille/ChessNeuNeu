@@ -2,7 +2,6 @@
 #  define STOCKFISH_HPP
 
 #  include "Player.hpp"
-#  include "Chess/Rules.hpp"
 #  include "Utils/IPC.hpp"
 
 class Stockfish: public IPC, public IPlayer

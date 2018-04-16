@@ -49,7 +49,7 @@ POSTCOMPILE = mv -f $(BUILD)/$*.Td $(BUILD)/$*.d
 
 ###################################################
 # List of files to compile. Splited by directories
-OBJ = FEN.o Debug.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+OBJ = Debug.o FEN.o Rules.o Board.o Promotion.o IPC.o Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
 
 ###################################################
 # Compilation options.
@@ -113,7 +113,7 @@ clean:
 ###################################################
 .PHONY: veryclean
 veryclean: clean
-	@rm -fr $(THIRDPART) 2> /dev/null
+	@rm -fr $(THIRDPART) doc/html 2> /dev/null
 
 ###################################################
 # Display the compilator version (g++, clang ...)

@@ -1,8 +1,7 @@
 #ifndef PLAYER_HPP
 #  define PLAYER_HPP
 
-#  include "Chess/Pieces.hpp"
-#  include <string>
+#  include "Chess/Rules.hpp"
 
 // ***********************************************************************************************
 //! \brief Define here

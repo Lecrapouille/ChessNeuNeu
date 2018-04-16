@@ -38,7 +38,7 @@ ChessNeuNeu internal documents are placed in doc/*.ml:
 
 ## Command-Line Usage
 
-### Launch the project without arguments
+### Launch the project without arguments
 
 ```
 ./ChessNeuNeu
@@ -47,7 +47,7 @@ ChessNeuNeu internal documents are placed in doc/*.ml:
 Will make human player play with White color against Stockfish with Black color.
 
 
-### Launch the project without arguments
+### Launch the project without arguments
 
 ```
 ./ChessNeuNeu --white <player> --black <player> --fen <board>
@@ -62,7 +62,7 @@ Where different players are:
 Where:
 * `board` is the board position using the Forsyth-Edwards notation. Use this [https://lichess.org/editor](link) for generating this input.
 
-### Example:
+### Example
 
 ```
 ./ChessNeuNeu --white stockfish --black human --fen "4k3/8/8/8/8/8/4P3/4K3 w - -"

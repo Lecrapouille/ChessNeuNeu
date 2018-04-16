@@ -1,4 +1,4 @@
-#include "Chess/FEN.hpp"
+#include "Chess/Rules.hpp"
 
 // TODO check if Pawns are not in 8 or 1
 // TODO check if Black move and White king is in check
@@ -43,60 +43,73 @@
   return load(fen, rules.m_board, rules.side, rules.en_passant, rules.hasKing);
   }*/
 
-bool load(std::string const& fen, chessboard& board, Color &color, int& en_passant)
+bool Rules::import(std::string const& fen)
 {
   uint8_t count_rows = 0u;
   uint8_t count_cols = 0u;
   uint8_t i = 0u;
   uint8_t ij = 0u;
-  color = Color::White;
+  uint8_t kings[2] = { 0u, 0u };
 
-  // Parse Pieces
+  m_side = Color::White;
+
+  m_castle[Color::White] = Castle::NoCastle;
+  m_castle[Color::Black] = Castle::NoCastle;
+
   while ((fen[i] != '\0') && (fen[i] != ' '))
     {
       if (fen[i] == '/')
         {
+          // End of chessboard rows
           if (++count_rows > 7) goto l_err_rows1;
           if (count_cols < 8) goto l_err_cols1;
           count_cols = 0u;
         }
       else if ((fen[i] >= '1') && (fen[i] <= '8'))
         {
+          // Parse empty squares
           uint8_t skip_squares = fen[i] - '0';
           count_cols += skip_squares;
           if (count_cols > 8) goto l_err_cols2;
-          for (uint8_t j = 0; j < skip_squares; ++j)
-            board[ij++] = NoPiece;
+          while (skip_squares--)
+            m_board[ij++] = NoPiece;
         }
-      else // pieces
+      else
         {
+          // Parse pieces and count kings
           Piece p = char2Piece(fen[i]);
           if (p == NoPiece) goto l_err_piece;
+          if (p.type == PieceType::King) kings[p.color] += 1u;
           if (++count_cols > 8) goto l_err_cols2;
-          board[ij++] = p;
+          m_board[ij++] = p;
         }
       ++i;
     }
 
   if (ij < NbSquares) goto l_err_rows2;
 
+  // Expected 0 or 1 king by side
+  if ((kings[Color::White] > 1) || (kings[Color::Black] != kings[Color::White]))
+    goto l_err_kings;
+  hasNoKing = (0u == kings[Color::White]);
+
   // Parse color
   if (fen[i] == ' ') ++i; else goto l_err_space;
   if ((fen[i] != 'w') && (fen[i] != 'b')) goto l_err_color;
-  color = (fen[i++] == 'b') ? Color::Black : Color::White;
+  m_side = (fen[i++] == 'b') ? Color::Black : Color::White;
 
   // Parse possible castles (max 4 characters)
-  if (fen[i] == ' ') ++i; else goto l_err_space;
+  if (fen[i++] != ' ') goto l_err_space;
   if (fen[i] == '-') ++i; else
     {
       uint8_t c = 0;
       while (fen[i] != ' ')
         {
           if (c > 3) goto l_err_castle1;
-          else if (fen[i] == 'k') {} // TODO can_castle[Color::Black] = LitteCastle;
-          else if (fen[i] == 'q') {} // TODO can_castle[Color::Black] = BigCastle;
-          else if (fen[i] == 'K') {} // TODO can_castle[Color::White] = LitteCastle;
-          else if (fen[i] == 'Q') {} // TODO can_castle[Color::White] = BigCastle;
+          else if (fen[i] == 'K') m_castle[Color::Black] |= Castle::Little;
+          else if (fen[i] == 'Q') m_castle[Color::Black] |= Castle::Big;
+          else if (fen[i] == 'k') m_castle[Color::White] |= Castle::Little;
+          else if (fen[i] == 'q') m_castle[Color::White] |= Castle::Big;
           else goto l_err_castle1;
           //TODO if (!verifyValidCastlingInfo()) goto l_err_castle2;
           ++i; ++c;
@@ -105,9 +118,9 @@ bool load(std::string const& fen, chessboard& board, Color &color, int& en_passa
 
   // En passant
   if (fen[i++] != ' ') goto l_err_ep;
-  if (fen[i] == '-') en_passant = -1;
+  if (fen[i] == '-') m_ep = Square::OOB;
   else if ((fen[i] >= 'a') && (fen[i] <= 'h') && (fen[i + 1] >= '1') && (fen[i + 1] <= '8'))
-    en_passant = toSquare(&fen[i]);
+    m_ep = toSquare(&fen[i]);
   else goto l_err_ep;
 
   // Ignore other part (half move)
@@ -153,7 +166,16 @@ l_err_castle1:
   std::cerr << "Bad FEN format: incompatible castle" << std::endl;
   return false;*/
 
+l_err_kings:
+  std::cerr << "Expecting 1 or 0 King by color" << std::endl;
+  return false;
+
 l_err_ep:
   std::cerr << "Bad FEN format: invalid en passant format '" << fen[i] << "'" << std::endl;
   return false;
 }
+
+/*std::string export(const chessboard& board)
+{
+  return "TODO";
+  }*/
