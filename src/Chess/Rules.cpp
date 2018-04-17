@@ -102,6 +102,9 @@ bool Rules::load(const std::string& moves, const bool init_board)
     {
       m_board = Chessboard::Init;
       m_side = Color::White;
+      m_castle[Color::White] = Castle::Both;
+      m_castle[Color::Black] = Castle::Both;
+      m_ep = Square::OOB;
     }
   m_moved.clear();
   generateValidMoves();

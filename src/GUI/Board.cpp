@@ -132,20 +132,20 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
   if (Square::OOB == m_to)
     return false;
 
-  // Release on its own piece
-  if (m_rules.m_side == m_rules.m_board[m_to].color)
-    return false;
-
   // Player put the piece back to its initial position:
   // ungrabFigure it to its initial position.
   if (m_from == m_to)
     {
       m_resources.figures[m_grabbed].setPosition(
-          conf::dim::figure * COL(m_from),
-          conf::dim::figure * ROW(m_from));
+          conf::dim::border + conf::dim::figure * COL(m_from),
+          conf::dim::border + conf::dim::figure * ROW(m_from));
       ungrabFigure();
       return false;
     }
+
+  // Release on its own piece
+  if (m_rules.m_side == m_rules.m_board[m_to].color)
+    return false;
 
   // Create the note move
   m_move = toStrMove(m_from, m_to);
