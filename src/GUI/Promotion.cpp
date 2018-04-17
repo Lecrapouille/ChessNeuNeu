@@ -1,15 +1,16 @@
 #include "GUI/Promotion.hpp"
 
-Promotion::Promotion(Application& application, Piece &taken_piece, Color color)
-  : GUI(application), m_taken_piece(taken_piece)
+Promotion::Promotion(Application& application, Resources &resources, Piece &taken_piece, Color color)
+  : GUI(application), m_resources(resources), m_taken_piece(taken_piece)
 {
+  // Load a dummy board with major pieces.
+
   m_board = Chessboard::Empty;
   m_board[sqC4] = { color, 0, 0, PieceType::Rook };
   m_board[sqD4] = { color, 0, 0, PieceType::Knight };
   m_board[sqE4] = { color, 0, 0, PieceType::Bishop };
   m_board[sqF4] = { color, 0, 0, PieceType::Queen };
 
-  loadTextures();
   loadPosition();
 }
 
@@ -17,25 +18,9 @@ Promotion::~Promotion()
 {
 }
 
-void Promotion::loadTextures()
-{
-  bool res1 = m_textures[0].loadFromFile("data/figures.png");
-  bool res2 = m_textures[1].loadFromFile("data/board.png");
-  if ((false == res1) || (false == res2))
-    {
-      std::cerr << "Failed loading textures" << std::endl;
-    }
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    {
-      m_figures[i].setTexture(m_textures[0]);
-    }
-  m_sboard.setTexture(m_textures[1]);
-}
-
 void Promotion::loadPosition()
 {
-  uint8_t k = 0;
+  uint8_t fig = 0;
 
   for (uint8_t ij = sqC4; ij <= sqF4; ++ij)
     {
@@ -43,26 +28,32 @@ void Promotion::loadPosition()
       if (p.type == PieceType::Empty)
         continue;
 
+      // Don't want the sprite to use the entire texture
       const uint32_t x = p.type - 1u;
       const uint32_t y = p.color;
-      m_figures[k].setTextureRect(sf::IntRect(config::dim::figure * x,
-                                              config::dim::figure * y,
-                                              config::dim::figure,
-                                              config::dim::figure));
-      m_figures[k].setPosition(config::dim::figure * COL(ij),
-                               config::dim::figure * ROW(ij));
-      ++k;
+      m_resources.figures[fig].setTextureRect(
+             sf::IntRect(conf::dim::figure * x,
+                         conf::dim::figure * y,
+                         conf::dim::figure,
+                         conf::dim::figure));
+
+      // Absolute position
+      m_resources.figures[fig].setPosition(
+             conf::dim::border + conf::dim::figure * COL(ij),
+             conf::dim::border + conf::dim::figure * ROW(ij));
+      ++fig;
+      assert(fig <= NbPieces);
     }
 
   // Hide unused pieces
-  for (; k < NbPieces; ++k)
-    m_figures[k].setPosition(-1000, -1000);
+  for (; fig < NbPieces; ++fig)
+    m_resources.figures[fig].setPosition(-1000, -1000);
 }
 
 const Piece &Promotion::getPiece(const sf::Vector2f& mouse) const
 {
-  int x = mouse.x / config::dim::figure;
-  int y = mouse.y / config::dim::figure;
+  int x = mouse.x / conf::dim::figure;
+  int y = mouse.y / conf::dim::figure;
 
   // Paranoia: SFML allow click event with mouse position
   // outside the chessboard.
@@ -77,7 +68,7 @@ Piece Promotion::takeFigure()
   // Find which piece is in the mouse cursor
   for (uint8_t i = 0u; i < NbPieces; ++i)
     {
-      if (m_figures[i].getGlobalBounds().contains(m_mouse.x, m_mouse.y))
+      if (m_resources.figures[i].getGlobalBounds().contains(m_mouse.x, m_mouse.y))
         {
           return getPiece(m_mouse);
         }
@@ -87,19 +78,14 @@ Piece Promotion::takeFigure()
 
 void Promotion::draw(const float /*dt*/)
 {
-  window().draw(m_sboard);
+  // Draw the chessboard
+  window().draw(m_resources.board);
 
+  // Draw figures
   for (uint8_t i = 0u; i < NbPieces; ++i)
-    m_figures[i].move(config::dim::border);
+    window().draw(m_resources.figures[i]);
 
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    window().draw(m_figures[i]);
-
-  //window().draw(m_figures[m_taken_piece]);
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    m_figures[i].move(-config::dim::border);
-
+  // Swap buffer
   window().display();
 }
 
@@ -118,7 +104,8 @@ void Promotion::handleInput()
   sf::Event event;
   Piece taken_piece = NoPiece;
 
-  mousePosition(sf::Mouse::getPosition(window()));
+  m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
+
   while (window().pollEvent(event))
     {
       switch (event.type)

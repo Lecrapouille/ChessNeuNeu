@@ -32,7 +32,7 @@ IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 //! https://lichess.org/editor for generating FEN strings.
 // ***********************************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::string const& fen)
-  : m_fen(fen), rules(fen)
+  : m_resources("figures.png", "board.png"), m_fen(fen), rules(fen)
 {
   init(white, black);
 }
@@ -41,6 +41,7 @@ ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::st
 //! \brief
 // ***********************************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
+  : m_resources("figures.png", "board.png")
 {
   init(white, black);
 }
@@ -123,7 +124,7 @@ int main(int argc, char** argv)
         }
 
       // Launch the GUI thread which will also start the game logic thread
-      chess->loop(new Board(*chess, chess->rules, chess->players));
+      chess->loop(new Board(*chess, chess->rules, chess->m_resources)); //*chess, chess->rules, chess->players));
     }
   catch (std::string const& e)
     {

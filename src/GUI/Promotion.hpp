@@ -2,11 +2,12 @@
 #  define GUI_PROMOTION_HPP
 
 #  include "Utils/GUI.hpp"
-#  include "GUI/Dimension.hpp"
+#  include "GUI/Resources.hpp"
 #  include "Chess/Rules.hpp"
 
 // ***********************************************************************************************
-//! \brief
+//! \brief GUI managing the pawn promotion. Display a board with possible pieces to promote.
+//! When the player selects one piece, this piece is used for the game.
 // ***********************************************************************************************
 class Promotion: public GUI
 {
@@ -14,7 +15,7 @@ public:
 
   //! \brief Constructor get references on game rules
   //! and the main window needed for drawing the GUI.
-  Promotion(Application& application, Piece &taken_piece, Color color);
+  Promotion(Application& application, Resources &resources, Piece &taken_piece, Color color);
 
   //! \brief Destructor. Release only GUI resources
   //! but not game rules.
@@ -23,13 +24,6 @@ public:
   //! \brief Action on mouse button pressed event.
   //! Grab the piece (if present).
   Piece takeFigure();
-
-  //! \brief Save the current mouse position and remove
-  //! the board border dimension.
-  inline void mousePosition(const sf::Vector2i p)
-  {
-    m_mouse = sf::Vector2f(p) - config::dim::border;
-  }
 
   const Piece& getPiece(const sf::Vector2f& p) const;
 
@@ -49,16 +43,12 @@ private:
 
 private:
 
+  //! \brief Reference on loaded resources (textures ...)
+  Resources         &m_resources;
   //! \brief Memorize the last moving figure.
   Piece             &m_taken_piece;
   //! \brief
   chessboard         m_board;
-  //! \brief Textures of the chess board and figures.
-  sf::Texture        m_textures[2];
-  //! \brief Chess pieces are a textured square knowing its position.
-  sf::Sprite         m_figures[NbPieces];
-  //! \brief Chessboard is a textured square knowing its position.
-  sf::Sprite         m_sboard;
   //! \brief Memorize the mouse position when moving a figure.
   sf::Vector2f       m_mouse;
 };
