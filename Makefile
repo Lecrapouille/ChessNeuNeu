@@ -1,3 +1,23 @@
+##=====================================================================
+## ChessNeuNeu: Non serious chess engine for learning neural networks.
+## Copyright 2018 Quentin Quadrat <lecrapouille@gmail.com>
+##
+## This file is part of ChessNeuNeu.
+##
+## ChessNeuNeu is free software: you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+## General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+##=====================================================================
+
 ###################################################
 # Define colors
 CLR_DEFAULT := $(shell echo '\033[00m')
@@ -97,7 +117,7 @@ doc:
 	@xdg-open doc/html/index.html >/dev/null
 
 ###################################################
-# Compress SimTaDyn sources without its .git, build
+# Compress ChessNeuNeu sources without its .git, build
 # folders and doc generated files. If a tarball
 # already exists, it'll not be smashed.
 .PHONY: targz
