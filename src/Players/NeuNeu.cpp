@@ -152,7 +152,7 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
   // Hack: allow not having Kings on the chessboard
   // Which is not allowed by chess rules.
   if (piece.type != PieceType::King)
-    local_rules.hasNoKing = true;
+    local_rules.m_no_kings = true;
 
   // Init Matrix
   for (uint8_t i = 0; i < 64u; ++i)

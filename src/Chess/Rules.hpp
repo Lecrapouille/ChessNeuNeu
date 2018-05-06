@@ -151,9 +151,9 @@ public: // FIXME should be private but ok because the class is used as const
   //! \brief Current pieces positions after playing all moves stored in m_moved.
   chessboard            m_board;
 
-  bool hasNoKing;
   uint8_t m_ep;
   uint8_t m_castle[2];
+  bool                  m_no_kings;
 };
 
 #endif

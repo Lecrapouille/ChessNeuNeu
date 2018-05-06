@@ -77,7 +77,7 @@ Rules::Rules()
   : m_status(Status::Playing),
     m_side(Color::White),
     m_board(Chessboard::Init),
-    hasNoKing(WithKings),
+    m_no_kings(WithKings),
     m_ep(Square::OOB)
 {
   m_castle[Color::White] = Castle::Both;
@@ -91,7 +91,7 @@ Rules::Rules(const chessboard &board, const Color side,
   : m_status(Status::Playing),
     m_side(side),
     m_board(board),
-    hasNoKing(noking),
+    m_no_kings(noking),
     m_ep(ep)
 {
   if (noking == WithNoKings)
@@ -294,7 +294,7 @@ void Rules::generatePseudoLegalCastleMove()
   const uint8_t offset = (m_side == Color::White) ? 0 : (sqE1 - sqE8);
 
   // No Kings = no castle
-  if (hasNoKing)
+  if (m_no_kings)
     return ;
 
   // Castle not possible if King is in check
@@ -396,7 +396,7 @@ bool Rules::tryMove(const Move move) const
 bool Rules::isKingInCheck(chessboard const& board, const Color side) const
 {
   // Special case for Neural network using empty chessboard with no Kings
-  if (hasNoKing)
+  if (m_no_kings)
     return false;
 
   for (uint8_t i = 0u; i < NbSquares; ++i)
@@ -626,7 +626,7 @@ void Rules::updateGameStatus()
       // is in progress.
       m_status = Status::Playing;
     }
-  else if (hasNoKing)
+  else if (m_no_kings)
     {
       // This is not a valid chess rule but for
       // neural network of unit tests we sometimes

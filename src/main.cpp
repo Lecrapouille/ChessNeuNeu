@@ -77,7 +77,7 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 
   // Be sure to play with Kings (chessboard with no Kings is only
   // used for Neural trainings and unit tests).
-  assert(false == rules.hasNoKing);
+  assert(false == rules.m_no_kings);
 
   // Debug
   std::cout

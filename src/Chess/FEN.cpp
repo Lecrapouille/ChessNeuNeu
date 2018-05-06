@@ -111,7 +111,7 @@ bool Rules::import(std::string const& fen)
   // Expected 0 or 1 king by side
   if ((kings[Color::White] > 1) || (kings[Color::Black] != kings[Color::White]))
     goto l_err_kings;
-  hasNoKing = (0u == kings[Color::White]);
+  m_no_kings = (0u == kings[Color::White]);
 
   // Parse color
   if (fen[i] == ' ') ++i; else goto l_err_space;
