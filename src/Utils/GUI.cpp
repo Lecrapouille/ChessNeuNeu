@@ -73,7 +73,6 @@ void Application::loop(GUI* gui)
       peek()->update(dt);
       m_window.clear();
       peek()->draw(dt);
-
     }
 
   // Pop

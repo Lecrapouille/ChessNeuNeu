@@ -19,16 +19,19 @@
 //=====================================================================
 
 #include "GUI/Board.hpp"
+#include "GUI/Promotion.hpp"
 #include <unistd.h>
 
-Board::Board(Application& application, Rules& rules, IPlayer** players)
+static const uint8_t NoFigure = NbPieces + 1u;
+
+Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer **players)
   : GUI(application),
+    m_resources(resources),
     m_rules(rules),
-    m_taken_piece(0u),
-    m_moving_figure(false),
     m_players(players)
 {
-  loadTextures();
+  ungrabFigure();
+  m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
   loadPosition(m_rules.m_board);
   m_thread = std::thread(&Board::play, this);
 }
@@ -86,6 +89,7 @@ void Board::play()
       // already been moved.
       if (HumanPlayer != m_players[m_rules.m_side]->type()) // FIXME && using GUI
         {
+          std::cout << "ici " <<  m_players[m_rules.m_side]->type() << std::endl;
           {
             MuxGuard g(m_lock);
             m_opponent_move = move;
@@ -115,25 +119,19 @@ void Board::play()
     }
 }
 
-void Board::loadTextures()
+void Board::ungrabFigure()
 {
-  bool res1 = m_textures[0].loadFromFile("data/figures.png");
-  bool res2 = m_textures[1].loadFromFile("data/board.png");
-  if ((false == res1) || (false == res2))
-    {
-      std::cerr << "Failed loading textures" << std::endl;
-    }
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    {
-      m_figures[i].setTexture(m_textures[0]);
-    }
-  m_sboard.setTexture(m_textures[1]);
+  m_grabbed = NoFigure;
 }
 
-void Board::loadPosition(const chessboard& board)
+bool Board::grabbedFigure() const
 {
-  uint8_t k = 0;
+  return NoFigure != m_grabbed;
+}
+
+void Board::loadPosition(chessboard const& board)
+{
+  uint8_t fig = 0;
 
   for (uint8_t ij = 0u; ij < NbSquares; ++ij)
     {
@@ -141,237 +139,223 @@ void Board::loadPosition(const chessboard& board)
       if (p.type == PieceType::Empty)
         continue;
 
+      // Don't want the sprite to use the entire texture
       const uint32_t x = p.type - 1u;
       const uint32_t y = p.color;
-      m_figures[k].setTextureRect(sf::IntRect(config::dim::figure * x,
-                                              config::dim::figure * y,
-                                              config::dim::figure,
-                                              config::dim::figure));
-      m_figures[k].setPosition(config::dim::figure * COL(ij),
-                               config::dim::figure * ROW(ij));
-      ++k;
+      m_resources.figures[fig].setTextureRect(
+             sf::IntRect(conf::dim::figure * x,
+                         conf::dim::figure * y,
+                         conf::dim::figure,
+                         conf::dim::figure));
+
+      // Absolute position
+      m_resources.figures[fig].setPosition(
+             conf::dim::border + conf::dim::figure * COL(ij),
+             conf::dim::border + conf::dim::figure * ROW(ij));
+      ++fig;
+      assert(fig <= NbPieces);
     }
 
   // Hide unused pieces
-  for (; k < NbPieces; ++k)
-    m_figures[k].setPosition(-1000, -1000);
+  for (; fig < NbPieces; ++fig)
+    m_resources.figures[fig].setPosition(-1000, -1000);
+}
+
+Square Board::getSquare(sf::Vector2f const& mouse) const
+{
+  // Get the square from mouse position
+  int x = (int) ((mouse.x - conf::dim::border) / ((float) conf::dim::figure));
+  int y = (int) ((mouse.y - conf::dim::border) / ((float) conf::dim::figure));
+
+  // Outside the chessboard ?
+  if ((x < 0) || (x > 7) || (y < 0) || (y > 7))
+    return Square::OOB;
+
+  return static_cast<Square>(8 * y + x);
+}
+
+Piece const& Board::getPiece(sf::Vector2f const& mouse) const
+{
+  Square sq = getSquare(mouse);
+
+  if (Square::OOB == sq)
+    return NoPiece;
+
+  return m_rules.m_board[sq];
+}
+
+bool Board::takeFigure(sf::Vector2f const& mouse)
+{
+  // No end game (checkmate, stalemate ...)
+  if (Status::Playing != m_rules.m_status)
+    return false;
+
+  // The player has already grab a piece
+  if (grabbedFigure())
+    return false;
+
+  // Grab a piece ?
+  Square sq = getSquare(mouse);
+  if (Square::OOB == sq)
+    return false;
+
+  // Do not grab a piece from opposite color
+  if (m_rules.m_side != m_rules.m_board[sq].color)
+    return false;
+
+  // Find which figure is in the mouse cursor
+  for (uint8_t fig = 0u; fig < NbPieces; ++fig)
+    {
+      if (m_resources.figures[fig].getGlobalBounds().contains(mouse.x, mouse.y))
+        {
+          m_grabbed = fig;
+          m_from = sq;
+          m_to = Square::OOB;
+          break ;
+        }
+    }
+
+  // Figure has been taken
+  assert(grabbedFigure());
+  return true;
+}
+
+bool Board::releaseFigure(sf::Vector2f const& mouse)
+{
+  // End of the game ?
+  if (Status::Playing != m_rules.m_status)
+    return false;
+
+  // The player has already grab a piece
+  if (!grabbedFigure())
+    return false;
+
+  // Outside the board dimension ?
+  uint8_t m_to = getSquare(mouse);
+  if (Square::OOB == m_to)
+    return false;
+
+  // Player put the piece back to its initial position:
+  // ungrabFigure it to its initial position.
+  if (m_from == m_to)
+    {
+      m_resources.figures[m_grabbed].setPosition(
+          conf::dim::border + conf::dim::figure * COL(m_from),
+          conf::dim::border + conf::dim::figure * ROW(m_from));
+      ungrabFigure();
+      return false;
+    }
+
+  // Release on its own piece
+  if (m_rules.m_side == m_rules.m_board[m_to].color)
+    return false;
+
+  // Create the note move
+  m_move = toStrMove(m_from, m_to);
+
+  // Check pawn promotion and if a valif pawn promotion
+  uint8_t row = ROW(m_to);
+  if ((7 == row) || (0 == row))
+    {
+      Piece p = m_rules.m_board[m_from];
+      if (PieceType::Pawn == p.type)
+        {
+          row = ROW(m_from);
+          if (((Color::White == p.color) && (1 == row)) ||
+              ((Color::Black == p.color) && (6 == row)))
+            {
+              // Pop up a new window for selecting the promoted piece
+              Piece promote = NoPiece;
+              m_application.loop(new Promotion(m_application, m_resources, promote, m_rules.m_side));
+
+              // and complete the next move
+              m_move += piece2char(promote);
+            }
+        }
+    }
+
+  // Accept or refuse the move
+  if (!m_rules.isValidMove(m_move))
+    return false;
+
+  ungrabFigure();
+  reinterpret_cast<Human*>(m_players[m_rules.m_side])->notified(m_move);
+  return true;
+}
+
+bool Board::running()
+{
+  //m_running_thread = window().isOpen();
+  return m_running_thread;
+}
+
+sf::Vector2f Board::toCoord(const char a, const char b) const
+{
+  return sf::Vector2f(conf::dim::border, conf::dim::border)
+    + sf::Vector2f((int(a) - 'a') * conf::dim::figure,
+                   ('8' - int(b)) * conf::dim::figure);
 }
 
 //! \param move the newly played move in format like "e2e4".
 //! \note: the move shall be valid !
-void Board::moveWithAnimation(const std::string& move)
+void Board::animate(const std::string& move)
 {
-  m_old_pos = toCoord(move[0], move[1]);
-  m_new_pos = toCoord(move[2], move[3]);
-
+  const sf::Vector2f from(toCoord(move[0], move[1]));
+  const sf::Vector2f to(toCoord(move[2], move[3]));
   uint8_t taken_piece = NbPieces;
-  for (uint8_t i = 0u; i < NbPieces; ++i)
+
+  for (uint8_t fig = 0u; fig < NbPieces; ++fig)
     {
-      if (m_figures[i].getPosition() == m_old_pos)
+      if (m_resources.figures[fig].getGlobalBounds().contains(from.x, from.y))
         {
-          taken_piece = i;
+          taken_piece = fig;
         }
     }
 
   // Assert piece taken (else that would mean that
   // given move was illegal)
   assert(taken_piece != NbPieces && "Illegal move");
-  m_taken_piece = taken_piece;
 
   // Smooth animation
+  const sf::Vector2f p = to - from;
   const uint32_t smooth = 50;
   for (uint32_t k = 0; k < smooth; ++k)
     {
-      sf::Vector2f p = m_new_pos - m_old_pos;
-      m_figures[m_taken_piece].move(p.x / smooth,
-                                    p.y / smooth);
+      m_resources.figures[taken_piece].move(p.x / smooth,
+                                            p.y / smooth);
       draw(0.0f);
     }
-
-  moveWithoutAnimation(move);
 }
 
-void Board::moveWithoutAnimation(const std::string& move)
+void Board::draw(float const /*dt*/)
 {
-  sf::Vector2f oldPos = toCoord(move[0], move[1]);
-  sf::Vector2f newPos = toCoord(move[2], move[3]);
+  sf::Vector2f delta(-conf::dim::border, -conf::dim::border);
 
+  // Set the grabbed figure to mouse cursor
+  if (grabbedFigure())
+    {
+      delta += m_mouse - m_resources.figures[m_grabbed].getPosition();
+      m_resources.figures[m_grabbed].move(delta);
+    }
+
+  // Draw the chessboard
+  window().draw(m_resources.board);
+
+  // Draw figures
   for (uint8_t i = 0u; i < NbPieces; ++i)
-    {
-      if (m_figures[i].getPosition() == newPos)
-        {
-          m_figures[i].setPosition(-100, -100);
-        }
-    }
+    window().draw(m_resources.figures[i]);
 
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    {
-      if (m_figures[i].getPosition() == oldPos)
-        {
-          m_figures[i].setPosition(newPos);
-        }
-    }
-
-  m_figures[m_taken_piece].setPosition(m_new_pos);
-
-  if (move == "e1g1")
-    {
-      if (m_rules.m_moved.find("e1") == std::string::npos)
-        moveWithoutAnimation("h1f1");
-    }
-  else if (move == "e8g8")
-    {
-      if (m_rules.m_moved.find("e8") == std::string::npos)
-        moveWithoutAnimation("h8f8");
-    }
-  else if (move == "e1c1")
-    {
-      if (m_rules.m_moved.find("e1") == std::string::npos)
-        moveWithoutAnimation("a1d1");
-    }
- else if (move == "e8c8")
-    {
-      if (m_rules.m_moved.find("e8") == std::string::npos)
-        moveWithoutAnimation("a8d8");
-    }
-}
-
-const Piece &Board::getPiece(const sf::Vector2f& mouse) const
-{
-  int x = mouse.x / config::dim::figure;
-  int y = mouse.y / config::dim::figure;
-
-  // Paranoia: SFML allow click event with mouse position
-  // outside the chessboard.
-  if (x < 0) x = 0; else if (x > 7) x = 7;
-  if (y < 0) y = 0; else if (y > 7) y = 7;
-
-  return m_rules.m_board[y * 8 + x];
-}
-
-void Board::takeFigure()
-{
-  // Filter useless events
-  if (true == m_moving_figure)
-    return ;
-
-  // Do not touch opponent figures
-  if (PlayerType::HumanPlayer != m_players[m_rules.m_side]->type())
-    return ;
-
-  // No end game (checkmate, stalemate ...)
-  if (Status::Playing != m_rules.m_status)
-    return ;
-
-  // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x) ||
-      (m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
-    return ;
-
-  // Find which piece is in the mouse cursor
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    {
-      if (m_figures[i].getGlobalBounds().contains(m_mouse.x, m_mouse.y))
-        {
-          const Piece& piece = getPiece(m_mouse);
-          if (piece.color == m_rules.m_side)
-            {
-              m_taken_piece = i;
-              m_delta_pos = m_mouse - m_figures[i].getPosition();
-              m_old_pos = m_figures[i].getPosition();
-              m_moving_figure = true;
-            }
-        }
-    }
-}
-
-void Board::releaseFigure()
-{
-  // Filter useless events
-  if (false == m_moving_figure)
-    return ;
-
-  // End of the game
-  if (Status::Playing != m_rules.m_status)
-    return ;
-
-  // Do not touch opponent figures
-  if (PlayerType::HumanPlayer != m_players[m_rules.m_side]->type())
-    return ;
-
-  // Mouse is out of bound of the chessboard
-  if ((m_mouse.x < 0.0f) || (m_mouse.x > config::dim::board.x) ||
-      (m_mouse.y < 0.0f) || (m_mouse.y > config::dim::board.y))
-    return ;
-
-  //
-  sf::Vector2f p = m_figures[m_taken_piece].getPosition()
-                 +  sf::Vector2f(config::dim::figure / 2, config::dim::figure / 2);
-  m_new_pos = sf::Vector2f(config::dim::figure * int(p.x / config::dim::figure),
-                           config::dim::figure * int(p.y / config::dim::figure));
-
-  if (m_old_pos == m_new_pos)
-    {
-      m_figures[m_taken_piece].setPosition(m_new_pos);
-      m_moving_figure = false;
-      return ;
-    }
-
-  // Fast filter of illegal move.
-  // Player is trying to release its picked figure on a figure of his side.
-  const Piece& piece = getPiece(m_mouse);
-  if (piece.color == m_rules.m_side)
-    return ;
-
-  // Create the note move
-  std::string next_move(toChessNote(m_old_pos));
-  next_move += toChessNote(m_new_pos);
-
-  // Pawn promotion
-  const Piece& piece2 = getPiece(m_old_pos);
-#if 0
-  if ((piece2.type == PieceType::Pawn) /*&& ()*/)
-    {
-      Piece promote = NoPiece;
-      m_application.loop(new Promotion(m_application, promote, m_rules.m_side));
-      next_move += piece2char(promote);
-    }
-#endif
-  // Accept or refuse the move
-  if (!m_rules.isValidMove(next_move))
-    return ;
-
-  moveWithoutAnimation(next_move);
-  reinterpret_cast<Human*>(m_players[m_rules.m_side])->notified(next_move);
-  m_moving_figure = false;
-}
-
-void Board::draw(const float /*dt*/)
-{
-  // Draw the figure when the user is grabbing it
-  if (m_moving_figure)
-    {
-      m_figures[m_taken_piece].setPosition(m_mouse - m_delta_pos);
-    }
-
-  window().draw(m_sboard);
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    m_figures[i].move(config::dim::border);
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    window().draw(m_figures[i]);
-
-  window().draw(m_figures[m_taken_piece]);
-
-  for (uint8_t i = 0u; i < NbPieces; ++i)
-    m_figures[i].move(-config::dim::border);
-
+  // Swap buffer
   window().display();
 }
 
-void Board::update(const float /*dt*/)
+void Board::update(float const /*dt*/)
 {
+  if (!m_updated)
+    m_updated = true;
+
+  loadPosition(m_rules.m_board);
+
   std::string move;
   {
     MuxGuard g(m_lock);
@@ -381,21 +365,15 @@ void Board::update(const float /*dt*/)
     m_opponent_move.clear();
   }
   m_animating = true;
-  moveWithAnimation(move);
+  animate(move);
   m_animating = false;
-}
-
-bool Board::running()
-{
-  //m_running_thread = window().isOpen();
-  return m_running_thread;
 }
 
 void Board::handleInput()
 {
   sf::Event event;
 
-  mousePosition(sf::Mouse::getPosition(window()));
+  m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
 
   while (window().pollEvent(event))
     {
@@ -411,16 +389,24 @@ void Board::handleInput()
           break;
 
         case sf::Event::MouseButtonPressed:
-          //FIXME temporaire
-          //m_application.loop(new Promotion(m_application, p,
-          //                                 m_rules.m_side));
-          //std::cout << "Board::Promotion: " << p << std::endl;
-
-          takeFigure();
+          if (event.mouseButton.button == sf::Mouse::Left)
+            {
+              takeFigure(m_mouse);
+            }
+          else if (event.mouseButton.button == sf::Mouse::Right)
+            {
+              ungrabFigure();
+              loadPosition(m_rules.m_board);
+            }
           break;
 
         case sf::Event::MouseButtonReleased:
-          releaseFigure();
+          m_updated = releaseFigure(m_mouse);
+          if (m_updated)
+            {
+              //m_rules.applyMove(m_move); // FIXME: possible without game thread
+              //loadPosition(m_rules.m_board);
+            }
           break;
 
         case sf::Event::KeyPressed:
@@ -428,6 +414,15 @@ void Board::handleInput()
             {
               m_rules.revertLastMove();
               loadPosition(m_rules.m_board);
+            }
+          else if (event.key.code == sf::Keyboard::Escape)
+            {
+              std::cout << std::endl << "Halting ChessNeuNeu ..." << std::endl;
+              m_running_thread = false;
+              while (window().pollEvent(event))
+                ;
+              m_players[m_rules.m_side]->abort();
+              //window().close();
             }
           break;
 

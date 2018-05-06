@@ -21,9 +21,10 @@
 #ifndef MAIN_HPP
 #  define MAIN_HPP
 
+#  include "GUI/Resources.hpp"
 #  include "Utils/GUI.hpp"
-#  include "Chess/Rules.hpp"
 #  include "Players/Player.hpp"
+
 
 // ***********************************************************************************************
 //! \brief Main window showing the chessboard and allowing two players to play chess on this board.
@@ -51,6 +52,9 @@ private:
   IPlayer *createPlayer(const PlayerType type, const Color side);
 
 public:
+
+  // Textures ...
+  Resources m_resources;
 
   //! \brief Save the chessboard passed in command-line option.
   //! This will be used for Stockfish.
