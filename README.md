@@ -60,7 +60,7 @@ Where different players are:
 * `tcsp` for letting TCSP plays.
 
 Where:
-* `board` is the board position using the Forsyth-Edwards notation. Use this [https://lichess.org/editor](link) for generating this input.
+* `board` is the board position using the Forsyth-Edwards notation. Use this https://lichess.org/editor for generating this input.
 
 ### Example
 
