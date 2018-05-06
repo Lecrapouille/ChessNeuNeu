@@ -19,6 +19,7 @@
 //=====================================================================
 
 #include "GUI/Board.hpp"
+#include <unistd.h>
 
 Board::Board(Application& application, Rules& rules, IPlayer** players)
   : GUI(application),
@@ -46,6 +47,7 @@ void Board::play()
   uint8_t failures = 0u;
   Status previous_status = m_rules.m_status;
 
+  usleep(100000);
   while (running())
     {
       // End of game ?
