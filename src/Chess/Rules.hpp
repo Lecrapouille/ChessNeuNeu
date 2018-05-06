@@ -42,6 +42,17 @@ constexpr bool WithKings = false;
 std::ostream& operator<<(std::ostream& os, const Status& s);
 
 // ***********************************************************************************************
+//! \brief Initial chessboard (loaded with FEN) used for reverting moves.
+// ***********************************************************************************************
+struct Initial
+{
+  chessboard  board;
+  uint8_t     ep;
+  uint8_t     castle[2];
+  Color       side;
+};
+
+// ***********************************************************************************************
 //! \brief Structure storing the piece position on the board and all movements.
 //! This structure can be used by other classes.
 // ***********************************************************************************************
@@ -136,6 +147,12 @@ private:
   //! \brief Update the game status (checkmate, playing ...)
   void updateGameStatus();
 
+  //! \brief Save initial chessboard states after loading a FEN.
+  void saveInit();
+
+  //! \brief Restore chessboard states to states after loaded FEN.
+  void restoreInit();
+
 public: // FIXME should be private but ok because the class is used as const
 
   //! \brief get the status of the game (check mat, pat)
@@ -150,10 +167,18 @@ public: // FIXME should be private but ok because the class is used as const
   std::vector<Move>     m_legal_moves;
   //! \brief Current pieces positions after playing all moves stored in m_moved.
   chessboard            m_board;
-
-  uint8_t m_ep;
-  uint8_t m_castle[2];
+  //! \brief Set it true for unit tests or neural network and when its allowed to
+  //! have no kings in the chessboard (which is not allowed by standard rules).
   bool                  m_no_kings;
+  //! \brief Indicate the en-passant square. When possible the value refers to
+  //! a chessboard sqaure (enum Square). When not possible, the value is Square::OOB.
+  //! This state is updated after moving a piece.
+  uint8_t               m_ep; // FIXME: correct type is enum Square
+  //! \brief Indicate possible castle sides for each color. When moving pieces this
+  //! state is updated.
+  uint8_t               m_castle[2]; // FIXME: correct type is OR'ed enum Castle
+  //! \brief Save chessboard states after loading FEN position.
+  Initial               m_initial;
 };
 
 #endif
