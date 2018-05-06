@@ -500,12 +500,16 @@ void Rules::applyMove(Move const& move)
   // Update castle status:
   // if Rook moved: castle can no longer be done
   // on the rook side
-  else if (m_board[from].type == PieceType::Rook)
-    {//FIXME
-      /*if ((from == sqA1) || (from == sqA8))
-        m_castle[m_side] &= ~Castle::Big;
-      else if ((from == sqH1) || (from == sqH8))
-      m_castle[m_side] &= ~Castle::Little;*/
+  else if (m_board[to].type == PieceType::Rook)
+    {
+      if ((to == sqA1) || (to == sqA8))
+        {
+          m_castle[m_side] &= ~Castle::Big;
+        }
+      else if ((to == sqH1) || (to == sqH8))
+        {
+          m_castle[m_side] &= ~Castle::Little;
+        }
     }
 
   // Update en passant status
