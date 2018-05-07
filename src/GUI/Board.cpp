@@ -82,6 +82,9 @@ void Board::play()
               m_rules.m_status = Status::InternalError;
               continue ;
             }
+
+          // Try to fix the error. TODO: to be tested !!!
+          m_rules.applyMove(m_rules.revertLastMove());
         }
       else
         {

@@ -102,7 +102,7 @@ public:
 
   //! \brief move back the last move (if any).
   //! This method will revert applyMove().
-  void revertLastMove();
+  std::string revertLastMove();
 
   //! \brief Check if the King is in check.
   bool isKingInCheck(chessboard const& board, const Color side) const;
