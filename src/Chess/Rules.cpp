@@ -603,13 +603,16 @@ void Rules::updateBoard(Move const& move, chessboard& board) const
   // Basic movement
   board[to] = board[from];
   board[to].moved = true;
-  board[from] = NoPiece;
 
   // Promotion
   if (move.promote != PieceType::Empty)
     {
       board[to].type = move.promote;
+      board[to].color = board[from].color;
+      board[to].slide = (move.promote != PieceType::Knight);
     }
+
+  board[from] = NoPiece;
 
   // Castle: move the rook
   if (move.castle != Castle::NoCastle)

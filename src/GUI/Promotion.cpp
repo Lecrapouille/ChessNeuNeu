@@ -72,13 +72,13 @@ void Promotion::loadPosition()
 
 const Piece &Promotion::getPiece(const sf::Vector2f& mouse) const
 {
-  int x = mouse.x / conf::dim::figure;
-  int y = mouse.y / conf::dim::figure;
+  // Get the square from mouse position
+  int x = (int) ((mouse.x - conf::dim::border) / ((float) conf::dim::figure));
+  int y = (int) ((mouse.y - conf::dim::border) / ((float) conf::dim::figure));
 
-  // Paranoia: SFML allow click event with mouse position
-  // outside the chessboard.
-  if (x < 0) x = 0; else if (x > 7) x = 7;
-  if (y < 0) y = 0; else if (y > 7) y = 7;
+  // Outside the chessboard ?
+  if ((x < 0) || (x > 7) || (y < 0) || (y > 7))
+    return NoPiece;
 
   return m_board[y * 8 + x];
 }

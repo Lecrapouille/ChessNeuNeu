@@ -173,7 +173,7 @@ TESTSUITE(Debug)
 
     out.str(std::string());
     out << PromoteMove(sqH7, sqH8, PieceType::Rook);  // FIXME: tester cas pathologique
-    ASSERT_EQ("h7-h8:r", out.str());
+    ASSERT_EQ("h7-h8:R", out.str());
   }
 
   TEST(Operator5)

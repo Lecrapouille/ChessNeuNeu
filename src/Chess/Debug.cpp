@@ -178,7 +178,7 @@ std::ostream& operator<<(std::ostream& os, const Move& move)
     }
   else if (move.promote != PieceType::Empty)
     {
-      os << ':' << c_black_piece_char[move.promote];
+      os << ':' << c_white_piece_char[move.promote];
     }
 
   if (move.check)
