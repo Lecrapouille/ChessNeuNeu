@@ -579,20 +579,22 @@ bool Rules::applyMove(std::string const& move)
   return false;
 }
 
-void Rules::revertLastMove()
+std::string Rules::revertLastMove()
 {
   if (m_moved.empty())
-    return ;
+    return "";
 
   auto pos = m_moved.rfind(" ");
   pos = (std::string::npos == pos) ? 0 : pos + 1;
 
-  std::string move(m_moved.substr(pos));
+  std::string last_move(m_moved.substr(pos));
   std::cout << opposite(m_side) << " reverted the move '"
-            << move << "'" << std::endl;
-  move = m_moved.erase(pos);
+            << last_move << "'" << std::endl;
+
+  std::string move(m_moved.erase(pos));
   bool res = load(move, true);
   assert(res && "Failed reverting last move");
+  return last_move;
 }
 
 void Rules::updateBoard(Move const& move, chessboard& board) const

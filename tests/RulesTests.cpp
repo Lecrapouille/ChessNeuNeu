@@ -36,55 +36,53 @@ TESTSUITE(Constructor)
 
   TEST(LoadFromMovesCorrect)
   {
-    Rules rules1("rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -");
-    Rules rules2;
+    Rules rulesRef("rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -");
+    Rules rules;
 
-    ASSERT_EQ(true, rules2.m_moved == "");
+    ASSERT_EQ(true, rules.m_moved == "");
 
     // Revert last move from init board
-    ASSERT_EQ(true, Chessboard::Init == rules2.m_board);
-    ASSERT_EQ(Color::White, rules2.m_side);
-    rules2.revertLastMove();
-    ASSERT_EQ(true, Chessboard::Init == rules2.m_board);
-    ASSERT_EQ(Color::White, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "");
+    ASSERT_EQ(true, Chessboard::Init == rules.m_board);
+    ASSERT_EQ(Color::White, rules.m_side);
+    ASSERT_EQ(true, "" == rules.revertLastMove());
+    ASSERT_EQ(true, Chessboard::Init == rules.m_board);
+    ASSERT_EQ(Color::White, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "");
 
     // Load moves
-    ASSERT_EQ(true, rules2.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
-    ASSERT_EQ(true, rules1.m_board == rules2.m_board);
-    ASSERT_EQ(Color::Black, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
+    ASSERT_EQ(true, rules.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
+    ASSERT_EQ(true, rulesRef.m_board == rules.m_board);
+    ASSERT_EQ(Color::Black, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
 
     // Revert last move
-    std::cout << "hjhjhjhhjh" << std::endl;
-    rules2.revertLastMove();
-    ASSERT_EQ(Color::White, rules2.m_side);
-    std::cout << "COUPS " << rules2.m_moved << std::endl;
-    ASSERT_EQ(true, rules2.m_moved == "e2e4 e7e5 g1f3 g8f6");
-    Rules rules3 = rules1;
+    ASSERT_EQ(true, "f1c4" == rules.revertLastMove());
+    ASSERT_EQ(Color::White, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6");
+    Rules rules3 = rulesRef;
     rules3.m_board[sqC4] = NoPiece;
     rules3.m_board[sqF1] = WhiteBishop;
-    ASSERT_EQ(true, rules3.m_board == rules2.m_board);
+    ASSERT_EQ(true, rules3.m_board == rules.m_board);
 
     // Revert last move
-    rules2.revertLastMove();
-    ASSERT_EQ(Color::Black, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "e2e4 e7e5 g1f3");
-    rules2.revertLastMove();
-    ASSERT_EQ(Color::White, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "e2e4 e7e5");
-    rules2.revertLastMove();
-    ASSERT_EQ(Color::Black, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "e2e4");
-    rules2.revertLastMove();
-    ASSERT_EQ(Color::White, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "");
+    ASSERT_EQ(true, "g8f6" == rules.revertLastMove());
+    ASSERT_EQ(Color::Black, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3");
+    ASSERT_EQ(true, "g1f3" == rules.revertLastMove());
+    ASSERT_EQ(Color::White, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5");
+    ASSERT_EQ(true, "e7e5" == rules.revertLastMove());
+    ASSERT_EQ(Color::Black, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4");
+    ASSERT_EQ(true, "e2e4" == rules.revertLastMove());
+    ASSERT_EQ(Color::White, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "");
 
     // Load moves
-    ASSERT_EQ(true, rules2.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
-    ASSERT_EQ(true, rules1.m_board == rules2.m_board);
-    ASSERT_EQ(Color::Black, rules2.m_side);
-    ASSERT_EQ(true, rules2.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
+    ASSERT_EQ(true, rules.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
+    ASSERT_EQ(true, rulesRef.m_board == rules.m_board);
+    ASSERT_EQ(Color::Black, rules.m_side);
+    ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
   }
 
   // TODO castle + revert
