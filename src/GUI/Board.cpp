@@ -54,26 +54,32 @@ void Board::play()
   while (running())
     {
       // End of game ?
-      if ((Status::Playing != m_rules.m_status) && (previous_status != m_rules.m_status))
+      if (Status::Playing != m_rules.m_status)
         {
-          std::cout << "End of the game: " << m_rules.m_status << " !!!" << std::endl;
-          previous_status = m_rules.m_status;
+          // Printf game status only once
+          if (previous_status != m_rules.m_status)
+            {
+              std::cout << "End of the game: " << m_rules.m_status << " !!!" << std::endl;
+              previous_status = m_rules.m_status;
+            }
           continue ;
         }
-      previous_status = m_rules.m_status;
 
       // Get the player move
       std::string move = m_players[m_rules.m_side]->play();
       if (move == IPlayer::error)
         {
+          // Got IPlayer::error because of Ctr-C signal ?
           if (!running())
             return ;
 
+          // Internal error
           ++failures;
           std::cout << move << " " << failures << std::endl << std::endl;
           if (failures > 7)
             {
-              //m_rules.m_status = Status::InternalError;
+              previous_status = m_rules.m_status;
+              m_rules.m_status = Status::InternalError;
               continue ;
             }
         }
@@ -89,7 +95,6 @@ void Board::play()
       // already been moved.
       if (HumanPlayer != m_players[m_rules.m_side]->type()) // FIXME && using GUI
         {
-          std::cout << "ici " <<  m_players[m_rules.m_side]->type() << std::endl;
           {
             MuxGuard g(m_lock);
             m_opponent_move = move;
@@ -101,6 +106,7 @@ void Board::play()
         }
 
       // After the GUI animation
+      previous_status = m_rules.m_status;
       m_rules.applyMove(move);
 
       // Debug

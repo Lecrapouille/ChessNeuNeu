@@ -73,9 +73,22 @@ std::string Stockfish::play()
     {
       std::string move = answer.substr(n + 9, 5);
 
+      // Ctr-C signal
       if (m_aborting)
         return IPlayer::error;
-      return move;
+
+      // Regexp of move [a-h][1-8][a-h][1-8][nbqr ]
+      if ((move[0] >= 'a') && (move[0] <= 'h') &&
+          (move[1] >= '1') && (move[1] <= '8') &&
+          (move[2] >= 'a') && (move[2] <= 'h') &&
+          (move[3] >= '1') && (move[3] <= '8') &&
+          ((move[4] == ' ') || (move[4] == 'n') ||
+           (move[4] == 'b') || (move[4] == 'q') ||
+           (move[4] == 'r')))
+        return move;
+
+      // Stockfish returns "(none)" for stalemate
+      return IPlayer::error;
     }
 
   // FIXME: Retry
