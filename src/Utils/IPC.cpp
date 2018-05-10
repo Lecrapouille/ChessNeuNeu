@@ -23,7 +23,7 @@
 #include <iostream>
 #include <stdexcept>
 
-IPC::IPC(const std::string& command)
+IPC::IPC(std::string const& command)
 {
   if (open(command))
     {
@@ -36,7 +36,7 @@ IPC::~IPC()
   close();
 }
 
-int IPC::open(const std::string& command)
+int IPC::open(std::string const& command)
 {
   int wpipe[2];
   int rpipe[2];
@@ -83,8 +83,14 @@ int IPC::open(const std::string& command)
     default: // Parent
       ::close(wpipe[0]);
       ::close(rpipe[1]);
-      int retval = fcntl(rpipe[0], F_SETFL, fcntl(rpipe[0], F_GETFL) | O_NONBLOCK);
-      //std::cerr << "fcntl " << retval << std::endl;
+
+      // Force to non-blocking read
+      int flags = fcntl(rpipe[0], F_GETFL, 0);
+      int retval = fcntl(rpipe[0], F_SETFL, flags | O_NONBLOCK);
+      if (retval < 0)
+        {
+          std::cerr << "IPC: failed configuring non-blocking read: " << retval << std::endl;
+        }
       m_wfd = wpipe[1];
       m_rfd = rpipe[0];
       return 0;
@@ -103,25 +109,38 @@ void IPC::close()
   } while (p == -1 && errno == EINTR);
 }
 
-int IPC::write(const std::string& msg)
+int IPC::write(std::string const& msg)
 {
   return ::write(m_wfd, msg.c_str(), msg.size());
 }
 
-char buffer[2048];
-std::string IPC::read()
+bool IPC::read(std::string& msg)
 {
-  std::string msg;
+  char buffer[128];
   int nb;
 
+  msg.clear();
   do {
-    nb = ::read(m_rfd, buffer, 1024);
+    nb = ::read(m_rfd, buffer, 127);
     if (nb > 0)
       {
         buffer[nb] = '\0';
         msg += (char*) buffer;
       }
+
+    // Non-blocking reading ==> Equivalent to nb == 0
+    else if (errno == EWOULDBLOCK)
+      {
+        nb = 0;
+      }
+
+    // Failure
+    if (nb < 0)
+      {
+        std::cerr << "IPC: Failed reading in pipe" << std::endl;
+      }
   } while (nb > 0);
 
-  return msg;
+  // Read at least one char ?
+  return (nb >= 0);
 }
