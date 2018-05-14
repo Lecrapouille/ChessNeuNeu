@@ -32,15 +32,15 @@ class IPC
 {
 public:
 
-  IPC(const std::string& command);
+  IPC(std::string const& command);
   ~IPC();
 
-  int write(const std::string& msg);
-  std::string read();
+  int write(std::string const& msg);
+  bool read(std::string& msg);
 
 private:
 
-  int open(const std::string& command);
+  int open(std::string const& command);
   void close();
 
   pid_t m_pid;

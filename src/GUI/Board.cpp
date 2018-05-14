@@ -67,12 +67,17 @@ void Board::play()
 
       // Get the player move
       std::string move = m_players[m_rules.m_side]->play();
-      if (move == IPlayer::error)
+      if (move == IPlayer::none)
         {
-          // Got IPlayer::error because of Ctr-C signal ?
+          // ChessNeuNeu is quitting ?
           if (!running())
             return ;
 
+          // Stalemate case
+          continue ;
+        }
+      else if (move == IPlayer::error)
+        {
           // Internal error
           ++failures;
           std::cout << move << " " << failures << std::endl << std::endl;
@@ -84,7 +89,7 @@ void Board::play()
             }
 
           // Try to fix the error. TODO: to be tested !!!
-          m_rules.applyMove(m_rules.revertLastMove());
+          // m_rules.applyMove(m_rules.revertLastMove());
         }
       else
         {

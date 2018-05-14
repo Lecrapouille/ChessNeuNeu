@@ -44,10 +44,11 @@ public:
   {
   }
 
-  //! \brief Compute and return a legal move.
-  //! This method can take long minutes it's ok
-  //! because this method should be called from
-  //! a thread.
+  //! \brief Compute and return a legal move (like "e7e8q") or
+  //! IPlayer::none for stalemate case or IPlayer::error in case
+  //! of internal error. This method can take long minutes to be
+  //! done. This is normal because compuatations can be heavy.
+  //! Therefore this method should be called from a thread.
   virtual std::string play() = 0;
 
   //! \bref Abort signal for halting properlu play()
@@ -64,6 +65,7 @@ public:
   }
 
   static constexpr const char* error = "error";
+  static constexpr const char* none = "none";
 
 private:
 

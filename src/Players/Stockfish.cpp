@@ -26,7 +26,6 @@ Stockfish::Stockfish(const Rules &rules, const Color side, std::string const& fe
     m_fen(fen),
     m_rules(rules)
 {
-  std::cout << read() << std::endl;
 }
 
 Stockfish::~Stockfish()
@@ -63,40 +62,79 @@ std::string Stockfish::play()
   // Send the command to Stockfish
   write(command);
 
-  // FIXME: Give time to Stockfish
-  usleep(100000);
-
   // Get and parse the Stockfish answer
-  std::string answer = read();
-  int n = answer.find("bestmove");
-  if (n != -1)
+  std::string answer;
+  std::string move;
+  uint8_t retry = 0u;
+  int found;
+
+  do
     {
-      std::string move = answer.substr(n + 9, 5);
-
-      // Ctr-C signal
+      // ChessNeuNeu is quitting ?
       if (m_aborting)
-        return IPlayer::error;
+        goto l_quit;
 
-      // Regexp of move [a-h][1-8][a-h][1-8][nbqr ]
-      if ((move[0] >= 'a') && (move[0] <= 'h') &&
+      // Read Stockfish message from the IPC
+      if (!read(answer))
+        goto l_error;
+
+      // Look for a keyword
+      found = answer.find("bestmove");
+
+      // Found try extracting the move
+      if (found >= 0)
+        {
+          // Extract move
+          move = answer.substr(found + 9, 5);
+
+          // Stockfish did not finish sending all its message
+          if (move.length() < 5)
+            found = -1;
+        }
+
+      // No move found: wait a little to let Stockfish returning a bigger
+      // message and try again to extract the move.
+      if  (-1 == found)
+        {
+          // Give time to Stockfish to send more message
+          usleep(1000);
+
+          // Too many failures
+          if (++retry > 100)
+            goto l_error;
+        }
+    }
+  while (-1 == found);
+
+  assert(// Stalemate case
+         (move == "(none") ||
+         // Regexp of move [a-h][1-8][a-h][1-8]
+         ((move[0] >= 'a') && (move[0] <= 'h') &&
           (move[1] >= '1') && (move[1] <= '8') &&
           (move[2] >= 'a') && (move[2] <= 'h') &&
           (move[3] >= '1') && (move[3] <= '8') &&
-          ((move[4] == ' ') || (move[4] == 'n') ||
-           (move[4] == 'b') || (move[4] == 'q') ||
-           (move[4] == 'r')))
-        return move;
+          // Regexp of
+          ((move[4] == ' ') || (move[4] == '\n') ||
+           (move[4] == 'n') || (move[4] == 'b') ||
+           (move[4] == 'q') || (move[4] == 'r'))));
 
-      // Stockfish returns "(none)" for stalemate
-      return IPlayer::error;
-    }
+  // Stockfish returns "(none)" for stalemate
+  if (move[0] == '(')
+    return IPlayer::none;
 
-  // FIXME: Retry
+  // Chess move extracted with success
+  return move;
+
+l_quit:
+  return IPlayer::none;
+
+l_error:
+  std::cerr << "Failed reading Stockfish move" << std::endl;
   return IPlayer::error;
 }
 
 void Stockfish::debug()
 {
-  write("d\n");
-  std::cout << read() << std::endl;
+  //write("d\n");
+  //std::cout << read() << std::endl;
 }

@@ -23,6 +23,7 @@
 Tscp::Tscp(const Rules &rules, const Color side)
   : IPC("tscp"), IPlayer(PlayerType::TscpIA, side), m_rules(rules)
 {
+#if 0
   usleep(10000);
   read();
   if (Color::White == side)
@@ -35,6 +36,7 @@ Tscp::Tscp(const Rules &rules, const Color side)
       m_send_on = false;
     }
   //std::cout << read() << std::endl;
+  #endif
 }
 
 Tscp::~Tscp()
@@ -49,6 +51,7 @@ void Tscp::abort()
 
 std::string Tscp::play()
 {
+#if 0
   //if (m_rules.m_moved.size() >= 5)
   std::string next_move(m_rules.m_moved.substr(m_rules.m_moved.size() - 5 , 4));
   std::cout << "prochain coup '" << next_move << "'" << std::endl;
@@ -70,7 +73,7 @@ std::string Tscp::play()
       std::cout << "TSCP move is '" << move << "'" << std::endl;
       return move;
     }
-
+#endif
   std::cout << "error" << std::endl;
   return IPlayer::error;
 }
