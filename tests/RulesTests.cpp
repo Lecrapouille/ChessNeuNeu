@@ -50,7 +50,7 @@ TESTSUITE(Constructor)
     ASSERT_EQ(true, rules.m_moved == "");
 
     // Load moves
-    ASSERT_EQ(true, rules.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
+    ASSERT_EQ(true, rules.applyMoves("e2e4 e7e5 g1f3 g8f6 f1c4", true));
     ASSERT_EQ(true, rulesRef.m_board == rules.m_board);
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
@@ -79,7 +79,7 @@ TESTSUITE(Constructor)
     ASSERT_EQ(true, rules.m_moved == "");
 
     // Load moves
-    ASSERT_EQ(true, rules.load("e2e4 e7e5 g1f3 g8f6 f1c4", true));
+    ASSERT_EQ(true, rules.applyMoves("e2e4 e7e5 g1f3 g8f6 f1c4", true));
     ASSERT_EQ(true, rulesRef.m_board == rules.m_board);
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
@@ -94,7 +94,7 @@ TESTSUITE(Constructor)
     Rules rules1("rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -");
     Rules rules2;
 
-    ASSERT_EQ(false, rules2.load("e2e4 e7e5 g1f3 g8f6 f1b4", true));
+    ASSERT_EQ(false, rules2.applyMoves("e2e4 e7e5 g1f3 g8f6 f1b4", true));
     ASSERT_NE(true, rules1.m_board == rules2.m_board);
     ASSERT_EQ(true, rules0.m_board == rules2.m_board);
     ASSERT_EQ(Color::White, rules2.m_side);
@@ -267,7 +267,7 @@ TESTSUITE(PawnMoves)
 
     ASSERT_EQ(Color::White, rules.m_side);
     ASSERT_EQ(sqD6, rules.m_ep);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(2, rules.m_legal_moves.size());
 
     // Check movement
@@ -292,7 +292,7 @@ TESTSUITE(PawnMoves)
 
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(sqE3, rules.m_ep);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(2, rules.m_legal_moves.size());
 
     // Check movement
@@ -317,7 +317,7 @@ TESTSUITE(PawnMoves)
 
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(Square::OOB, rules.m_ep);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(1, rules.m_legal_moves.size());
 
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -332,7 +332,7 @@ TESTSUITE(PawnMoves)
 
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(Square::OOB, rules.m_ep);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
 
     rules.applyMove("d7d5");
     ASSERT_EQ(sqD6, rules.m_ep);
@@ -351,7 +351,7 @@ TESTSUITE(PawnMoves)
 
     ASSERT_EQ(Color::White, rules.m_side);
     ASSERT_EQ(Square::OOB, rules.m_ep);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
 
     rules.applyMove("e2e4");
     ASSERT_EQ(sqE3, rules.m_ep);
@@ -458,7 +458,7 @@ TESTSUITE(BishopMoves)
     ASSERT_EQ(true, rules.load("8/8/3b4/8/3BB1b1/8/8/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(26, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -527,7 +527,7 @@ TESTSUITE(BishopMoves)
     ASSERT_EQ(true, rules.load("8/3B2b1/3b4/8/3BB1b1/8/2B1b3/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(36, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -615,7 +615,7 @@ TESTSUITE(RookMoves)
     ASSERT_EQ(true, rules.load("8/6r1/8/3R4/4R3/2r5/8/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(28, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -691,7 +691,7 @@ TESTSUITE(RookMoves)
     ASSERT_EQ(true, rules.load("8/1r1R4/4r3/3R4/4R1r1/1r3R2/8/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(44, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -787,7 +787,7 @@ TESTSUITE(QueenMoves)
     ASSERT_EQ(true, rules.load("8/4q3/8/1Q6/3Q4/8/2q5/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(50, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -850,7 +850,7 @@ TESTSUITE(QueenMoves)
     ASSERT_EQ(true, rules.load("8/4q3/8/2Q5/4Q3/8/2q5/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithNoKings, rules.hasNoKing);
+    ASSERT_EQ(WithNoKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(48, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -958,7 +958,7 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(true, rules.load("8/6k1/8/8/4K3/8/8/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithKings, rules.hasNoKing);
+    ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(8, rules.m_legal_moves.size());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -993,7 +993,7 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(true, rules.load("7k/8/8/3PP3/4KP2/4P3/8/8 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithKings, rules.hasNoKing);
+    ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
     std::vector<Move>::iterator e = rules.m_legal_moves.end();
@@ -1018,7 +1018,7 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(true, rules.load("7k/1b2rb2/8/8/n2K4/8/8/4n3 w - -"));
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithKings, rules.hasNoKing);
+    ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
   }
@@ -1029,7 +1029,7 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(true, rules.load("7K/1B2RB2/8/8/N2k4/8/8/4N3 b - -"));
 
     ASSERT_EQ(Color::Black, rules.m_side);
-    ASSERT_EQ(WithKings, rules.hasNoKing);
+    ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
   }
@@ -1039,7 +1039,7 @@ TESTSUITE(KingMoves)
     Rules rules("r3k2r/8/8/8/8/8/8/R3K2R w KQkq -");
 
     ASSERT_EQ(Color::White, rules.m_side);
-    ASSERT_EQ(WithKings, rules.hasNoKing);
+    ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
@@ -1053,10 +1053,12 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(true, rules.isValidMove("e1c1"));
 
     rules.applyMove("e1c1");
-    /*ASSERT_EQ(NoPiece, rules.m_board[sqA1]);
+    ASSERT_EQ(NoPiece, rules.m_board[sqA1]);
     ASSERT_EQ(NoPiece, rules.m_board[sqE1]);
     ASSERT_EQ(WhiteKing, rules.m_board[sqC1]);
     ASSERT_EQ(WhiteRook, rules.m_board[sqD1]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
 
     b = rules.m_legal_moves.begin();
     e = rules.m_legal_moves.end();
@@ -1064,7 +1066,88 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(e, std::find(b, e, Move("e8c8"))); // Not allowed
 
     ASSERT_EQ(true, rules.isValidMove("e8g8"));
-    ASSERT_EQ(false, rules.isValidMove("e8c8")); // Not allowed*/
+    ASSERT_EQ(false, rules.isValidMove("e8c8")); // Not allowed
+
+    rules.applyMove("e8g8");
+    ASSERT_EQ(NoPiece, rules.m_board[sqH8]);
+    ASSERT_EQ(NoPiece, rules.m_board[sqE8]);
+    ASSERT_EQ(BlackKing, rules.m_board[sqG8]);
+    ASSERT_EQ(BlackRook, rules.m_board[sqF8]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
+
+    // Move back and try other castle
+    rules.revertLastMove();
+    rules.revertLastMove();
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    rules.applyMove("e1g1");
+    ASSERT_EQ(NoPiece, rules.m_board[sqH1]);
+    ASSERT_EQ(NoPiece, rules.m_board[sqE1]);
+    ASSERT_EQ(WhiteKing, rules.m_board[sqG1]);
+    ASSERT_EQ(WhiteRook, rules.m_board[sqF1]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    b = rules.m_legal_moves.begin();
+    e = rules.m_legal_moves.end();
+    ASSERT_NE(e, std::find(b, e, Move("e8c8")));
+    ASSERT_EQ(e, std::find(b, e, Move("e8g8"))); // Not allowed
+
+    ASSERT_EQ(true, rules.isValidMove("e8c8"));
+    ASSERT_EQ(false, rules.isValidMove("e8g8")); // Not allowed
+
+    rules.applyMove("e8c8");
+    ASSERT_EQ(NoPiece, rules.m_board[sqA8]);
+    ASSERT_EQ(NoPiece, rules.m_board[sqE8]);
+    ASSERT_EQ(BlackKing, rules.m_board[sqC8]);
+    ASSERT_EQ(BlackRook, rules.m_board[sqD8]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
+
+    // Move back and move rook
+    rules.revertLastMove();
+    rules.revertLastMove();
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    std::cout << "hjhjhj" << std::endl;
+    rules.applyMove("a1a2");
+    std::cout << "C: " << (int) rules.m_castle[Color::White] << std::endl;
+    std::cout << "C: " << (int) rules.m_castle[Color::Black] << std::endl;
+    ASSERT_EQ(Castle::Little, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    rules.applyMove("a8b8");
+    ASSERT_EQ(Castle::Little, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Little, rules.m_castle[Color::Black]);
+
+    rules.applyMove("e1e2");
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    rules.applyMove("e8f8");
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
+
+    // Move back and move other rook
+    rules.revertLastMove();
+    rules.revertLastMove();
+    rules.revertLastMove();
+    rules.revertLastMove();
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    rules.applyMove("h1h2");
+    ASSERT_EQ(Castle::Big, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
+
+    rules.applyMove("h8g8");
+    ASSERT_EQ(Castle::Big, rules.m_castle[Color::White]);
+    ASSERT_EQ(Castle::Big, rules.m_castle[Color::Black]);
+
+    rules.applyMove("e1e2");
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
+    rules.applyMove("e8f8");
+    ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
   }
 
   TEST(NotAllowedCastle)

@@ -83,7 +83,7 @@ Rules::Rules()
   m_castle[Color::White] = Castle::Both;
   m_castle[Color::Black] = Castle::Both;
   generateValidMoves();
-  saveInit();
+  saveStates();
 }
 
 Rules::Rules(const chessboard &board, const Color side,
@@ -106,7 +106,7 @@ Rules::Rules(const chessboard &board, const Color side,
       m_castle[Color::Black] = bcastle;
     }
   generateValidMoves();
-  saveInit();
+  saveStates();
 }
 
 Rules::Rules(std::string const& fen)
@@ -116,14 +116,18 @@ Rules::Rules(std::string const& fen)
       throw std::string("Incorrect FEN string");
     }
   generateValidMoves();
-  saveInit();
+  saveStates();
 }
 
-bool Rules::load(const std::string& moves, const bool init_board)
+bool Rules::applyMoves(std::string const& moves, bool const init_board)
 {
   if (init_board)
     {
-      restoreInit();
+      m_board = m_initial.board;
+      m_side = m_initial.side;
+      m_ep = m_initial.ep;
+      m_castle[0] = m_initial.castle[0];
+      m_castle[1] = m_initial.castle[1];
     }
   m_moved.clear();
   generateValidMoves();
@@ -141,7 +145,6 @@ bool Rules::load(const std::string& moves, const bool init_board)
         return false;
     }
 
-  saveInit();
   return true;
 }
 
@@ -151,20 +154,11 @@ bool Rules::load(std::string const& fen)
     return false;
 
   generateValidMoves();
-  saveInit();
+  saveStates();
   return true;
 }
 
-void Rules::restoreInit()
-{
-  m_board = m_initial.board;
-  m_side = m_initial.side;
-  m_ep = m_initial.ep;
-  m_castle[0] = m_initial.castle[0];
-  m_castle[1] = m_initial.castle[1];
-}
-
-void Rules::saveInit()
+void Rules::saveStates()
 {
   m_initial.board = m_board;
   m_initial.side = m_side;
@@ -525,11 +519,11 @@ void Rules::applyMove(Move const& move)
   // on the rook side
   else if (m_board[to].type == PieceType::Rook)
     {
-      if ((to == sqA1) || (to == sqA8))
+      if ((from == sqA1) || (from == sqA8))
         {
           m_castle[m_side] &= ~Castle::Big;
         }
-      else if ((to == sqH1) || (to == sqH8))
+      else if ((from == sqH1) || (from == sqH8))
         {
           m_castle[m_side] &= ~Castle::Little;
         }
@@ -591,8 +585,8 @@ std::string Rules::revertLastMove()
   std::cout << opposite(m_side) << " reverted the move '"
             << last_move << "'" << std::endl;
 
-  std::string move(m_moved.erase(pos));
-  bool res = load(move, true);
+  std::string moves(m_moved.erase(pos));
+  bool res = applyMoves(moves, true);
   assert(res && "Failed reverting last move");
   return last_move;
 }

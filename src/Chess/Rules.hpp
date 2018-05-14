@@ -69,7 +69,7 @@ public:
         Castle bcastle = Castle::Both, uint8_t ep = OOB);
 
   //! \brief Load a chessboard from a given board and a list of legal moves.
-  bool load(const std::string& moves, const bool init_board);
+  bool applyMoves(std::string const& moves, bool const init_board);
 
   //! \brief Load a chessboard from a string using the Forsyth-Edwards Notation
   bool load(std::string const& fen);
@@ -148,10 +148,7 @@ private:
   void updateGameStatus();
 
   //! \brief Save initial chessboard states after loading a FEN.
-  void saveInit();
-
-  //! \brief Restore chessboard states to states after loaded FEN.
-  void restoreInit();
+  void saveStates();
 
 public: // FIXME should be private but ok because the class is used as const
 
