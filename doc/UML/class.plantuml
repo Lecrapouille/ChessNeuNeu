@@ -1,0 +1,96 @@
+@startuml
+
+class IPC {
++IPC(program: string)
++write(message: string)
++read(): string
+}
+
+class Application {
++loop(GUI)
++push(GUI)
++pop(): GUI
++peek(): GUI
+-GUI* stack
+}
+
+interface GUI {
+-Application* app
+-{abstract} draw()
+-{abstract} update()
+-{abstract} handleInput()
+}
+
+class ChessNeuNeu {
+-create(typeOf): Player*
+}
+
+class guiBoard {
+-draw()
+-update()
+-handleInput()
++takeFigure(mouse_position: x/y)
++releaseFigure(mouse_position: x/y)
++oppentPlay(Move)
++loadPosition(chessboard)
+}
+
+class guiPromotion {
+-draw()
+-update()
+-handleInput()
++selectFigure(): Piece
+}
+
+class Rules {
+-Square[8][8]: chessboard
++isValidMove(Move): bool
++getValidMoves(): list
++makeMove(Move)
++loadPosition(chessboard)
++loadPostion(listMoves)
+}
+
+interface Player {
++Player(color)
++{abstract} play(): Move
+}
+
+class Human {
++play(): Move
+}
+
+class Stockfish {
++play(): Move
+}
+
+class NeuNeu {
++play(): Move
+}
+
+class Square {
++ Color/Type: Piece
++ bool: empty
+}
+
+GUI "*" <- Application: "stack"
+GUI <|-- guiBoard
+GUI <|-- guiPromotion
+Application <|-- ChessNeuNeu
+ChessNeuNeu -> "1" Rules
+ChessNeuNeu --> "2" Player
+ChessNeuNeu ..> guiBoard: "loop()"
+guiBoard <.. Human: "use"
+Rules <.. guiBoard: "use"
+guiPromotion <.. guiBoard: "loop()"
+guiPromotion ..> guiBoard: "app.pop()"
+
+Player <|-- Human
+Player <|-- Stockfish
+Player <|-- NeuNeu
+IPC <.. Stockfish: "use"
+
+Rules <.. Player: "use"
+Rules -> "  64" Square: chessboard
+
+@enduml
