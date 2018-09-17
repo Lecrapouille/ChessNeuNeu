@@ -43,6 +43,7 @@ void Human::notified(std::string const& move)
   m_cond.notify_one();
 }
 
+// Tricky hack to get the move from the GUI.
 std::string Human::play()
 {
   std::unique_lock<std::mutex> mlock(m_mutex);

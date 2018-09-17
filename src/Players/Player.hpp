@@ -24,47 +24,66 @@
 #  include "Chess/Rules.hpp"
 
 // ***********************************************************************************************
-//! \brief Define here
+//! \brief Define here all type of chess players. Currently implemented:
+//! -- HumanPlayer: Use the GUI and a mouse for moving pieces
+//! -- StockfishIA: play against Stockfish software (you shall install it)
+//! -- TscpIA: play against TSCP software (you shall install it)
+//! -- NeuNeuIA: play against my neural network IA.
 // ***********************************************************************************************
 enum PlayerType { HumanPlayer, StockfishIA, TscpIA, NeuNeuIA };
 
 // ***********************************************************************************************
-//! \brief Interface class for a chess player.
+//! \brief Abstract class for a chess player. If you desire to add your own IA makes it inherites
+//! from this class and implement the play() method which shall return a valid move as a string.
 // ***********************************************************************************************
 class IPlayer
 {
 public:
 
+  //! \brief Constructor.
+  //! \param type of player you desire (human, external software, IA ...)
+  //! \param side: the color to play (white or black)
   IPlayer(const PlayerType type, const Color side)
     : m_type(type), m_side(side)
   {
   }
 
+  //! \brief Destructor. Nothing made.
   virtual ~IPlayer()
   {
   }
 
-  //! \brief Compute and return a legal move (like "e7e8q") or
-  //! IPlayer::none for stalemate case or IPlayer::error in case
-  //! of internal error. This method can take long minutes to be
-  //! done. This is normal because compuatations can be heavy.
-  //! Therefore this method should be called from a thread.
+  //! \brief Compute and return a legal move (like "e7e8q") or return
+  //! IPlayer::none for stalemate case or return IPlayer::error in
+  //! case of internal error.
+  //!
+  //! This method can take long minutes to be done. This is normal
+  //! because computations can be heavy. Therefore this method should
+  //! be called from a thread.
   virtual std::string play() = 0;
 
-  //! \bref Abort signal for halting properlu play()
+  //! \brief Abort signal for halting properly the play() method.
+  //! Implement it as you desired (usually a simple bool).
   virtual void abort() = 0;
 
+  //! \brief Getter returning the color of the play (white/black).
   inline Color side() const
   {
     return m_side;
   }
 
+  //! \brief Getter returning the color of the type of player.
   inline PlayerType type() const
   {
     return m_type;
   }
 
+  //! \brief Used by the play() method when an internal error has
+  //! occured.
   static constexpr const char* error = "error";
+
+  //! \brief Used by the play() method when no move are available
+  //! (like stalemate).
   static constexpr const char* none = "none";
 
 private:
@@ -73,8 +92,11 @@ private:
   Color m_side;
 };
 
+//! \brief Print on console the player type.
 std::ostream& operator<<(std::ostream& os, const PlayerType& p);
-const char *playerName(const PlayerType p);
+//! \brief Return the player type as string from its enum.
+const char *playerType(const PlayerType p);
+//! \brief Return the player enum from a string.
 PlayerType playerType(const std::string& player);
 
 #endif

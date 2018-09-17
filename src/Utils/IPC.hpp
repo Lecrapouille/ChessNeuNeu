@@ -28,14 +28,27 @@
 #  include <stdlib.h>
 #  include <string>
 
+// ***********************************************************************************************
+//! \brief Implement a Inter Process Communication based on Linux pipes. Be careful if process A
+//! is expects B will send to it an message and B is expected A will send it a message. Both
+//! processes will loop indefinitely.
+// ***********************************************************************************************
 class IPC
 {
 public:
 
+  //! \brief Constructor. Create a bidirectional pipe and call a Linux
+  //! command for starting the process that we want to communicate
+  //! with.
   IPC(std::string const& command);
+
+  //! \brief Destructor. Close file descriptors of pipes.
   ~IPC();
 
+  //! \brief Send a message to the external process.
   int write(std::string const& msg);
+
+  //! \brief Receive a message from the external process.
   bool read(std::string& msg);
 
 private:

@@ -44,6 +44,11 @@ public:
 
 private:
 
+  //! \brief Main loop (launched by a thread) reachs to human actions
+  //! on the GUI (mouse: grab/ungrab figure, keyboard, paint the
+  //! chessboard), react on the chess player move and animate the
+  //! figure move). Even if the game is ended the loop is
+  //! maintained. The loop is broken when user ask to close the window.
   void play();
 
   //! \brief Place figures on their position.
@@ -69,7 +74,10 @@ private:
   //! \brief Inherit from GUI class. Return if GUI is alive.
   virtual bool running() override;
 
+  //! \brief Release the taken piece.
   void ungrabFigure();
+
+  //! \brief Is the player is holding a piece for making its move ?
   bool grabbedFigure() const;
 
   //! \brief Get the Piece from a position
@@ -78,7 +86,10 @@ private:
   //! \brief Get the chessboard square from a position
   Square getSquare(sf::Vector2f const& mouse) const;
 
+  //! \brief Draw the piece movement animation.
   void animate(const std::string& move);
+
+  //! \brief
   sf::Vector2f toCoord(const char a, const char b) const;
 
 private:

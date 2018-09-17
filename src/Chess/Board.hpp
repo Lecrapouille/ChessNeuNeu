@@ -81,7 +81,8 @@ constexpr Square toSquare(const char* square)
 
 inline std::string toStrMove(const uint8_t from, const uint8_t to)
 {
-  return std::string(c_square_names[from]) + std::string(c_square_names[to]);
+  return std::string(c_square_names[from])
+    + std::string(c_square_names[to]);
 }
 
 namespace Chessboard

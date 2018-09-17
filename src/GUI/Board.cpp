@@ -50,7 +50,9 @@ void Board::play()
   uint8_t failures = 0u;
   Status previous_status = m_rules.m_status;
 
+  // Ugly but need some time to let all threads finish their init.
   usleep(100000);
+
   while (running())
     {
       // End of game ?
@@ -303,6 +305,8 @@ bool Board::running()
   return m_running_thread;
 }
 
+//! \param a column 'a' .. 'h'
+//! \param b line '1' .. '8'
 sf::Vector2f Board::toCoord(const char a, const char b) const
 {
   return sf::Vector2f(conf::dim::border, conf::dim::border)

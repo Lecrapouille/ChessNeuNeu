@@ -23,7 +23,7 @@
 Stockfish::Stockfish(const Rules &rules, const Color side, std::string const& fen)
   : IPC("stockfish"),
     IPlayer(PlayerType::StockfishIA, side),
-    m_fen(fen),
+    m_initial_board(fen),
     m_rules(rules)
 {
 }
@@ -39,22 +39,22 @@ void Stockfish::abort()
 
 std::string Stockfish::play()
 {
-  // Command to send to Stockfish
+  // Create the command to be sent to Stockfish
   std::string command("position ");
 
-  if (m_fen.empty())
+  if (m_initial_board.empty())
     {
-      // Initial chessboard
+      // Game started from the initial chessboard position
       command += "startpos";
     }
   else
     {
-      // Load the chessboard with the Forsyth–Edwards notation
+      // Game started from a loaded chessboard
       command += "fen ";
-      command += m_fen;
+      command += m_initial_board;
     }
 
-  // Add the list of moves
+  // Append the list of moves
   command += " moves ";
   command += m_rules.m_moved;
   command += "\ngo\n";
@@ -70,24 +70,28 @@ std::string Stockfish::play()
 
   do
     {
-      // ChessNeuNeu is quitting ?
+      // The player wants to quit the game (from GUI) while we are
+      // parsing Stockfish answer ?
       if (m_aborting)
         goto l_quit;
 
-      // Read Stockfish message from the IPC
+      // Read Stockfish message from the IPC pipe
       if (!read(answer))
         goto l_error;
 
-      // Look for a keyword
+      // Look for the keyword giving the move
       found = answer.find("bestmove");
 
-      // Found try extracting the move
       if (found >= 0)
         {
-          // Extract move
+          // Keyword found ! Try extracting the move
+          // 9 == strlen("bestmove")
+          // 5 == chess move with promotion or white space
+          //      (ie: "e2e4 " or "e7e8q").
           move = answer.substr(found + 9, 5);
 
-          // Stockfish did not finish sending all its message
+          // Stockfish did not finish sending all its message: keep
+          // looping.
           if (move.length() < 5)
             found = -1;
         }
@@ -99,24 +103,27 @@ std::string Stockfish::play()
           // Give time to Stockfish to send more message
           usleep(1000);
 
-          // Too many failures
+          // Too many failures: abort
           if (++retry > 100)
             goto l_error;
         }
     }
   while (-1 == found);
 
-  assert(// Stalemate case
+  // Check if the returned move is well formed.
+  assert(
+         // Stalemate case
          (move == "(none") ||
          // Regexp of move [a-h][1-8][a-h][1-8]
          ((move[0] >= 'a') && (move[0] <= 'h') &&
           (move[1] >= '1') && (move[1] <= '8') &&
           (move[2] >= 'a') && (move[2] <= 'h') &&
           (move[3] >= '1') && (move[3] <= '8') &&
-          // Regexp of
+          // Regexp of pawn promotion or white space
           ((move[4] == ' ') || (move[4] == '\n') ||
            (move[4] == 'n') || (move[4] == 'b') ||
-           (move[4] == 'q') || (move[4] == 'r'))));
+           (move[4] == 'q') || (move[4] == 'r')))
+         );
 
   // Stockfish returns "(none)" for stalemate
   if (move[0] == '(')
@@ -131,10 +138,4 @@ l_quit:
 l_error:
   std::cerr << "Failed reading Stockfish move" << std::endl;
   return IPlayer::error;
-}
-
-void Stockfish::debug()
-{
-  //write("d\n");
-  //std::cout << read() << std::endl;
 }

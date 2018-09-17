@@ -23,7 +23,8 @@
 
 #  include "Player.hpp"
 
-enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight, NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
+enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight,
+                   NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
 
 // 64 is the number of squares on the chessboard
 struct Neurone
@@ -31,6 +32,11 @@ struct Neurone
   float A[64][64];
 };
 
+// ***********************************************************************************************
+//! \brief Implement a chess player. Here we are protopying a hand made neural network
+//! learning by itself how to move pieces (for the moment learnt from an empty square).
+//! TODO I have to write a document about it and clean the code (messy)
+// ***********************************************************************************************
 class NeuNeu: public IPlayer
 {
 public:
