@@ -1,21 +1,38 @@
 # ChessNeuNeu
 
-Not an effective chess engine but just a brainstorming/proof of
-concept project for understanding how neural network (NN) can learn
-by itself the movement of figures.
+Not an effective chess engine but just a brainstorming/proof of concept project for understanding how neural network (NN) can learn and play chess (mainly the movement of figures).
 
 This project has started after the reading of this article:
 https://www.futura-sciences.com/tech/actualites/technologie-alphazero-ia-google-deepmind-devient-imbattable-echecs-61409/
-which make interrogate ourself on how well NN can understand well chess strategies.
+which make us interrogate on how well NN can understand chess
+strategies, what filters/patterns they really learnt for evaluating
+the chessboard (cost function used in minimax/alphabeta pruning). It's
+very difficult to evaluate what IA have really learnt. We know that
+neural network can have errors, biases ... and for evalutating a
+chessboard position, even if an IA does 10-30% of errors when
+selecting the best move, it'll difficult for human to prove it
+(especially with IA having such a huge ELO levels).
+
+To simplify the problem, we can start asking us if an IA can simply
+learn by themselves the figure movements. I guess that in AlphaZero
+chess rules and figure movements is hardcoded and IA improves
+minimax/alphabeta pruning. In this case even a 1% error is not
+acceptable: the IA is not allowed to cheat when moving its figures. In
+addition, knowing that smallest chess programs have 100 lines of codes
+of C or Python (including board evaluation), it is interesting to know
+how fastidious (in term of memory for storing the NN, in term of
+training iterations) it is to create a neural network doing the
+equivalent of 100 lines of code. A final question could be: is it
+possible to generate this 100 lines of code from the neural network ?
 
 ## Project features
 
 Implemented:
-
 * Hard coded chess rules for knowing legal moves. Can be used as
   supervizor for learning NN.
 * Communication with some chess engines (Stockfish or TCSP). Other
-  engines can be easily added.
+  engines can be easily added. They can be used as
+  supervizor for learning NN but also for estimating the board position.
 * GUI: with basic interaction with the human player. GUI and Players
   are thread separated meaning the GUI is not blocked when player is
   computing the next move.
@@ -26,7 +43,7 @@ In gestation:
 * Neural stuffs. Julia code using Knet library for learning basic
   patterns like piece blocked by a piece of its same side. This code
   is not yet shared.
-* Have to learn how to port it into C++ code
+* Have to convert Julia code to C++ code
 
 Currently not (yet) implemented:
 * Hard coded chess rules: thirty rules detection. Have to create a NN
