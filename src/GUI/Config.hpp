@@ -24,6 +24,6 @@ namespace conf
     const std::string style("style01");
     const std::string path("data/" + conf::res::style + "/");
   }
-};
+}
 
 #endif

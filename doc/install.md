@@ -27,8 +27,8 @@ make
 ## Compile ChessNeuNeu
 
 ```sh
-git clone https://github.com/Lecrapouille/LEchecDeNeuneu.git
-cd LEchecDeNeuneu
+git clone https://github.com/Lecrapouille/ChessNeuNeu.git --recurse-submodules
+cd ChessNeuNeu
 make CmdParser
 make -j8
 ```

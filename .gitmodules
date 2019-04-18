@@ -1,0 +1,3 @@
+[submodule ".makefile"]
+	path = .makefile
+	url = git@github.com:Lecrapouille/MyMakefile.git
