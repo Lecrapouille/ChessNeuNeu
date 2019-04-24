@@ -51,10 +51,15 @@ all: $(TARGET)
 
 ###################################################
 # Download external libs
-CmdParser.done: CmdParser
-CmdParser: $(THIRDPART)
+main.o: .CmdParser.done
+.CmdParser.done: $(THIRDPART)
 	@$(call print-to,"Downloading","$@","$</")
-	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch CmdParser.done
+	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch .CmdParser.done
+
+###################################################
+# Create the directory storing all third-part libs
+$(THIRDPART): $(BUILD)
+	@mkdir -p $(THIRDPART)
 
 ###################################################
 # Install project. You need to be root.
