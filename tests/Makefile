@@ -4,7 +4,7 @@
 ##
 ## This file is part of ChessNeuNeu.
 ##
-## SimTaDyn is free software: you can redistribute it and/or modify it
+## ChessNeuNeu is free software: you can redistribute it and/or modify it
 ## under the terms of the GNU General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
@@ -22,10 +22,11 @@
 # Executable name
 PROJECT = ChessNeuNeu
 TARGET = $(PROJECT)-UnitTest
+DESCRIPTION = Unit-tests for $(PROJECT)
 
 ###################################################
 # Debug mode or Release mode
-PROJECT_MODE = debug
+BUILD_TYPE := debug
 
 ###################################################
 # Location from the project root directory.
@@ -34,12 +35,12 @@ P=..
 ###################################################
 # Sharable informations between all Makefiles
 M=$(P)/.makefile
-include $(M)/Makefile.header
 include $(P)/Makefile.common
+include $(M)/Makefile.header
 
 ###################################################
-# List of files to compile.
-OBJ = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
+# Make the list of files to compile
+OBJS = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
 #PositionTests.o
 
 ###################################################
@@ -54,14 +55,13 @@ LDFLAGS += --coverage
 LDFLAGS += -lcrpcut -ldl
 
 ###################################################
-# Compile OpenGLCppWrapper unit tests. Be sure libs
-# of the main project have been compiled.
+# Compile OpenGLCppWrapper unit tests.
 all: $(TARGET)
 
 ###################################################
-# Run unit tests.
-.PHONY: unit-tests
-unit-tests: $(TARGET)
+# Compile and run unit tests.
+.PHONY: check
+check: $(TARGET)
 	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
 	@$(SANITIZER) ./$(BUILD)/$(TARGET) || (cat $(TARGET).log; return 1)
 

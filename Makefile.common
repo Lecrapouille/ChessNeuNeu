@@ -21,11 +21,13 @@
 
 ###################################################
 # Modify this file will force compiling whole project
-MY_MAKEFILE_FILES += $(P)/Makefile.common
+MYMAKEFILES += $(P)/Makefile.common
 
 ###################################################
 # Compilation options.
-CXXFLAGS += -W -Wall -Wextra -O3 -std=c++14
+STANDARD = --std=c++14
+CXXFLAGS += -W -Wall -Wextra -O3
+#$(CXX_WHOLE_FLAGS)
 LDFLAGS  += -lsfml-graphics -lsfml-window -lsfml-system -pthread
 
 ###################################################
@@ -36,7 +38,7 @@ DEFINES +=
 # Set Libraries compiled in the external/ directory.
 # For knowing which libraries is needed please read
 # the doc/Install.md file.
-EXTERNAL_LIBS +=
+THIRDPART_LIBS +=
 
 ###################################################
 # Inform Makefile where to find header files
@@ -44,4 +46,4 @@ INCLUDES += -I$(P)/src -I$(P)/src/Players -I$(P)/src/Utils -I$(P)/$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
-VPATH += $(P)/src:$(P)/src/Players:$(P)/src/Utils:$(P)/src/Chess:$(P)/src/GUI:$(P)/$(THIRDPART)
+VPATH += $(P)/src $(P)/src/Players $(P)/src/Utils $(P)/src/Chess $(P)/src/GUI $(P)/$(THIRDPART)

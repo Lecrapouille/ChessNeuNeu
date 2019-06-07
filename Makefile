@@ -22,13 +22,11 @@
 # Executable name
 PROJECT = ChessNeuNeu
 TARGET = $(PROJECT)
-
-#FIXME
-THIRDPART ?= external
+DESCRIPTION = Non serious chess engine for learning neural networks
 
 ###################################################
 # Debug mode or Release mode
-PROJECT_MODE = debug
+BUILD_TYPE := debug
 
 ###################################################
 # Location from the project root directory.
@@ -37,13 +35,13 @@ P=.
 ###################################################
 # Sharable informations between all Makefiles
 M=$(P)/.makefile
-include $(M)/Makefile.header
 include $(P)/Makefile.common
+include $(M)/Makefile.header
 
 ###################################################
-# Make the list of compiled files
-OBJ = Debug.o FEN.o Rules.o Board.o Promotion.o IPC.o \
-      Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+# Make the list of files to compile
+OBJS = Debug.o FEN.o Rules.o Board.o Promotion.o IPC.o \
+       Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
 
 ###################################################
 # Compile the project
@@ -62,24 +60,34 @@ $(THIRDPART): $(BUILD)
 	@mkdir -p $(THIRDPART)
 
 ###################################################
+# Compile and launch unit tests and generate the code coverage html report.
+.PHONY: check
+check:
+	@$(call print-simple,"Compiling unit tests")
+	@$(MAKE) -C tests coverage
+
+###################################################
 # Install project. You need to be root.
 .PHONY: install
-install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET)
+install: $(TARGET)
 	$(call RULE_INSTALL_BINARIES)
 	$(call RULE_INSTALL_DOC)
 
 ###################################################
-# Uninstall the project. You need to be root.
-.PHONY: uninstall
-uninstall:
-	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
-	@rm $(PROJECT_EXE)
-	@rm -r $(PROJECT_DATA_ROOT)
+# Uninstall the project. You need to be root. FIXME: to be updated
+#.PHONY: uninstall
+#uninstall:
+#	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
+#	@rm $(PROJECT_EXE)
+#	@rm -r $(PROJECT_DATA_ROOT)
 
 ###################################################
+# Clean the whole project.
 .PHONY: veryclean
 veryclean: clean
-	@rm -fr $(THIRDPART) doc/html 2> /dev/null
+	@rm -fr cov-int $(PROJECT).tgz *.log foo 2> /dev/null
+	@(cd tests && $(MAKE) -s clean)
+	@rm -fr $(THIRDPART)/*/ $(THIRDPART)/.* doc/html 2> /dev/null
 
 ###################################################
 # Sharable informations between all Makefiles
