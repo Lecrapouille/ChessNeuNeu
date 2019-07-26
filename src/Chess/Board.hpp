@@ -26,7 +26,9 @@
 #  include <string>
 
 //! \brief Number of squares in a chessboard.
-constexpr uint8_t NbSquares = 64u;
+constexpr uint8_t NbRows = 8u;
+constexpr uint8_t NbCols = 8u;
+constexpr uint8_t NbSquares = NbRows * NbCols;
 
 //! \brief A chessboard is a 8x8 matrix of Pieces.
 //! The 8x8 matrix is stored as a continuous block
@@ -35,11 +37,13 @@ using chessboard = std::array<Piece, NbSquares>;
 
 //! \brief Access to chessboard rows as a 8x8 matrix.
 //! Mathematic formulae: x / 8.
-#  define ROW(x)   (x >> 3)
+template<class T>
+static inline T ROW(T const x) { return T(x >> 3); }
 
 //! \brief Access to chessboard columns  as a 8x8 matrix.
 //! Mathematic formulae: x modulo 8.
-#  define COL(x)   (x & 7)
+template<class T>
+static inline T COL(T const x) { return T(x & 7); }
 
 //! \brief Give an number for all of the chessboard squares.
 //! Note: 'sq' prefix is necessary because of conflicts with
@@ -72,14 +76,14 @@ constexpr std::array<const char[3], NbSquares> c_square_names =
       "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
     }};
 
-constexpr Square toSquare(const char* square)
+constexpr Square toSquare(const char* const square)
 {
   int val = ('8' - square[1]) * 8 + (square[0] - 'a');
   assert(val < NbSquares);
   return static_cast<Square>(val);
 }
 
-inline std::string toStrMove(const uint8_t from, const uint8_t to)
+inline std::string toStrMove(uint8_t const from, uint8_t const to)
 {
   return std::string(c_square_names[from])
     + std::string(c_square_names[to]);
@@ -116,6 +120,6 @@ namespace Chessboard
 }
 
 //! \brief Pretty print a chessboard in console
-std::ostream& operator<<(std::ostream& os, chessboard& position);
+std::ostream& operator<<(std::ostream& os, chessboard const& position);
 
 #endif

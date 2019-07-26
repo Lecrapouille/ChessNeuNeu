@@ -23,7 +23,7 @@
 #include <sstream>
 
 //! \brief
-static const std::array<uint8_t, 64> c_mailbox64 =
+static std::array<uint8_t, NbSquares> const c_mailbox64 =
   {{
       21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u,
       31u, 32u, 33u, 34u, 35u, 36u, 37u, 38u,
@@ -36,7 +36,7 @@ static const std::array<uint8_t, 64> c_mailbox64 =
     }};
 
 //! \brief
-static const std::array<uint8_t, 120> c_mailbox120 =
+static std::array<uint8_t, 120> const c_mailbox120 =
   {{
       OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB,
       OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB,
@@ -61,7 +61,7 @@ enum Rosas { N = -10, W = -1, E = 1, S = 10 };
 //! 64, 75, 76, 66, 56, 55, 54 and 64 in c_mailbox64. Relative displacement
 //! is their difference with the 65. For example -11 = 54 - 65. For other
 //! pieces which can slide we store the displacement of a distance of 1.
-static const std::valarray<int> c_relative_movements[8] =
+static std::valarray<int> const c_relative_movements[8] =
   {
     [PieceType::Empty]  = { },
     [PieceType::Rook]   = { N, E, S, W },
@@ -72,6 +72,11 @@ static const std::valarray<int> c_relative_movements[8] =
     [PieceType::WPawn]  = { N, N+N, N+E, N+W },
     [PieceType::BPawn]  = { S, S+S, S+E, S+W },
   };
+
+static uint8_t displace(size_t const to, PieceType const pt, size_t const mvt)
+{
+  return c_mailbox120[static_cast<size_t>(c_mailbox64[to] + c_relative_movements[pt][mvt])];
+}
 
 Rules::Rules()
   : m_status(Status::Playing),
@@ -86,9 +91,8 @@ Rules::Rules()
   saveStates();
 }
 
-Rules::Rules(const chessboard &board, const Color side,
-             bool noking, Castle wcastle, Castle bcastle,
-             uint8_t ep)
+Rules::Rules(chessboard const &board, const Color side, bool const noking,
+             Castle const wcastle, Castle const bcastle, Square const ep)
   : m_status(Status::Playing),
     m_side(side),
     m_board(board),
@@ -167,7 +171,7 @@ void Rules::saveStates()
   m_initial.castle[1] = m_castle[1];
 }
 
-const std::vector<Move>& Rules::generatePseudoValidMoves()
+std::vector<Move> const& Rules::generatePseudoValidMoves()
 {
   Piece p;
   PieceType pt;
@@ -179,10 +183,10 @@ const std::vector<Move>& Rules::generatePseudoValidMoves()
       p = m_board[ij];
 
       // Ignore: empty position and pieces of the opposite side
-      if ((p.type == PieceType::Empty) || (p.color != m_side))
+      if ((p.type() == PieceType::Empty) || (p.color() != m_side))
         continue ;
 
-      pt = static_cast<PieceType>(p.type);
+      pt = static_cast<PieceType>(p.type());
 
       // Pawn moves
       if (pt == PieceType::Pawn)
@@ -212,7 +216,7 @@ const std::vector<Move>& Rules::generatePseudoValidMoves()
 }
 
 // FIXME passer cdirectement _relative_movements[pt]
-void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
+void Rules::generatePseudoLegalPawnMove(uint8_t const from, PieceType const pt)
 {
   Piece piece;
   for (uint8_t mvt = 0u; mvt < c_relative_movements[pt].size(); ++mvt)
@@ -223,7 +227,7 @@ void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
         continue;
 
       // One step relative movement
-      uint8_t to = c_mailbox120[c_mailbox64[from] + c_relative_movements[pt][mvt]];
+      uint8_t to = displace(from, pt, mvt);
 
       // Invalid move: outside the chessboard
       if (to == Square::OOB)
@@ -232,15 +236,15 @@ void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
       piece = m_board[to];
 
       // Invalid move: move to a piece with the same color
-      if (piece.color == m_side)
+      if (piece.color() == m_side)
         continue;
 
       // Invalid move: North and North+North
-      if ((mvt <= 1u) && (piece.type != PieceType::Empty))
+      if ((mvt <= 1u) && (piece.type() != PieceType::Empty))
         continue;
 
       // Invalid diagonal move (take) if no piece and not en-passant
-      if ((mvt > 1u) && (piece.type == PieceType::Empty) && (to != m_ep))
+      if ((mvt > 1u) && (piece.type() == PieceType::Empty) && (to != m_ep))
         continue;
 
       // Promotion
@@ -266,17 +270,17 @@ void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
     }
 }
 
-void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
+void Rules::generatePseudoLegalPieceMove(uint8_t const from, PieceType const pt)
 {
   Piece piece;
-  const bool can_slide = m_board[from].slide;
+  bool const can_slide = m_board[from].canSlide();
 
   for (uint8_t mvt = 0u; mvt < c_relative_movements[pt].size(); ++mvt)
     {
       for (uint8_t to = from;;)
         {
           // One step relative movement
-          to = c_mailbox120[c_mailbox64[to] + c_relative_movements[pt][mvt]];
+          to = displace(to, pt, mvt);
 
           // Invalid move: outside the chessboard
           if (to == Square::OOB)
@@ -288,7 +292,7 @@ void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
           if (piece != NoPiece)
             {
               // Piece takes other piece
-              if (piece.color != m_side)
+              if (piece.color() != m_side)
                 {
                   m_pseudo_moves.push_back(PieceMove(from, to));
                 }
@@ -308,7 +312,7 @@ void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
 void Rules::generatePseudoLegalCastleMove()
 {
   Color xside = opposite(m_side);
-  const uint8_t offset = (m_side == Color::White) ? 0 : (sqE1 - sqE8);
+  size_t const offset = (m_side == Color::White) ? 0u : (sqE1 - sqE8);
 
   // No Kings = no castle
   if (m_no_kings)
@@ -320,35 +324,35 @@ void Rules::generatePseudoLegalCastleMove()
 
   // King castle
   if ((m_castle[m_side] & Castle::Little) &&
-      (m_board[sqF1 - offset].type == PieceType::Empty) &&
-      (m_board[sqG1 - offset].type == PieceType::Empty) &&
-      (!attack(m_board, sqF1 - offset, xside)))
+      (m_board[sqF1 - offset].type() == PieceType::Empty) &&
+      (m_board[sqG1 - offset].type() == PieceType::Empty) &&
+      (!attack(m_board, static_cast<uint8_t>(sqF1 - offset), xside)))
     {
-      m_pseudo_moves.push_back(CastleMove(sqE1 - offset,
-                                          sqG1 - offset,
+      m_pseudo_moves.push_back(CastleMove(static_cast<uint8_t>(sqE1 - offset),
+                                          static_cast<uint8_t>(sqG1 - offset),
                                           Castle::Little));
     }
 
   // Queeen castle
   if ((m_castle[m_side] & Castle::Big) &&
-      (m_board[sqD1 - offset].type == PieceType::Empty) &&
-      (m_board[sqB1 - offset].type == PieceType::Empty) &&
-      (m_board[sqC1 - offset].type == PieceType::Empty) &&
-      (!attack(m_board, sqD1 - offset, xside)))
+      (m_board[sqD1 - offset].type() == PieceType::Empty) &&
+      (m_board[sqB1 - offset].type() == PieceType::Empty) &&
+      (m_board[sqC1 - offset].type() == PieceType::Empty) &&
+      (!attack(m_board, static_cast<uint8_t>(sqD1 - offset), xside)))
     {
-      m_pseudo_moves.push_back(CastleMove(sqE1 - offset,
-                                          sqC1 - offset,
+      m_pseudo_moves.push_back(CastleMove(static_cast<uint8_t>(sqE1 - offset),
+                                          static_cast<uint8_t>(sqC1 - offset),
                                           Castle::Big));
     }
 }
 
 // generatePseudoValidMoves() shall be called before
-const std::vector<Move>& Rules::generateValidMoves()
+std::vector<Move> const& Rules::generateValidMoves()
 {
   m_legal_moves.clear();
   generatePseudoValidMoves();
 
-  for (const auto it: m_pseudo_moves)
+  for (auto const it: m_pseudo_moves)
     {
       if (tryMove(it))
         {
@@ -366,7 +370,7 @@ bool Rules::isValidMove(std::string const& move) const
 {
   Move m(move);
 
-  for (const auto it: m_legal_moves)
+  for (auto const it: m_legal_moves)
     {
       if (it == m)
         {
@@ -380,7 +384,7 @@ bool Rules::isValidMove(std::string const& move) const
 void Rules::dispLegalMoves() const
 {
   std::cout << "Legal moves: " << std::endl;
-  for (const auto it: m_legal_moves)
+  for (auto const it: m_legal_moves)
     {
       std::cout << "  " << it << std::endl;
     }
@@ -391,14 +395,14 @@ void Rules::dispLegalMoves() const
 void Rules::dispPseudoMoves() const
 {
   std::cout << "Pseudo moves: " << std::endl;
-  for (const auto it: m_pseudo_moves)
+  for (auto const it: m_pseudo_moves)
     {
       std::cout << "  " << it << std::endl;
     }
   std::cout << std::endl;
 }
 
-bool Rules::tryMove(const Move move) const
+bool Rules::tryMove(Move const move) const
 {
   //! \brief Temporary board for computations.
   chessboard board = this->m_board;
@@ -410,7 +414,7 @@ bool Rules::tryMove(const Move move) const
 }
 
 // FIXME: Optim memoriser la position du roi au lieu de la retrouver
-bool Rules::isKingInCheck(chessboard const& board, const Color side) const
+bool Rules::isKingInCheck(chessboard const& board, Color const side) const
 {
   // Special case for Neural network using empty chessboard with no Kings
   if (m_no_kings)
@@ -418,8 +422,8 @@ bool Rules::isKingInCheck(chessboard const& board, const Color side) const
 
   for (uint8_t i = 0u; i < NbSquares; ++i)
     {
-      if ((board[i].type == PieceType::King) &&
-          (board[i].color == side))
+      if ((board[i].type() == PieceType::King) &&
+          (board[i].color() == side))
         {
           return attack(board, i, opposite(side));
         }
@@ -428,17 +432,18 @@ bool Rules::isKingInCheck(chessboard const& board, const Color side) const
   return false;
 }
 
-bool Rules::attack(const chessboard& position, const uint8_t sq, const Color side) const
+//! \note TODO this algorithm could be optimized
+bool Rules::attack(chessboard const& position, uint8_t const sq, Color const side) const
 {
-  int n;
+  size_t to;
 
   for (uint8_t i = 0u; i < NbSquares; ++i)
     {
-      const Piece pinfo = position[i];
-      if ((pinfo.type == PieceType::Empty) || (pinfo.color != side))
+      Piece const pinfo = position[i];
+      if ((pinfo.type() == PieceType::Empty) || (pinfo.color() != side))
         continue;
 
-      const PieceType piece = static_cast<PieceType>(pinfo.type);
+      PieceType const piece = static_cast<PieceType>(pinfo.type());
       if (piece == PieceType::Pawn)
         {
           if (side == Color::White)
@@ -458,22 +463,22 @@ bool Rules::attack(const chessboard& position, const uint8_t sq, const Color sid
         }
       else
         {
-          for (uint8_t j = 0u; j < c_relative_movements[piece].size(); ++j)
+          for (uint8_t mvt = 0u; mvt < c_relative_movements[piece].size(); ++mvt)
             {
-              for (n = i;;)
+              for (to = i;;)
                 {
-                  n = c_mailbox120[c_mailbox64[n] + c_relative_movements[piece][j]];
+                  to = displace(to, piece, mvt);
 
-                  if (n == Square::OOB)
+                  if (to == Square::OOB)
                     break;
 
-                  if (n == sq)
+                  if (to == sq)
                     return true;
 
-                  if (position[n].type != PieceType::Empty)
+                  if (position[to].type() != PieceType::Empty)
                     break;
 
-                  if (!pinfo.slide)
+                  if (!pinfo.canSlide())
                     break;
                 }
             }
@@ -487,8 +492,8 @@ void Rules::applyMove(Move const& move)
   //FIXME
   // if (m_status != Status::Playing) return ;
 
-  uint8_t from = move.from;
-  uint8_t to = move.to;
+  size_t from = move.from;
+  size_t to = move.to;
 
   //FIXME
   //assert(legal_moves_generated);
@@ -509,15 +514,15 @@ void Rules::applyMove(Move const& move)
 
   // Update castle status:
   // if King moved then no longer castle available
-  if (m_board[to].type == PieceType::King)
+  if (m_board[to].type() == PieceType::King)
     {
-      m_castle[m_board[to].color] = Castle::NoCastle;
+      m_castle[m_board[to].color()] = Castle::NoCastle;
     }
 
   // Update castle status:
   // if Rook moved: castle can no longer be done
   // on the rook side
-  else if (m_board[to].type == PieceType::Rook)
+  else if (m_board[to].type() == PieceType::Rook)
     {
       if ((from == sqA1) || (from == sqA8))
         {
@@ -534,11 +539,11 @@ void Rules::applyMove(Move const& move)
     {
       if (m_side == Color::White)
         {
-          m_ep = to + 8;
+          m_ep = static_cast<Square>(to + NbCols);
         }
       else
         {
-          m_ep = to - 8;
+          m_ep = static_cast<Square>(to - NbCols);
         }
     }
   else
@@ -598,14 +603,14 @@ void Rules::updateBoard(Move const& move, chessboard& board) const
 
   // Basic movement
   board[to] = board[from];
-  board[to].moved = true;
+  board[to].setMoved();
 
   // Promotion
   if (move.promote != PieceType::Empty)
     {
-      board[to].type = move.promote;
-      board[to].color = board[from].color;
-      board[to].slide = (move.promote != PieceType::Knight);
+      board[to].m_type = move.promote;
+      board[to].m_color = board[from].m_color;
+      board[to].m_slide = (move.promote != PieceType::Knight);
     }
 
   board[from] = NoPiece;
@@ -613,17 +618,17 @@ void Rules::updateBoard(Move const& move, chessboard& board) const
   // Castle: move the rook
   if (move.castle != Castle::NoCastle)
     {
-      const uint8_t offset = (m_side == Color::White) ? 0 : (sqE1 - sqE8);
+      size_t const offset = (m_side == Color::White) ? 0u : (sqE1 - sqE8);
       if (move.castle & Castle::Little)
         {
           board[sqF1 - offset] = board[sqH1 - offset];
-          board[sqF1 - offset].moved = true;
+          board[sqF1 - offset].setMoved();
           board[sqH1 - offset] = NoPiece;
         }
       else if (move.castle & Castle::Big)
         {
           board[sqD1 - offset] = board[sqA1 - offset];
-          board[sqD1 - offset].moved = true;
+          board[sqD1 - offset].setMoved();
           board[sqA1 - offset] = NoPiece;
         }
     }
@@ -634,11 +639,11 @@ void Rules::updateBoard(Move const& move, chessboard& board) const
       assert(m_ep != Square::OOB);
       if (m_side == Color::White)
         {
-          board[m_ep + 8] = NoPiece;
+          board[static_cast<Square>(m_ep + NbCols)] = NoPiece;
         }
       else
         {
-          board[m_ep - 8] = NoPiece;
+          board[static_cast<Square>(m_ep - NbCols)] = NoPiece;
         }
     }
 }

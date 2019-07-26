@@ -23,13 +23,14 @@
 
 #  include "Player.hpp"
 
-enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight,
-                   NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
+//: \ brief Match enum PieceType
+enum NeuralPiece { NeuralEmptyPiece, NeuralRook, NeuralKnight, NeuralBishop,
+                   NeuralQueen, NeuralKing, NeuralWhitePawn, NeuralBlackPawn };
 
 // 64 is the number of squares on the chessboard
 struct Neurone
 {
-  float A[64][64];
+  float A[NbSquares][NbSquares];
 };
 
 // ***********************************************************************************************
@@ -41,19 +42,19 @@ class NeuNeu: public IPlayer
 {
 public:
 
-  NeuNeu(const Rules &rules, const Color side);
+  NeuNeu(Rules const& rules, Color const side);
   ~NeuNeu();
   virtual std::string play() override;
   virtual void abort() override;
-  void debug(const NeuralPiece piece);
+  void debug(NeuralPiece const piece);
 
 private:
 
-  uint8_t play(const uint8_t from, Neurone &neurone, bool rand_move);
+  uint8_t play(uint8_t const from, Neurone &neurone, bool const rand_move);
   void learn(Piece piece, Neurone &neurone);
-  NeuralPiece Piece2NeuralPiece(const Piece piece) const;
-  Piece NeuralPiece2Piece(const NeuralPiece piece) const;
-  bool isValidPawnPosition(const uint8_t from) const;
+  NeuralPiece Piece2NeuralPiece(Piece const piece) const;
+  Piece NeuralPiece2Piece(NeuralPiece const piece) const;
+  bool isValidPawnPosition(uint8_t const from) const;
 
   const Rules &m_rules;
   Neurone *m_pieces[8u];

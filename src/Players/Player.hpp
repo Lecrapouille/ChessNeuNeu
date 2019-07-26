@@ -43,7 +43,7 @@ public:
   //! \brief Constructor.
   //! \param type of player you desire (human, external software, IA ...)
   //! \param side: the color to play (white or black)
-  IPlayer(const PlayerType type, const Color side)
+  IPlayer(PlayerType const type, Color const side)
     : m_type(type), m_side(side)
   {
   }
@@ -80,11 +80,11 @@ public:
 
   //! \brief Used by the play() method when an internal error has
   //! occured.
-  static constexpr const char* error = "error";
+  static constexpr const char* const error = "error";
 
   //! \brief Used by the play() method when no move are available
   //! (like stalemate).
-  static constexpr const char* none = "none";
+  static constexpr const char* const none = "none";
 
 private:
 
@@ -93,10 +93,10 @@ private:
 };
 
 //! \brief Print on console the player type.
-std::ostream& operator<<(std::ostream& os, const PlayerType& p);
+std::ostream& operator<<(std::ostream& os, PlayerType const& p);
 //! \brief Return the player type as string from its enum.
-const char *playerType(const PlayerType p);
+const char* playerType(PlayerType const p);
 //! \brief Return the player enum from a string.
-PlayerType playerType(const std::string& player);
+PlayerType playerType(std::string const& player);
 
 #endif

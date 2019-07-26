@@ -65,11 +65,11 @@
 
 bool Rules::import(std::string const& fen)
 {
-  uint8_t count_rows = 0u;
-  uint8_t count_cols = 0u;
-  uint8_t i = 0u;
-  uint8_t ij = 0u;
-  uint8_t kings[2] = { 0u, 0u };
+  uint32_t count_rows = 0u;
+  uint32_t count_cols = 0u;
+  uint32_t i = 0u;
+  uint32_t ij = 0u;
+  uint32_t kings[2] = { 0u, 0u };
 
   m_side = Color::White;
 
@@ -81,16 +81,16 @@ bool Rules::import(std::string const& fen)
       if (fen[i] == '/')
         {
           // End of chessboard rows
-          if (++count_rows > 7) goto l_err_rows1;
-          if (count_cols < 8) goto l_err_cols1;
+          if (++count_rows >= NbRows) goto l_err_rows1;
+          if (count_cols < NbCols) goto l_err_cols1;
           count_cols = 0u;
         }
       else if ((fen[i] >= '1') && (fen[i] <= '8'))
         {
           // Parse empty squares
-          uint8_t skip_squares = fen[i] - '0';
+          uint32_t skip_squares = static_cast<uint32_t>(fen[i] - '0');
           count_cols += skip_squares;
-          if (count_cols > 8) goto l_err_cols2;
+          if (count_cols > NbCols) goto l_err_cols2;
           while (skip_squares--)
             m_board[ij++] = NoPiece;
         }
@@ -99,8 +99,8 @@ bool Rules::import(std::string const& fen)
           // Parse pieces and count kings
           Piece p = char2Piece(fen[i]);
           if (p == NoPiece) goto l_err_piece;
-          if (p.type == PieceType::King) kings[p.color] += 1u;
-          if (++count_cols > 8) goto l_err_cols2;
+          if (p.type() == PieceType::King) kings[p.color()] += 1u;
+          if (++count_cols > NbCols) goto l_err_cols2;
           m_board[ij++] = p;
         }
       ++i;
@@ -139,7 +139,7 @@ bool Rules::import(std::string const& fen)
   // En passant
   if (fen[i++] != ' ') goto l_err_ep;
   if (fen[i] == '-') m_ep = Square::OOB;
-  else if ((fen[i] >= 'a') && (fen[i] <= 'h') && (fen[i + 1] >= '1') && (fen[i + 1] <= '8'))
+  else if ((fen[i] >= 'a') && (fen[i] <= 'h') && (fen[i + 1u] >= '1') && (fen[i + 1u] <= '8'))
     m_ep = toSquare(&fen[i]);
   else goto l_err_ep;
 
@@ -151,19 +151,19 @@ bool Rules::import(std::string const& fen)
 
   // Failures
 l_err_rows1:
-  std::cerr << "Bad FEN format: there are too many '/' separators: " << (int) count_rows << std::endl;
+  std::cerr << "Bad FEN format: there are too many '/' separators: " << int(count_rows) << std::endl;
   return false;
 
 l_err_rows2:
-  std::cerr << "Bad FEN format: there are not enough '/' separators: " << (int) count_rows << std::endl;
+  std::cerr << "Bad FEN format: there are not enough '/' separators: " << int(count_rows) << std::endl;
   return false;
 
 l_err_cols1:
-  std::cerr << "Bad FEN format: there is less than 8 columns: " << (int) count_cols << std::endl;
+  std::cerr << "Bad FEN format: there is less than 8 columns: " << int(count_cols) << std::endl;
   return false;
 
 l_err_cols2:
-  std::cerr << "Bad FEN format: there is more than 8 columns: " << (int) count_cols << std::endl;
+  std::cerr << "Bad FEN format: there is more than 8 columns: " << int(count_cols) << std::endl;
   return false;
 
 l_err_piece:

@@ -21,7 +21,7 @@
 #include "Chess/Rules.hpp"
 
 //! \brief Store piece names (white side). Used for drawing in the console a chessboard.
-static const std::array<char, 8> c_white_piece_char =
+static std::array<char, 8> const c_white_piece_char =
   {{
       [PieceType::Empty] = ' ',
       [PieceType::Rook] = 'R',
@@ -34,7 +34,7 @@ static const std::array<char, 8> c_white_piece_char =
     }};
 
 //! \brief Store piece names (black side). Used for drawing in the console a chessboard.
-static const std::array<char, 8> c_black_piece_char =
+static std::array<char, 8> const c_black_piece_char =
   {{
       [PieceType::Empty] = ' ',
       [PieceType::Rook] = 'r',
@@ -49,7 +49,7 @@ static const std::array<char, 8> c_black_piece_char =
 //! \brief Associative table between an ascii code and a piece.
 //! Used for promotion from a chess note. Used for parsing a FEN
 //! string and storing piece in the chessboard.
-static const std::map<char, Piece> c_char2piece =
+static std::map<char, Piece> const c_char2piece =
   {
     // White Color
     { 'B', WhiteBishop }, { 'K', WhiteKing }, { 'N', WhiteKnight },
@@ -59,7 +59,7 @@ static const std::map<char, Piece> c_char2piece =
     { 'p', BlackPawn },   { 'q', BlackQueen}, { 'r', BlackRook },
   };
 
-Piece char2Piece(const char c)
+Piece char2Piece(char const c)
 {
   auto it = c_char2piece.find(c);
   if (c_char2piece.end() != it)
@@ -69,18 +69,18 @@ Piece char2Piece(const char c)
   return NoPiece;
 }
 
-char piece2char(const Piece p)
+char piece2char(Piece const p)
 {
-  return c_black_piece_char[p.type];
+  return c_black_piece_char[p.type()];
 }
 
-char piece2char(const PieceType p)
+char piece2char(PieceType const p)
 {
   return c_black_piece_char[p];
 }
 
 //! \brief Print the piece color.
-std::ostream& operator<<(std::ostream& os, const Color& c)
+std::ostream& operator<<(std::ostream& os, Color const& c)
 {
   os << ((Color::White == c) ? "White" : "Black");
   return os;
@@ -95,20 +95,20 @@ std::ostream& operator<<(std::ostream& os, const PieceType& p)
 
 //! \brief Print the type of piece.
 // TODO: print other info (castle, moved, ...)
-std::ostream& operator<<(std::ostream& os, const Piece& p)
+std::ostream& operator<<(std::ostream& os, Piece const& p)
 {
-  if (p.color == Color::White)
+  if (p.color() == Color::White)
     {
-      os << c_white_piece_char[p.type];
+      os << c_white_piece_char[p.type()];
     }
   else
     {
-      os << c_black_piece_char[p.type];
+      os << c_black_piece_char[p.type()];
     }
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, chessboard& position)
+std::ostream& operator<<(std::ostream& os, chessboard const& position)
 {
   Piece piece;
 
@@ -118,14 +118,14 @@ std::ostream& operator<<(std::ostream& os, chessboard& position)
     {
       if (0 == (ij & 7))
         {
-          os << (int) (8u - ij / 8u) << " ";
+          os << int(8u - ij / 8u) << " ";
         }
       piece = static_cast<Piece>(position[ij]);
       os << " | " << piece;
 
       if (0 == ((ij+1) & 7))
         {
-          os << " |  " << (int) (8u - ij / 8u) << std::endl;
+          os << " |  " << int(8u - ij / 8u) << std::endl;
           os << "   +---+---+---+---+---+---+---+---+" << std::endl;
         }
     }
@@ -133,10 +133,13 @@ std::ostream& operator<<(std::ostream& os, chessboard& position)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Status& s)
+std::ostream& operator<<(std::ostream& os, Status const& s)
 {
   switch (s)
     {
+    case Status::Playing:
+      os << "Playing";
+      break;
     case Status::WhiteWon:
       os << "White won";
       break;
@@ -146,17 +149,19 @@ std::ostream& operator<<(std::ostream& os, const Status& s)
     case Status::Stalemate:
       os << "Stalemate";
       break;
+    case Status::NoMoveAvailable:
+      os << "No move available";
+      break;
     case Status::InternalError:
       os << "Internal error";
       break;
     default:
-      os << "Playing";
       break;
     }
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Move& move)
+std::ostream& operator<<(std::ostream& os, Move const& move)
 {
   if (move.castle & Castle::Little)
     {

@@ -37,7 +37,7 @@ std::uniform_real_distribution<float> dis1(0.0f, 0.999999f);
 
 #undef RANDOM_MOVES
 
-NeuNeu::NeuNeu(const Rules &rules, const Color side)
+NeuNeu::NeuNeu(Rules const& rules, Color const side)
   : IPlayer(PlayerType::NeuNeuIA, side), m_rules(rules)
 {
   #warning "TODO Bug with Pawns: inverted color vs. inverted from/to in matrix A"
@@ -55,36 +55,36 @@ NeuNeu::~NeuNeu()
     delete m_pieces[piece];
 }
 
-void NeuNeu::debug(const NeuralPiece piece)
+void NeuNeu::debug(NeuralPiece const piece)
 {
   auto A = m_pieces[piece]->A;
 
   std::cout << "Matrix:" << std::endl << "    ";
 
   // Header: piece movement destination
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     std::cout << c_square_names[i] << "  ";
   std::cout << std::endl;
 
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     {
       // Left border: piece movement origin
       std::cout << c_square_names[i];
 
       // Display synaps
-      for (uint8_t j = 0; j < 64u; ++j)
-        std::cout << "   " << (int) A[i][j];
+      for (uint8_t j = 0; j < NbSquares; ++j)
+        std::cout << "   " << A[i][j];
       std::cout << std::endl;
     }
 
   /*std::cout << "Probabilities: " << std::endl;
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     std::cout << (int) i << ": " << std::fixed << std::setprecision(6) << q[i] << std::endl;
   */
 }
 
 // Do not allow placing pawns on row 1 or 8
-bool NeuNeu::isValidPawnPosition(const uint8_t from) const
+bool NeuNeu::isValidPawnPosition(uint8_t const from) const
 {
   return (from >= 8) && (from <= 55);
 }
@@ -94,32 +94,32 @@ void NeuNeu::abort()
   //FIXME
 }
 
-uint8_t NeuNeu::play(const uint8_t from, Neurone &neurone, bool rand_move)
+uint8_t NeuNeu::play(uint8_t const from, Neurone &neurone, bool const rand_move)
 {
-  float e[64u];
-  float q[64u];
+  float e[NbSquares];
+  float q[NbSquares];
   auto A = neurone.A;
 
   // Place the same piece on the input vector.
   // 1: for the piece. 0: for empty squares.
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     e[i] = 0.0f;
   e[from] = 1.0f;
 
   // Matrix product q = A * e
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     q[i] = 0.0f;
-  for (uint8_t i = 0; i < 64u; ++i)
-    for (uint8_t j = 0; j < 64u; ++j)
+  for (uint8_t i = 0; i < NbSquares; ++i)
+    for (uint8_t j = 0; j < NbSquares; ++j)
       q[i] += (A[i][j] * e[j]); // FIXME: from/to inverse !
 
   // Normalize q
   float sum = 0.0f;
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     sum += q[i];
   //assert(sum != 0.0f); // Because of Pawns
   sum = 0.000001f;
-  for (uint8_t i = 0; i < 64u; ++i)
+  for (uint8_t i = 0; i < NbSquares; ++i)
     q[i] /= sum;
 
   if (!rand_move)
@@ -130,13 +130,13 @@ uint8_t NeuNeu::play(const uint8_t from, Neurone &neurone, bool rand_move)
   float y = dis1(gen);
   uint8_t to;
   float p = 0.0f;
-  for (to = 0; to < 64u; ++to)
+  for (to = 0; to < NbSquares; ++to)
     {
       p += q[to];
       if (p >= y)
         break;
     }
-  if (to >= 64u)
+  if (to >= NbSquares)
     to = 63u;
   //assert(to <= 63u);
   return to;
@@ -151,24 +151,24 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
 
   // Hack: allow not having Kings on the chessboard
   // Which is not allowed by chess rules.
-  if (piece.type != PieceType::King)
+  if (piece.type() != PieceType::King)
     local_rules.m_no_kings = true;
 
   // Init Matrix
-  for (uint8_t i = 0; i < 64u; ++i)
-    for (uint8_t j = 0; j < 64u; ++j)
+  for (uint8_t i = 0; i < NbSquares; ++i)
+    for (uint8_t j = 0; j < NbSquares; ++j)
       A[i][j] = 1.0f;
 
 #ifdef RANDOM_MOVES
   for (uint32_t it = 0; it < c_max_iterations; ++it)
     {
-      uint8_t from = (piece.type == PieceType::Pawn) ? disPawn(gen) : disSquare(gen);
+      uint8_t from = (piece.type() == PieceType::Pawn) ? disPawn(gen) : disSquare(gen);
 #else
-  for (uint8_t from = 0; from < 64u; ++from)
-    for (uint8_t to = 0; to < 64u; ++to)
+  for (uint8_t from = 0; from < NbSquares; ++from)
+    for (uint8_t to = 0; to < NbSquares; ++to)
 #endif
       {
-        if ((piece.type == PieceType::Pawn) && (!isValidPawnPosition(from)))
+        if ((piece.type() == PieceType::Pawn) && (!isValidPawnPosition(from)))
           {
             res = false;
             goto l_update_A;
@@ -177,7 +177,7 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
         // Place a single piece on a dummy chessboard
         board = Chessboard::Empty;
         board[from] = piece;
-        local_rules.m_side = static_cast<Color>(piece.color);
+        local_rules.m_side = static_cast<Color>(piece.m_color);
         local_rules.m_board = board;
         local_rules.generateValidMoves();
 
@@ -205,12 +205,12 @@ void NeuNeu::learn(Piece piece, Neurone &neurone)
     }
 }
 
-NeuralPiece NeuNeu::Piece2NeuralPiece(const Piece piece) const
+NeuralPiece NeuNeu::Piece2NeuralPiece(Piece const piece) const
 {
-  switch (piece.type)
+  switch (piece.type())
     {
     case PieceType::Pawn:
-      if (piece.color == Color::Black)
+      if (piece.color() == Color::Black)
         return NeuralPiece::NeuralBlackPawn;
       return NeuralPiece::NeuralWhitePawn;
     case PieceType::Rook:
@@ -223,12 +223,17 @@ NeuralPiece NeuNeu::Piece2NeuralPiece(const Piece piece) const
       return NeuralPiece::NeuralQueen;
     case PieceType::King:
       return NeuralPiece::NeuralKing;
+    case PieceType::Empty:
+    case PieceType::NotUsed:
+    default:
+      break;
     }
+
   assert(1 && "Unknown conversion Piece to NeuralPiece");
-  return NeuralPiece::NeuralKing;
+  return NeuralPiece::NeuralEmptyPiece;
 }
 
-Piece NeuNeu::NeuralPiece2Piece(const NeuralPiece piece) const
+Piece NeuNeu::NeuralPiece2Piece(NeuralPiece const piece) const
 {
   switch (piece)
     {
@@ -246,32 +251,35 @@ Piece NeuNeu::NeuralPiece2Piece(const NeuralPiece piece) const
       return WhiteQueen;
     case NeuralPiece::NeuralKing:
       return WhiteKing;
+    case NeuralPiece::NeuralEmptyPiece:
+    default:
+      break;
     }
+
   assert(1 && "Unknown conversion Piece to NeuralPiece");
-  return WhiteKing;
+  return NoPiece;
 }
 
 // FIXME mettre en place la liste des pieces dans Rules pour eviter de rechercher une piece
 std::string NeuNeu::play()
 {
   // No move possible
-  int len = m_rules.m_legal_moves.size();
-  if (len == 0)
+  if (size_t(0) == m_rules.m_legal_moves.size())
     return "error";
 
   // Get a type of piece to play
- l_find_piece:
-  PieceType p = static_cast<PieceType>(disPiece(gen));
+l_find_piece:
+  PieceType const p = static_cast<PieceType>(disPiece(gen));
 
   if ((p == PieceType::Empty) || (p == PieceType::NotUsed))
     goto l_find_piece;
 
   // Search the piece of the chessboard
   uint8_t from = 255;
-  for (uint8_t i = 0u; i < 64u; ++i)
+  for (uint8_t i = 0u; i < NbSquares; ++i)
     {
-      if ((m_rules.m_board[i].type == p) &&
-          (m_rules.m_board[i].color == m_rules.m_side))
+      if ((m_rules.m_board[i].type() == p) &&
+          (m_rules.m_board[i].color() == m_rules.m_side))
         {
           from = i;
           break;

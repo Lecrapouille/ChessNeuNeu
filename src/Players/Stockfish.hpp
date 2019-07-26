@@ -38,7 +38,7 @@ public:
   //! this case use a Forsyth-Edwards Notation string. In the case you
   //! desire starting from the initial chessboard position pass an
   //! empty string.
-  Stockfish(const Rules &rules, const Color side, std::string const& fen = "");
+  Stockfish(Rules const& rules, Color const side, std::string const& fen = "");
   ~Stockfish();
   //! \brief return the Stockfish move.
   virtual std::string play() override;
@@ -51,7 +51,7 @@ private:
   std::string m_initial_board;
   //! \brief We need to access to the chess rules for
   //! getting the list of played moves.
-  const Rules &m_rules;
+  Rules const& m_rules;
   bool m_aborting = false;
 };
 

@@ -29,12 +29,12 @@ static const char *c_player_types[] =
     [PlayerType::NeuNeuIA] = "NeuNeu"
   };
 
-const char *playerType(const PlayerType p)
+const char* playerType(PlayerType const p)
 {
   return c_player_types[p];
 }
 
-PlayerType playerType(const std::string& player)
+PlayerType playerType(std::string const& player)
 {
   std::string name(player);
   std::transform(name.begin(), name.end(), name.begin(), ::tolower);
@@ -46,7 +46,7 @@ PlayerType playerType(const std::string& player)
   throw std::string("Unknonw PlayerType '" + player + "'");
 }
 
-std::ostream& operator<<(std::ostream& os, const PlayerType& p)
+std::ostream& operator<<(std::ostream& os, PlayerType const& p)
 {
   os << c_player_types[p];
   return os;

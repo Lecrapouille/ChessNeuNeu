@@ -20,7 +20,7 @@
 
 #include "Stockfish.hpp"
 
-Stockfish::Stockfish(const Rules &rules, const Color side, std::string const& fen)
+Stockfish::Stockfish(Rules const& rules, Color const side, std::string const& fen)
   : IPC("stockfish"),
     IPlayer(PlayerType::StockfishIA, side),
     m_initial_board(fen),
@@ -66,7 +66,7 @@ std::string Stockfish::play()
   std::string answer;
   std::string move;
   uint8_t retry = 0u;
-  int found;
+  size_t found;
 
   do
     {
@@ -82,7 +82,7 @@ std::string Stockfish::play()
       // Look for the keyword giving the move
       found = answer.find("bestmove");
 
-      if (found >= 0)
+      if (std::string::npos != found)
         {
           // Keyword found ! Try extracting the move
           // 9 == strlen("bestmove")
@@ -93,12 +93,12 @@ std::string Stockfish::play()
           // Stockfish did not finish sending all its message: keep
           // looping.
           if (move.length() < 5)
-            found = -1;
+            found = std::string::npos;
         }
 
       // No move found: wait a little to let Stockfish returning a bigger
       // message and try again to extract the move.
-      if  (-1 == found)
+      if  (std::string::npos == found)
         {
           // Give time to Stockfish to send more message
           usleep(1000);
@@ -108,7 +108,7 @@ std::string Stockfish::play()
             goto l_error;
         }
     }
-  while (-1 == found);
+  while (std::string::npos == found);
 
   // Check if the returned move is well formed.
   assert(

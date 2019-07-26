@@ -109,7 +109,7 @@ void IPC::close()
   } while (p == -1 && errno == EINTR);
 }
 
-int IPC::write(std::string const& msg)
+ssize_t IPC::write(std::string const& msg)
 {
   return ::write(m_wfd, msg.c_str(), msg.size());
 }
@@ -117,7 +117,7 @@ int IPC::write(std::string const& msg)
 bool IPC::read(std::string& msg)
 {
   char buffer[128];
-  int nb;
+  ssize_t nb;
 
   msg.clear();
   do {
@@ -125,7 +125,7 @@ bool IPC::read(std::string& msg)
     if (nb > 0)
       {
         buffer[nb] = '\0';
-        msg += (char*) buffer;
+        msg += buffer;
       }
 
     // Non-blocking reading ==> Equivalent to nb == 0

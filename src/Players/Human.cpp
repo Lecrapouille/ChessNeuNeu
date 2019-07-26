@@ -20,7 +20,7 @@
 
 #include "Human.hpp"
 
-Human::Human(const Rules &rules, const Color side)
+Human::Human(Rules const &rules, Color const side)
   : IPlayer(PlayerType::HumanPlayer, side), m_rules(rules)
 {
 }

@@ -25,7 +25,7 @@
 // message cannot be received. So with version 181 you have to add
 // some "fflush(stdout);" on its code (after printf() function not
 // using "\n".
-Tscp::Tscp(const Rules &rules, const Color side)
+Tscp::Tscp(Rules const& rules, Color const side)
   : IPC("tscp"), IPlayer(PlayerType::TscpIA, side), m_rules(rules)
 {
   // Force TSCP to move
@@ -63,7 +63,7 @@ std::string Tscp::play()
   std::string answer;
   std::string move;
   uint8_t retry = 0u;
-  int found;
+  size_t found;
 
   do
     {
@@ -80,7 +80,7 @@ std::string Tscp::play()
       usleep(10000);
       found = answer.find("move: ");
 
-      if (found >= 0)
+      if (std::string::npos != found)
         {
           // Keyword found ! Try extracting the move
           // 6 == strlen("move: ")
@@ -91,12 +91,12 @@ std::string Tscp::play()
           // TSCP did not finish sending all its message: keep
           // looping.
           if (move.length() < 5)
-            found = -1;
+            found = std::string::npos;
         }
 
       // No move found: wait a little to let TSCP returning a bigger
       // message and try again to extract the move.
-      if  (-1 == found)
+      if  (std::string::npos == found)
         {
           // Give time to TSCP to send more message
           usleep(10000);
@@ -106,7 +106,7 @@ std::string Tscp::play()
             goto l_error;
         }
     }
-  while (-1 == found);
+  while (std::string::npos == found);
 
   // Check if the returned move is well formed.
   assert(

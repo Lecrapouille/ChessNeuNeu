@@ -1034,6 +1034,19 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(0, rules.m_legal_moves.size());
   }
 
+  TEST(CastleOperator)
+  {
+    Rules rules;
+
+    rules.m_castle[Color::White] = Castle::NoCastle;
+    rules.m_castle[Color::White] |= Castle::Little;
+    ASSERT_EQ(Castle::Little, rules.m_castle[Color::White]);
+    rules.m_castle[Color::White] |= Castle::Big;
+    ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
+    rules.m_castle[Color::White] &= ~Castle::Little;
+    ASSERT_EQ(Castle::Big, rules.m_castle[Color::White]);
+  }
+
   TEST(AllowedCastle)
   {
     Rules rules("r3k2r/8/8/8/8/8/8/R3K2R w KQkq -");
@@ -1114,8 +1127,8 @@ TESTSUITE(KingMoves)
 
     std::cout << "hjhjhj" << std::endl;
     rules.applyMove("a1a2");
-    std::cout << "C: " << (int) rules.m_castle[Color::White] << std::endl;
-    std::cout << "C: " << (int) rules.m_castle[Color::Black] << std::endl;
+    std::cout << "C: " << static_cast<int>(rules.m_castle[Color::White]) << std::endl;
+    std::cout << "C: " << static_cast<int>(rules.m_castle[Color::Black]) << std::endl;
     ASSERT_EQ(Castle::Little, rules.m_castle[Color::White]);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
 

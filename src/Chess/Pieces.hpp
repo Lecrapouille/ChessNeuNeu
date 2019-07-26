@@ -29,12 +29,14 @@
 constexpr uint8_t NbPieces = 32u;
 
 //! \brief Define Side color.
-enum Color { Black, White };
+//! \note: NoColor is for empty square.
+enum Color { Black, White, NoColor };
 
 //! \brief Return the opposite color.
-constexpr Color opposite(const Color c) { return Color::White == c ? Color::Black : Color::White; }
+constexpr Color opposite(Color const c) { return Color::White == c ? Color::Black : Color::White; }
 
 //! \brief Define the different type of piece on the chessboard.
+//! \note WPawn (White Pawn) and BPawn (Black Pawn) are defined for enum NeuralPiece.
 enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed, WPawn = Pawn, BPawn = NotUsed };
 
 //! \brief The type of a piece is not the only important informations: we also need the color.
@@ -42,28 +44,36 @@ enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed, WPawn 
 //! searching them many times.
 struct Piece
 {
-  unsigned int color : 2;    // Bit 7-6: store Color enum
-  unsigned int slide : 1;    // Bit 5  : can do more than one relative movement
-  unsigned int moved : 1;    // Bit 4  : piece has moved
-  unsigned int type  : 4;    // Bit 3-0: store PieceType enum
+  unsigned int m_color : 2;    // Bit 7-6: store Color enum
+  unsigned int m_slide : 1;    // Bit 5  : can do more than one relative movement
+  unsigned int m_moved : 1;    // Bit 4  : piece has moved
+  unsigned int         : 1;    // Bit 3  : reserved
+  unsigned int m_type  : 3;    // Bit 2-0: store PieceType enum
+
+  inline Color color() const { return static_cast<Color>(m_color & 0x1); }
+  inline bool canSlide() const { return static_cast<bool>(m_slide); }
+  inline bool hasMoved() const { return static_cast<bool>(m_moved); }
+  inline void setMoved() { m_moved = true; }
+  inline PieceType type() const { return static_cast<PieceType>(m_type); }
+
 };
 
 //! \brief Piece comparator. We only compare color and type of piece.
 //! Other informations are ignored.
-inline bool operator==(const Piece& lhs, const Piece& rhs)
+inline bool operator==(Piece const& lhs, Piece const& rhs)
 {
-  return (lhs.color == rhs.color) && (lhs.type == rhs.type);
+  return (lhs.m_color == rhs.m_color) && (lhs.m_type == rhs.m_type);
 }
 
 //! \brief Piece comparator. We only compare color and type of piece.
 //! Other informations are ignored.
-inline bool operator!=(const Piece& lhs, const Piece& rhs)
+inline bool operator!=(Piece const& lhs, Piece const& rhs)
 {
   return !(lhs == rhs);
 }
 
 //! \brief Empty square when there is no piece on the square.
-constexpr Piece NoPiece     = { Color::White + 1, 0, 0, PieceType::Empty };
+constexpr Piece NoPiece     = { Color::NoColor, 0, 0, PieceType::Empty };
 
 constexpr Piece WhitePawn   = { Color::White,   0, 0, PieceType::Pawn };
 constexpr Piece WhiteKnight = { Color::White,   0, 0, PieceType::Knight };
@@ -82,14 +92,14 @@ constexpr Piece BlackKing   = { Color::Black,   0, 0, PieceType::King };
 //! \brief Convert an ascii char to a Piece class.
 //! \param c shall be one char from "prbnkqPRBNKQ"
 //! \return the Piece if c is valid else return NoPiece.
-Piece char2Piece(const char c);
-char piece2char(const PieceType p);
-char piece2char(const Piece p);
+Piece char2Piece(char const c);
+char piece2char(PieceType const p);
+char piece2char(Piece const p);
 //! \brief Print the type of piece.
-std::ostream& operator<<(std::ostream& os, const PieceType& p);
+std::ostream& operator<<(std::ostream& os, PieceType const& p);
 //! \brief Print the type of piece.
-std::ostream& operator<<(std::ostream& os, const Piece& p);
+std::ostream& operator<<(std::ostream& os, Piece const& p);
 //! \brief Print the piece color.
-std::ostream& operator<<(std::ostream& os, const Color& c);
+std::ostream& operator<<(std::ostream& os, Color const& c);
 
 #endif

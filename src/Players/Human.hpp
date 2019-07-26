@@ -35,7 +35,7 @@ class Human: public IPlayer
 {
 public:
 
-  Human(const Rules &rules, const Color side);
+  Human(Rules const& rules, Color const side);
   ~Human();
   virtual std::string play() override;
   virtual void abort() override;
@@ -46,7 +46,7 @@ public:
 
 private:
 
-  const Rules &m_rules;
+  Rules const& m_rules;
   //using MuxGuard = std::lock_guard<std::mutex>;
   //mutable std::mutex m_lock;
   std::mutex m_mutex;

@@ -23,8 +23,28 @@
 
 #  include "Chess/Board.hpp"
 
-//! \brief Print the type of piece.
+//! \brief Allowed castles.
 enum Castle { NoCastle = 0u, Little = 1u, Big = 2u, Both = 3u };
+
+//! \brief Allow doing bool operations on Castle enum
+static Castle& operator|=(Castle& a, const Castle& b)
+{
+  a = Castle(int(a) | int(b));
+  return a;
+}
+
+//! \brief Allow doing bool operations on Castle enum
+static Castle& operator&=(Castle& a, const Castle& b)
+{
+  a = Castle(int(a) & int(b));
+  return a;
+}
+
+//! \brief Allow doing bool operations on Castle enum
+static Castle operator~(const Castle &a)
+{
+  return Castle(~int(a));
+}
 
 // ***********************************************************************************************
 //! \brief
@@ -37,14 +57,14 @@ struct Move
   {
     from = toSquare(&m[0]);
     to = toSquare(&m[2]);
-    promote = char2Piece(m[4]).type;
+    promote = char2Piece(m[4]).m_type;
     castle = Castle::NoCastle;
     ep = false;
     check = false;
     double_move = false;
   }
 
-  inline bool operator==(Move const &other) const
+  inline bool operator==(Move const& other) const
   {
     return (from == other.from) && (to == other.to)
       && (promote == other.promote);
@@ -52,14 +72,17 @@ struct Move
 
   uint8_t from;
   uint8_t to;
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
   struct
   {
-    unsigned int castle        : 2; // enum Casttle
+    unsigned int castle        : 2; // enum Castle
     unsigned int promote       : 3; // PieceType
     unsigned int ep            : 1; // En passant move
     unsigned int check         : 1; // King check
     unsigned int double_move   : 1; // pawn double move
   };
+# pragma GCC diagnostic pop
   // FIXME: ajouter car on a droit a 8 bits
   // ep: case 8bits
   // color: qui a joue
@@ -70,15 +93,15 @@ struct Move
 
 struct CastleMove : public Move
 {
-  CastleMove(const uint8_t f, const uint8_t t, const Castle c)
+  CastleMove(uint8_t const f, uint8_t const t, Castle const c)
   {
     assert((c == Castle::Little) || (c == Castle::Big));
     // && (from == sqE1) && (to == sq));
 
     from = f;
     to = t;
-    castle = c;
-    promote = PieceType::Empty;
+    castle = static_cast<unsigned int>(c & 0x3);
+    promote = static_cast<unsigned int>(PieceType::Empty & 0x7);
     ep = false;
     check = false; // FIXME
     double_move = 0;
@@ -87,7 +110,7 @@ struct CastleMove : public Move
 
 struct PieceMove : public Move
 {
-  PieceMove(const uint8_t f, const uint8_t t)
+  PieceMove(uint8_t const f, uint8_t const t)
   {
     from = f;
     to =  t;
@@ -103,7 +126,7 @@ struct PieceMove : public Move
 
 struct PawnSimpleMove : public Move
 {
-  PawnSimpleMove(const uint8_t f, const uint8_t t, const bool e = false)
+  PawnSimpleMove(uint8_t const f, uint8_t const t, bool const e = false)
   {
     from = f;
     to = t;
@@ -119,7 +142,7 @@ struct PawnSimpleMove : public Move
 
 struct PawnDoubleMove : public Move
 {
-  PawnDoubleMove(const uint8_t f, const uint8_t t)
+  PawnDoubleMove(uint8_t const f, uint8_t const t)
   {
     from = f;
     to = t;
@@ -135,14 +158,14 @@ struct PawnDoubleMove : public Move
 
 struct PromoteMove : public Move
 {
-  PromoteMove(const uint8_t f, const uint8_t t, const PieceType p)
+  PromoteMove(uint8_t const f, uint8_t const t, PieceType const p)
   {
     from = f;
     to = t;
     assert(from != to);
 
     castle = Castle::NoCastle;
-    promote = p;
+    promote = static_cast<unsigned int>(p & 0x7);
     ep = false;
     check = false;  // FIXME
     double_move = false;
@@ -150,6 +173,6 @@ struct PromoteMove : public Move
 };
 
 //! \brief Pretty print a move note.
-std::ostream& operator<<(std::ostream& os, const Move& m);
+std::ostream& operator<<(std::ostream& os, Move const& m);
 
 #endif

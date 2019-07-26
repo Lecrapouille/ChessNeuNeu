@@ -34,10 +34,10 @@ class ChessNeuNeu : public Application
 public:
 
   //! \brief Constructor. Start with initial board and white to play.
-  ChessNeuNeu(const PlayerType Whites, const PlayerType Blacks);
+  ChessNeuNeu(PlayerType const Whites, PlayerType const Blacks);
 
   //! \brief Constructor. Start with a given board using the Forsyth-Edwards notation.
-  ChessNeuNeu(const PlayerType Whites, const PlayerType Blacks, std::string const& fen);
+  ChessNeuNeu(PlayerType const Whites, PlayerType const Blacks, std::string const& fen);
 
   //! \brief Create the GUI and and the start a t
   void run();
@@ -46,10 +46,10 @@ private:
 
   //! \brief Shall only be called by constructors. This method is here just
   //! for factorizing the code.
-  void init(const PlayerType white, const PlayerType black);
+  void init(PlayerType const white, PlayerType const black);
 
   //! \brief Factory Create a player: human, IA with the desired color.
-  IPlayer *createPlayer(const PlayerType type, const Color side);
+  IPlayer *createPlayer(PlayerType const type, const Color side);
 
 public:
 

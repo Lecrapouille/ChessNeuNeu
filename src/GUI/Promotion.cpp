@@ -23,14 +23,24 @@
 Promotion::Promotion(Application& application, Resources &resources, Piece &taken_piece, Color color)
   : GUI(application), m_resources(resources), m_taken_piece(taken_piece)
 {
+  assert(Color::NoColor != color);
+
   // Load a dummy board with major pieces.
-
   m_board = Chessboard::Empty;
-  m_board[sqC4] = { color, 0, 0, PieceType::Rook };
-  m_board[sqD4] = { color, 0, 0, PieceType::Knight };
-  m_board[sqE4] = { color, 0, 0, PieceType::Bishop };
-  m_board[sqF4] = { color, 0, 0, PieceType::Queen };
-
+  if (Color::White == color)
+    {
+      m_board[sqC4] = WhiteRook;
+      m_board[sqD4] = WhiteKing;
+      m_board[sqE4] = WhiteBishop;
+      m_board[sqF4] = WhiteQueen;
+    }
+  else if (Color::Black == color)
+    {
+      m_board[sqC4] = BlackRook;
+      m_board[sqD4] = BlackKing;
+      m_board[sqE4] = BlackBishop;
+      m_board[sqF4] = BlackQueen;
+    }
   loadPosition();
 }
 
@@ -44,13 +54,13 @@ void Promotion::loadPosition()
 
   for (uint8_t ij = sqC4; ij <= sqF4; ++ij)
     {
-      const Piece p = m_board[ij];
-      if (p.type == PieceType::Empty)
+      Piece const p = m_board[ij];
+      if (p.type() == PieceType::Empty)
         continue;
 
       // Don't want the sprite to use the entire texture
-      const uint32_t x = p.type - 1u;
-      const uint32_t y = p.color;
+      int32_t const x = p.m_type - 1;
+      int32_t const y = p.m_color;
       m_resources.figures[fig].setTextureRect(
              sf::IntRect(conf::dim::figure * x,
                          conf::dim::figure * y,
@@ -59,8 +69,8 @@ void Promotion::loadPosition()
 
       // Absolute position
       m_resources.figures[fig].setPosition(
-             conf::dim::border + conf::dim::figure * COL(ij),
-             conf::dim::border + conf::dim::figure * ROW(ij));
+             conf::dim::border + conf::dim::figure * float(COL(ij)),
+             conf::dim::border + conf::dim::figure * float(ROW(ij)));
       ++fig;
       assert(fig <= NbPieces);
     }
@@ -70,17 +80,17 @@ void Promotion::loadPosition()
     m_resources.figures[fig].setPosition(-1000, -1000);
 }
 
-const Piece &Promotion::getPiece(const sf::Vector2f& mouse) const
+Piece const& Promotion::getPiece(sf::Vector2f const& mouse) const
 {
   // Get the square from mouse position
-  int x = (int) ((mouse.x - conf::dim::border) / ((float) conf::dim::figure));
-  int y = (int) ((mouse.y - conf::dim::border) / ((float) conf::dim::figure));
+  int const x = static_cast<int>((mouse.x - conf::dim::border) / (float(conf::dim::figure)));
+  int const y = static_cast<int>((mouse.y - conf::dim::border) / (float(conf::dim::figure)));
 
   // Outside the chessboard ?
-  if ((x < 0) || (x > 7) || (y < 0) || (y > 7))
+  if ((x < 0) || (x >= NbCols) || (y < 0) || (y >= NbRows))
     return NoPiece;
 
-  return m_board[y * 8 + x];
+  return m_board[static_cast<size_t>(y * NbRows + x)];
 }
 
 Piece Promotion::takeFigure()
@@ -96,7 +106,7 @@ Piece Promotion::takeFigure()
   return NoPiece;
 }
 
-void Promotion::draw(const float /*dt*/)
+void Promotion::draw(float const /*dt*/)
 {
   // Draw the chessboard
   window().draw(m_resources.board);
@@ -109,14 +119,14 @@ void Promotion::draw(const float /*dt*/)
   window().display();
 }
 
-void Promotion::update(const float /*dt*/)
+void Promotion::update(float const /*dt*/)
 {
 }
 
 bool Promotion::running()
 {
   return window().isOpen() &&
-    (PieceType::Empty == m_taken_piece.type);
+    (PieceType::Empty == m_taken_piece.type());
 }
 
 void Promotion::handleInput()
@@ -136,13 +146,35 @@ void Promotion::handleInput()
 
         case sf::Event::MouseButtonPressed:
           taken_piece = takeFigure();
-          if (PieceType::Empty != taken_piece.type)
+          if (PieceType::Empty != taken_piece.type())
             {
               std::cout << "Promotion::Promotion: " << taken_piece << std::endl;
               m_taken_piece = taken_piece;
             }
           break;
 
+        case sf::Event::LostFocus:
+        case sf::Event::GainedFocus:
+        case sf::Event::TextEntered:
+        case sf::Event::KeyReleased:
+        case sf::Event::MouseWheelMoved:
+        case sf::Event::MouseWheelScrolled:
+        case sf::Event::MouseMoved:
+        case sf::Event::MouseEntered:
+        case sf::Event::MouseLeft:
+        case sf::Event::JoystickButtonPressed:
+        case sf::Event::JoystickButtonReleased:
+        case sf::Event::JoystickMoved:
+        case sf::Event::JoystickConnected:
+        case sf::Event::JoystickDisconnected:
+        case sf::Event::TouchBegan:
+        case sf::Event::TouchMoved:
+        case sf::Event::TouchEnded:
+        case sf::Event::SensorChanged:
+        case sf::Event::Count:
+        case sf::Event::Resized:
+        case sf::Event::KeyPressed:
+        case sf::Event::MouseButtonReleased:
         default:
           break;
         }

@@ -45,7 +45,7 @@ public:
   //! Grab the piece (if present).
   Piece takeFigure();
 
-  const Piece& getPiece(const sf::Vector2f& p) const;
+  Piece const& getPiece(sf::Vector2f const& p) const;
 
 private:
 
@@ -56,8 +56,8 @@ private:
   void loadPosition();
 
   //! \brief Draw the chessboard and pieces.
-  virtual void draw(const float dt) override;
-  virtual void update(const float dt) override;
+  virtual void draw(float const dt) override;
+  virtual void update(float const dt) override;
   virtual void handleInput() override;
   virtual bool running() override;
 

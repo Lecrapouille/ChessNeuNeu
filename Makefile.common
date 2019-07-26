@@ -26,8 +26,7 @@ MYMAKEFILES += $(P)/Makefile.common
 ###################################################
 # Compilation options.
 STANDARD = --std=c++14
-CXXFLAGS += -W -Wall -Wextra -O3
-#$(CXX_WHOLE_FLAGS)
+CXXFLAGS += $(CXX_WHOLE_FLAGS)
 LDFLAGS  += -lsfml-graphics -lsfml-window -lsfml-system -pthread
 
 ###################################################

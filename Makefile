@@ -49,10 +49,15 @@ all: $(TARGET)
 
 ###################################################
 # Download external libs
-main.o: .CmdParser.done
+main.o: .CmdParser.done .backward.done
+
 .CmdParser.done: $(THIRDPART)
-	@$(call print-to,"Downloading","$@","$</")
-	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch .CmdParser.done
+	@$(call print-to,"Downloading","CmdParser","$</")
+	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch $@
+
+.backward.done: $(THIRDPART)
+	@$(call print-to,"Downloading","Backward-cpp","$</")
+	@cd $(THIRDPART) && rm -fr backward-cpp && git clone https://github.com/bombela/backward-cpp.git --depth=1 2> /dev/null 2> /dev/null && touch $@
 
 ###################################################
 # Create the directory storing all third-part libs

@@ -46,7 +46,7 @@ public:
   ~IPC();
 
   //! \brief Send a message to the external process.
-  int write(std::string const& msg);
+  ssize_t write(std::string const& msg);
 
   //! \brief Receive a message from the external process.
   bool read(std::string& msg);

@@ -22,7 +22,7 @@
 #include "GUI/Promotion.hpp"
 #include <unistd.h>
 
-static const uint8_t NoFigure = NbPieces + 1u;
+static uint8_t const NoFigure = NbPieces + 1u;
 
 Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer **players)
   : GUI(application),
@@ -151,13 +151,13 @@ void Board::loadPosition(chessboard const& board)
 
   for (uint8_t ij = 0u; ij < NbSquares; ++ij)
     {
-      const Piece p = board[ij];
-      if (p.type == PieceType::Empty)
+      Piece const p = board[ij];
+      if (p.type() == PieceType::Empty)
         continue;
 
       // Don't want the sprite to use the entire texture
-      const uint32_t x = p.type - 1u;
-      const uint32_t y = p.color;
+      int32_t const x = p.m_type - 1;
+      int32_t const y = p.m_color;
       m_resources.figures[fig].setTextureRect(
              sf::IntRect(conf::dim::figure * x,
                          conf::dim::figure * y,
@@ -166,8 +166,8 @@ void Board::loadPosition(chessboard const& board)
 
       // Absolute position
       m_resources.figures[fig].setPosition(
-             conf::dim::border + conf::dim::figure * COL(ij),
-             conf::dim::border + conf::dim::figure * ROW(ij));
+         float(conf::dim::border + conf::dim::figure * COL(ij)),
+         float(conf::dim::border + conf::dim::figure * ROW(ij)));
       ++fig;
       assert(fig <= NbPieces);
     }
@@ -180,8 +180,8 @@ void Board::loadPosition(chessboard const& board)
 Square Board::getSquare(sf::Vector2f const& mouse) const
 {
   // Get the square from mouse position
-  int x = (int) ((mouse.x - conf::dim::border) / ((float) conf::dim::figure));
-  int y = (int) ((mouse.y - conf::dim::border) / ((float) conf::dim::figure));
+  int x = int((mouse.x - conf::dim::border) / (float(conf::dim::figure)));
+  int y = int((mouse.y - conf::dim::border) / (float(conf::dim::figure)));
 
   // Outside the chessboard ?
   if ((x < 0) || (x > 7) || (y < 0) || (y > 7))
@@ -216,7 +216,7 @@ bool Board::takeFigure(sf::Vector2f const& mouse)
     return false;
 
   // Do not grab a piece from opposite color
-  if (m_rules.m_side != m_rules.m_board[sq].color)
+  if (m_rules.m_side != m_rules.m_board[sq].color())
     return false;
 
   // Find which figure is in the mouse cursor
@@ -247,7 +247,7 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
     return false;
 
   // Outside the board dimension ?
-  uint8_t m_to = getSquare(mouse);
+  m_to = getSquare(mouse);
   if (Square::OOB == m_to)
     return false;
 
@@ -256,14 +256,14 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
   if (m_from == m_to)
     {
       m_resources.figures[m_grabbed].setPosition(
-          conf::dim::border + conf::dim::figure * COL(m_from),
-          conf::dim::border + conf::dim::figure * ROW(m_from));
+          float(conf::dim::border + conf::dim::figure * COL(m_from)),
+          float(conf::dim::border + conf::dim::figure * ROW(m_from)));
       ungrabFigure();
       return false;
     }
 
   // Release on its own piece
-  if (m_rules.m_side == m_rules.m_board[m_to].color)
+  if (m_rules.m_side == m_rules.m_board[m_to].color())
     return false;
 
   // Create the note move
@@ -274,11 +274,11 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
   if ((7 == row) || (0 == row))
     {
       Piece p = m_rules.m_board[m_from];
-      if (PieceType::Pawn == p.type)
+      if (PieceType::Pawn == p.type())
         {
           row = ROW(m_from);
-          if (((Color::White == p.color) && (1 == row)) ||
-              ((Color::Black == p.color) && (6 == row)))
+          if (((Color::White == p.color()) && (1 == row)) ||
+              ((Color::Black == p.color()) && (6 == row)))
             {
               // Pop up a new window for selecting the promoted piece
               Piece promote = NoPiece;
@@ -307,19 +307,19 @@ bool Board::running()
 
 //! \param a column 'a' .. 'h'
 //! \param b line '1' .. '8'
-sf::Vector2f Board::toCoord(const char a, const char b) const
+sf::Vector2f Board::toCoord(char const a, char const b) const
 {
   return sf::Vector2f(conf::dim::border, conf::dim::border)
-    + sf::Vector2f((int(a) - 'a') * conf::dim::figure,
-                   ('8' - int(b)) * conf::dim::figure);
+    + sf::Vector2f(float(int(a) - 'a') * conf::dim::figure,
+                   float('8' - int(b)) * conf::dim::figure);
 }
 
 //! \param move the newly played move in format like "e2e4".
 //! \note: the move shall be valid !
-void Board::animate(const std::string& move)
+void Board::animate(std::string const& move)
 {
-  const sf::Vector2f from(toCoord(move[0], move[1]));
-  const sf::Vector2f to(toCoord(move[2], move[3]));
+  sf::Vector2f const from(toCoord(move[0], move[1]));
+  sf::Vector2f const to(toCoord(move[2], move[3]));
   uint8_t taken_piece = NbPieces;
 
   for (uint8_t fig = 0u; fig < NbPieces; ++fig)
@@ -335,12 +335,11 @@ void Board::animate(const std::string& move)
   assert(taken_piece != NbPieces && "Illegal move");
 
   // Smooth animation
-  const sf::Vector2f p = to - from;
-  const uint32_t smooth = 50;
-  for (uint32_t k = 0; k < smooth; ++k)
+  sf::Vector2f const p = to - from;
+  uint32_t const smooth = 50u;
+  for (uint32_t k = 0u; k < smooth; ++k)
     {
-      m_resources.figures[taken_piece].move(p.x / smooth,
-                                            p.y / smooth);
+      m_resources.figures[taken_piece].move(p.x / smooth, p.y / smooth);
       draw(0.0f);
     }
 }
@@ -444,6 +443,26 @@ void Board::handleInput()
             }
           break;
 
+        case sf::Event::LostFocus:
+        case sf::Event::GainedFocus:
+        case sf::Event::TextEntered:
+        case sf::Event::KeyReleased:
+        case sf::Event::MouseWheelMoved:
+        case sf::Event::MouseWheelScrolled:
+        case sf::Event::MouseMoved:
+        case sf::Event::MouseEntered:
+        case sf::Event::MouseLeft:
+        case sf::Event::JoystickButtonPressed:
+        case sf::Event::JoystickButtonReleased:
+        case sf::Event::JoystickMoved:
+        case sf::Event::JoystickConnected:
+        case sf::Event::JoystickDisconnected:
+        case sf::Event::TouchBegan:
+        case sf::Event::TouchMoved:
+        case sf::Event::TouchEnded:
+        case sf::Event::SensorChanged:
+        case sf::Event::Count:
+        case sf::Event::Resized:
         default:
           break;
         }

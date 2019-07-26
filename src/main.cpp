@@ -24,12 +24,16 @@
 #include "Players/TSCP.hpp"
 #include "Players/NeuNeu.hpp"
 #include "Players/Human.hpp"
-#include "CmdParser/cmdparser.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#  include "CmdParser/cmdparser.hpp"
+#pragma GCC diagnostic pop
 
 // ***********************************************************************************************
 //! \brief Chess palyer factory
 // ***********************************************************************************************
-IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
+IPlayer *ChessNeuNeu::createPlayer(PlayerType const type, Color const side)
 {
   switch (type)
     {
@@ -51,7 +55,7 @@ IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 //! \brief \param fen: the board using the Forsyth-Edwards notation. You can use this site
 //! https://lichess.org/editor for generating FEN strings.
 // ***********************************************************************************************
-ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::string const& fen)
+ChessNeuNeu::ChessNeuNeu(PlayerType const white, PlayerType const black, std::string const& fen)
   : m_resources("figures.png", "board.png"), m_fen(fen), rules(fen)
 {
   init(white, black);
@@ -60,7 +64,7 @@ ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::st
 // ***********************************************************************************************
 //! \brief
 // ***********************************************************************************************
-ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
+ChessNeuNeu::ChessNeuNeu(PlayerType const white, PlayerType const black)
   : m_resources("figures.png", "board.png")
 {
   init(white, black);
@@ -69,7 +73,7 @@ ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
 // ***********************************************************************************************
 //! \brief
 // ***********************************************************************************************
-void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
+void ChessNeuNeu::init(PlayerType const white, PlayerType const black)
 {
   //FIXME players[Color::White].reset(createPlayer(white, Color::White));
   //FIXME players[Color::Black].reset(createPlayer(black, Color::Black));
@@ -113,9 +117,6 @@ static void configure_parser(cli::Parser& parser)
 // ***********************************************************************************************
 int main(int argc, char** argv)
 {
-  // Initialize random seed
-  srand(time(NULL));
-
   // Initialize the parser of command-line options
   cli::Parser parser(argc, argv);
   configure_parser(parser);

@@ -63,10 +63,10 @@ private:
   bool releaseFigure(sf::Vector2f const& mouse);
 
   //! \brief Inherit from GUI class. Draw the chessboard and pieces.
-  virtual void draw(const float dt) override;
+  virtual void draw(float const dt) override;
 
   //! \brief Inherit from GUI class. Update GUI.
-  virtual void update(const float dt) override;
+  virtual void update(float const dt) override;
 
   //! \brief Inherit from GUI class. Manage mouse and keyboard events.
   virtual void handleInput() override;
@@ -90,7 +90,7 @@ private:
   void animate(const std::string& move);
 
   //! \brief
-  sf::Vector2f toCoord(const char a, const char b) const;
+  sf::Vector2f toCoord(char const a, char const b) const;
 
 private:
 
