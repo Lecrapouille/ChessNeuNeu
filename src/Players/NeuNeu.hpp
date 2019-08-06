@@ -23,19 +23,36 @@
 
 #  include "Player.hpp"
 
-enum NeuralPiece { NeuralBlackPawn, NeuralRook, NeuralKnight,
-                   NeuralBishop, NeuralQueen, NeuralKing, NeuralWhitePawn };
+//! \brief Special enum for neural network. Shall match enum of pieces.
+enum NeuralPiece {
+  NeuralEmpty     = PieceType::Empty, // Not used but only for matching with enum PieceType
+  NeuralRook      = PieceType::Rook,
+  NeuralKnight    = PieceType::Knight,
+  NeuralBishop    = PieceType::Bishop,
+  NeuralQueen     = PieceType::Queen,
+  NeuralKing      = PieceType::King,
+  NeuralWhitePawn = PieceType::WPawn, // Aka for PieceType::Pawn
+  NeuralBlackPawn = PieceType::BPawn, // Aka for PieceType::NotUsed
+};
 
-// 64 is the number of squares on the chessboard
-struct Neurone
+//! \brief Print the type of Neural Network pieces.
+std::ostream& operator<<(std::ostream& os, const NeuralPiece& p);
+
+//! \brief Structure holding the neural network.
+//!
+//! The matrix is 64x64 because it holds the whole combinaison of chess
+//! movements. Weights of the matrix makes allow or forbid movement. For example
+//! for a pawn Synaps.weights[e2][e4] will be around 1.0f (allowed) and for a
+//! rook Synaps.weights[e2][f3] will be around 0.0f (forbidden).
+struct Synaps
 {
-  float A[64][64];
+  float weights[NbSquares][NbSquares];
 };
 
 // ***********************************************************************************************
-//! \brief Implement a chess player. Here we are protopying a hand made neural network
+//! \brief Implement a chess player. Here, we are protopying a hand made neural network
 //! learning by itself how to move pieces (for the moment learnt from an empty square).
-//! TODO I have to write a document about it and clean the code (messy)
+//! For more information see the pdf document in the doc/ folder.
 // ***********************************************************************************************
 class NeuNeu: public IPlayer
 {
@@ -43,20 +60,111 @@ public:
 
   NeuNeu(const Rules &rules, const Color side);
   ~NeuNeu();
+
+  //! \brief return the valid move when playing against a component.
+  //!
+  //! Random a piece to move then make the neural network computes the
+  //! probablity for each destination. Random a move depending its probabilty to
+  //! appear.
+  //!
+  //! \return the move as string (ie "e2e4" or "e7e8Q") or IPlayer::none if or
+  //! IPlayer::error.
   virtual std::string play() override;
-  virtual void abort() override;
-  void debug(const NeuralPiece piece);
+
+  //! \brief Abort signal for halting properly the play() method.
+  //! Implement it as you desired (usually a simple bool).
+  virtual void abort() override
+  {
+    // TODO
+  }
 
 private:
 
-  uint8_t play(const uint8_t from, Neurone &neurone, bool rand_move);
-  void learn(Piece piece, Neurone &neurone);
-  NeuralPiece Piece2NeuralPiece(const Piece piece) const;
-  Piece NeuralPiece2Piece(const NeuralPiece piece) const;
-  bool isValidPawnPosition(const uint8_t from) const;
+  //! \brief Cast a chessboard figure to a neural network figure enum.
+  inline NeuralPiece Piece2NeuralPiece(const Piece piece) const
+  {
+    switch (piece.type)
+    {
+    case PieceType::Pawn:
+      if (piece.color == Color::Black)
+        return NeuralPiece::NeuralBlackPawn;
+      return NeuralPiece::NeuralWhitePawn;
+    case PieceType::Rook:
+      return NeuralPiece::NeuralRook;
+    case PieceType::Bishop:
+      return NeuralPiece::NeuralBishop;
+    case PieceType::Knight:
+      return NeuralKnight;
+    case PieceType::Queen:
+      return NeuralPiece::NeuralQueen;
+    case PieceType::King:
+      return NeuralPiece::NeuralKing;
+    case PieceType::Empty:
+    default:
+      return NeuralPiece::NeuralEmpty;
+    }
+  }
 
+  //! \brief Cast the enum of network figure enum to a chessboard figure.
+  inline Piece NeuralPiece2Piece(const NeuralPiece piece) const
+  {
+    switch (piece)
+      {
+      case NeuralPiece::NeuralBlackPawn:
+        return BlackPawn;
+      case NeuralPiece::NeuralWhitePawn:
+        return WhitePawn;
+      case NeuralPiece::NeuralRook:
+        return WhiteRook;
+      case NeuralPiece::NeuralBishop:
+        return WhiteBishop;
+      case NeuralPiece::NeuralKnight:
+        return WhiteKnight;
+      case NeuralPiece::NeuralQueen:
+        return WhiteQueen;
+      case NeuralPiece::NeuralKing:
+        return WhiteKing;
+      case NeuralPiece::NeuralEmpty:
+      default:
+        return NoPiece;
+      }
+  }
+
+  //! \brief Do not allow placing pawns on row 1 or 8 when training them to
+  //! displace. Indeed these rows are used when the pawn is promoted to a
+  //! figure.
+  inline bool isValidPawnPosition(const uint8_t from) const
+  {
+    return (from >= sqA7) && (from <= sqH2);
+  }
+
+  //! \brief Train the IA.
+  void trainSynaps(Piece piece, Synaps &synaps);
+
+  //! \brief Make synaps do a move
+  uint8_t synapsPlay(const uint8_t from, Synaps &synaps);
+
+  //! \brief Display on the console synaps of the neural network of the
+  //! concerned figure.
+  void showSynaps(const NeuralPiece piece);
+
+  //! \brief Display probabilties of movements starting from origin \c from.
+  void showProbabilities(const uint8_t from);
+
+private:
+
+  //! \brief Use Chess rules as supervizor.
   const Rules &m_rules;
-  Neurone *m_pieces[8u];
+
+  //! \brief Hold neural network for each figures.
+  Synaps *m_neurons[8u];
+
+  //! \brief Inputs of the neural network (1.0f means a figure and 0.0f means no
+  //! figure).
+  float e[NbSquares];
+
+  //! \brief outputs of the neural network (probabilities of the movement).
+  float q[NbSquares];
 };
 
 #endif

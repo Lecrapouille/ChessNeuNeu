@@ -35,6 +35,9 @@ enum Color { Black, White };
 constexpr Color opposite(const Color c) { return Color::White == c ? Color::Black : Color::White; }
 
 //! \brief Define the different type of piece on the chessboard.
+//! Empty: for empty square.
+//! NotUsed: for completing enum to 2^4 of the bit field of Piece.type.
+//! WPawn and BPawn (White and black pawn) used for matching with figures of the neural network.
 enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed, WPawn = Pawn, BPawn = NotUsed };
 
 //! \brief The type of a piece is not the only important informations: we also need the color.
