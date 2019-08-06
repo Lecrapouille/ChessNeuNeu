@@ -22,7 +22,7 @@
 # Executable name
 PROJECT = ChessNeuNeu
 TARGET = $(PROJECT)
-DESCRIPTION = Non serious chess engine for learning neural networks
+DESCRIPTION = Non serious chess engine for learning how to develop neural networks
 
 ###################################################
 # Debug mode or Release mode
@@ -40,24 +40,15 @@ include $(M)/Makefile.header
 
 ###################################################
 # Make the list of files to compile
-OBJS = Debug.o FEN.o Rules.o Board.o Promotion.o IPC.o \
-       Player.o Stockfish.o TSCP.o NeuNeu.o Human.o GUI.o main.o
+OBJ_UTILS = IPC.o GUI.o main.o
+OBJ_CHESS = Debug.o FEN.o Rules.o
+OBJ_GUI = Board.o Promotion.o
+OBJ_PLAYERS = Player.o Stockfish.o TSCP.o NeuNeu.o Human.o
+OBJS += $(OBJ_UTILS) $(OBJ_CHESS) $(OBJ_GUI) $(OBJ_PLAYERS)
 
 ###################################################
 # Compile the project
 all: $(TARGET)
-
-###################################################
-# Download external libs
-main.o: .CmdParser.done
-.CmdParser.done: $(THIRDPART)
-	@$(call print-to,"Downloading","$@","$</")
-	@cd $(THIRDPART) && rm -fr CmdParser && git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 2> /dev/null && touch .CmdParser.done
-
-###################################################
-# Create the directory storing all third-part libs
-$(THIRDPART): $(BUILD)
-	@mkdir -p $(THIRDPART)
 
 ###################################################
 # Compile and launch unit tests and generate the code coverage html report.
@@ -87,7 +78,7 @@ install: $(TARGET)
 veryclean: clean
 	@rm -fr cov-int $(PROJECT).tgz *.log foo 2> /dev/null
 	@(cd tests && $(MAKE) -s clean)
-	@rm -fr $(THIRDPART)/*/ $(THIRDPART)/.* doc/html 2> /dev/null
+	@rm -fr $(THIRDPART) doc/html 2> /dev/null
 
 ###################################################
 # Sharable informations between all Makefiles

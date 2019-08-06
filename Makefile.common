@@ -25,20 +25,23 @@ MYMAKEFILES += $(P)/Makefile.common
 
 ###################################################
 # Compilation options.
-STANDARD = --std=c++14
 CXXFLAGS += -W -Wall -Wextra -O3
-#$(CXX_WHOLE_FLAGS)
-LDFLAGS  += -lsfml-graphics -lsfml-window -lsfml-system -pthread
+STANDARD = --std=c++14
 
 ###################################################
 # Project defines
 DEFINES +=
 
 ###################################################
-# Set Libraries compiled in the external/ directory.
+# Set libraries compiled in the external/ directory.
 # For knowing which libraries is needed please read
 # the doc/Install.md file.
 THIRDPART_LIBS +=
+
+###################################################
+# Installed libraries on your system.
+LDFLAGS  += -pthread
+PKG_LIBS += sfml-graphics
 
 ###################################################
 # Inform Makefile where to find header files

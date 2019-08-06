@@ -53,7 +53,8 @@
 
 # Specific
 build/*
-external/*
+external/backward-cpp
+external/CmdParser
 _*
 tests/build/*
 tests/doc/coverage/*

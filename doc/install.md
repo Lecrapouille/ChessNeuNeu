@@ -29,7 +29,8 @@ make
 ```sh
 git clone https://github.com/Lecrapouille/ChessNeuNeu.git --recurse-submodules
 cd ChessNeuNeu
-make CmdParser
+make download-external-libs
+make compile-external-libs
 make -j8
 ```
 
