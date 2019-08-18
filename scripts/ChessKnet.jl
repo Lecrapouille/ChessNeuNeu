@@ -16,13 +16,13 @@ function predict2(w,x0)
 end
 
 w=Any[ones(15,1,2,8)]
-w[1][1:7,1,2,:]=0
-w[1][9:15,1,2,:]=0
+w[1][1:7,1,2,:].=0.0
+w[1][9:15,1,2,:].=0.0
 
 
 function loss(w,x,y)
     ypred = predict(w,x)
-    ynorm = ypred .- log.(sum(exp.(ypred),3))
+    ynorm = ypred .- log(sum(exp.(ypred)))
     -sum(y .* ynorm[1,1,:,1]) / size(y,1)
 end
 
@@ -31,7 +31,7 @@ lossgradient = grad(loss)
 function train(w, n; lr=10.0)
     for j=1:n
         x=zeros(8,1,2,1)
-        x[:,1,1,1]=Int.(floor.(0.5+rand(8)))
+        x[:,1,1,1]=Int.(floor.(0.5.+rand(8)))
         p=Int.(floor.(1+8*rand(1)[1]))
         x[p,1,2,1]=1
         y=calcy3(x[:,1,1,1],p)
@@ -43,8 +43,6 @@ function train(w, n; lr=10.0)
     end
     return w
 end
-
-n=10000
 
 function calcy3(x,p)
     z=zeros(Int64,8)
@@ -64,7 +62,7 @@ function test(w,nt)
     er=0.0
     for l=1:nt
         x=zeros(8,1,2,1)
-        x[:,1,1,1]=Int.(floor.(0.5+rand(8)))
+        x[:,1,1,1]=Int.(floor.(0.5.+rand(8)))
         p=Int.(floor.(1+8*rand(1)[1]))
         x[p,1,2,1]=1
         y=calcy3(x[:,1,1,1],p)
@@ -74,5 +72,7 @@ function test(w,nt)
     er
 end
 
-train(w,10000);
-test(w,1000)
+train(w, 1000)
+test(w, 1000)
+train(w, 10000)
+test(w, 1000)
