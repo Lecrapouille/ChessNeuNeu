@@ -1,0 +1,81 @@
+\documentclass[11pt]{article}
+\usepackage{skak}
+\usepackage[utf8]{inputenc}
+\newcommand{\PP}{{\mathcal{P}}}
+\newcommand{\EE}{{\mathcal{E}}}
+\newcommand{\TT}{{\mathcal{T}}}
+\newcommand{\CC}{{\mathcal{C}}}
+\newcommand{\DD}{{\mathcal{D}}}
+\newcommand{\AAA}{{\mathcal{A}}}
+\begin{document}
+
+\title{Formalisation des règles du jeu d'échecs}
+\author{J.-P. Quadrat et Q. Quadrat}
+\date{10 Avril 2018}
+\maketitle
+
+On formalise les règles d'un jeu d'échec simplifié. Le but est de fixer les notations d'un programme
+d'échecs écrit en Julia. Julia utilisant Unicode permet de  compacter les notations des symboles
+et donc de réduire la taille des programmes. L'idée est de faire converger un code informatique
+vers exposé mathématique. En mathématique les notations algébriques ont fait faire un progrès énorme.
+Il suffit de comparer un texte donnant la solution d'une équation du second degré avant et après l'apparition
+des notations algébriques pour s'en rendre compte. Bien souvent l'informatique actuelle va dans la direction
+inverse. Les noms des variables sont des phrases les définissant. Dans les cours d'algèbre pour débutant
+on apprend à représenter par un symbole bien choisi une variable ou une donnée décrite dans un énoncé
+par des phrases les définissant. L'énoncé se résume alors à quelques des formules compactes.
+
+\section{L'échiquier}
+
+\newgame
+\begin{center}\showboard\end{center}
+
+Un jeu d'échecs est constitué d'un échiquier, un ensemble de de 64 cases, réparties en  8 rangées de 8 cases et de deux armées
+de 16 pièces (8 pions, 2 cavaliers, 2 tours, 2 fous, 1 dame et 1 roi) ayant des capacités de déplacement différentes. Les
+pièces peuvent se déplacer et prendre des adversaires. Le but est de prendre le roi adverse.  Précisons tout cela.
+
+Dans le but de simplifier la description de certains mouvements (qui peuvent sortir de 2 cases)  il est utile de placer l'échiquier
+$8 \times 8$ : $\CC_8$ sur un tore  $10 \times 10 $ : $\CC$. Nous numéroterons les 100 cases du tore par colonnes en commençant par le haut
+par $0$. Notons $c\in \CC$ le numéro d'une case du tore. En base $10$, $c$ est composé de 2 digits. Si aucun de ces digits est un $0$ ou un $9$ alors $c$ est une case de $\CC$, le premier digit  désigne la colonne le deuxième la rangée de $\CC_8$. Sur $\hat{\CC}_8=\CC_8\cup \{0\}$ on définit une addition $\oplus$ par
+$$a\oplus b=\left\{
+\begin{array}{cl}
+ c=a+b \mbox{ modulo } 100 & \mbox{si } a,b,c\in\EE_8 ,\\
+                       0   &  \mbox{ sinon .}
+ \end{array}  \right .  $$
+Un déplacement d'une pièce correspond à l'addition (au sens usuel) du numéro de la case occupée par la pièce $a$ et de la valeur du déplacement ou d'une direction de déplacement qui seront des nombres positifs ou négatifs $b$ avec $ | b |\leq 21$. Et donc (exercice) tout déplacement sortant de $\EE_8$ vaut $0$ a sens de l'addition $\oplus$.
+
+%\begin{remark}
+ Le plongement de l'échiquier $8 \times 8$ dans un cylindre $10 \times 12$ est classique. Pour une raison inconnue le plongement dans le tore $10\times 10$ ne semble pas utilisé alors qu'il permet les mêmes simplification dans la gestion des mouvements des pièces  en étant plus symétrique et plus compact.
+% \end{remark}
+\section{Les pièces \wmove{N,B,R,Q,K} et les pions P }
+Dans la suite on ne distinguera pas les pions des pièces tous seront des types de pièces et on distinguera les pièces de même type .  L'ensemble des types de pièces sera noté $$\{1,2,3,4,5,6\}=\{\mbox{\wmove{P,N,B,R,Q,K} }\}.$$ De plus on donnera un signe au codage des pièces pour distinguer les pièces blanches positives des pièces noires négatives. On appelle alors $$\TT=\{1,\cdots 6, -1,\cdots -6\}$$ l'ensemble des types de pièces. Toutes les 32 pièces de l'échiquier sont distinguées par leur place sur l'échiquier initial les  16 pièces blanches sont positives les 16 pièces noires sont négatives. L'ensemble. ordonné  des pièces est $$\PP=\{1, \cdots ,16, -1 ,\cdots, -16\}.$$ Ainsi  le premier élément codé $1 $est la  \wmove{Ra1}  de l'échiquier initial, le deuxième  est  le \wmove{Nb1}, le 17éme élément codé $-1$ est la  \wmove{Ra8}, le 32ème élément est le pion noir en g7  codé $-16$.
+
+On appelle alors $$C : p\in \PP \mapsto c\in\hat{\CC}_8 $$ l'application qui donne la case $c$ occupée par  la pièce $p$ si elle est sur l'échiquier  ou $0$ sinon.
+On note $$P :c \in\CC_8\mapsto p\in \hat{\PP }=\PP\cup \{0\}$$  la fonction "inverse" qui a une case $c$ donne  $p$ le code de la pièce occupante s'il y en a une ou $0$ si elle est inoccupée. Il sera  commode de prolonger cette fonction au tore $\CC$ en complétant par $0$
+pour les valeurs manquantes.
+
+Pour connaitre les mouvements d'une pièce il est utile de connaître le type d'une pièce pour cela on utilise la fonction
+$$T: p\in\PP\mapsto \tau\in \TT$$ associe son type.
+qui à une pièce $p$ associe son type. En rajoutant une pièce codé $0$ de type $0$ on peut composer $T$  et $C$ : $TC=T\circ C$ pour connaître
+le type de la pièce occupée par une case. Cette fonction permet aussi l'affichage standard de l'échiquier occupé par les pièces.
+
+Il est facile de retrouver la fonction $P$ à partir de la fonction $C$  on note
+$$\mbox{CtoP}: C\in( \CC_8 \mapsto \hat{\PP } )\mapsto P\in (\PP \mapsto \in\hat{\CC}_8 )$$ et PtoC la fonction inverse.
+
+\section{Les mouvements}
+On peut partitionner les types de pièces selon le type de mouvements qu'ils peuvent effectuer. On peut distinguer les types à mouvements itérables au plus $7$ fois dans une direction $\TT_i=\{\wmove{B,R,Q,-B,-R,-Q}\}$ de ceux qui ne sont pas itérables $\TT_n=\{\wmove{P,N,K,-P,-N,-K}\}$. Ici on considère que le pion ne peut avancer que d'une case lors de son premier mouvement. En fait le Pion est d'abord itérable puis non itérable et mutable lors de sa promotion. La direction peut être vue comme le mouvement particulier de la première itération. Une fois la direction choisie on
+ne peut plus la changer on est obligé de poursuivre dans la même direction.  On appelle $$D:\TT \mapsto \PP_{artie}(\CC_8)$$
+ l'ensemble des mouvements possibles non itérables et des directions. Le mouvement est obtenu pour une pièce $p$ par
+$$C(p)\in\CC_8 \mapsto C(p)(\oplus d) ^n\in\hat{\CC}_8, \;\;d \in D(T(p)), \;1\leq n\leq 7  \mbox{ si }T(p)\in \TT_i,\; n=1 \mbox{ sinon }.$$
+
+Pour définir les mouvement il suffit d'expliciter $D$ :
+$$\begin{array}{rl}
+D(P)=& \{-1,-11,9\} ,\\
+D(-P)=& \{1,11,-9\} ,\\
+D(\wmove{N,-N})= &\{12, 21, 19, 8 ,-12, -21, -19, -8\} ,\\
+D(\wmove{B,-B})= &\{9,-9,11,-11\}, \\
+D(\wmove{R,-R})=&\{1,-1,10,-10\} ,\\
+D(\wmove{Q,-Q})= &  D(\wmove{R})\cup D(\wmove{B}),\\
+D(\wmove{K,-K})=& D(\wmove{Q}).
+\end{array}$$
+
+\end{document}

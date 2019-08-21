@@ -22,6 +22,8 @@
 #include <random>
 #include <iomanip>
 
+//! \file See the document doc/ChessNeuNeu.pdf for understanding its code.
+
 //------------------------------------------------------------------------------
 // Random
 std::random_device rd;  // Will be used to obtain a seed for the random number engine
