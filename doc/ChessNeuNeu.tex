@@ -17,9 +17,10 @@ The goal of this \href{https://github.com/Lecrapouille/ChessNeuNeu}{GitHub
   project} is to check if it is possible for a computer to learn chess rules, or
 in other words, if it is possible to make it played legal piece moves
 i.e. \textbf{without cheating}. The goal of this project is not to make predict
-moves or learn chess strategy to a computer (chessboard evaluation). This is
-already made by several projects. It is also interesting to compare how learning
-is expansive (in term of energy, iterations) in comparison to a human.
+moves or learn chess strategy to a computer (chessboard evaluation) because this
+has already been \href{https://github.com/ashudeep/ConvChess}{made}. It is also
+interesting to compare how learning is expansive (in term of energy, iterations)
+in comparison to a human.
 
 The goal of this document is to explain algorithms developed in the code source
 and to formalize reflections we had for this project. The axis of reflection of
@@ -67,7 +68,7 @@ case slightly modified for accepting the non-presence of kings on the board).
 The picture shows examples of random moves for a white rook: -- in red the
 illegal move refused by the supervisor; -- in green the accepted move.
 
-\subsection*{Algorithm}
+\subsection{Algorithm}
 
 Let $A$ the matrix holding weights of the synapses, let $e$ the input of the
 neural network and $q$ its output. $A$ holds all combination of movements
@@ -161,17 +162,19 @@ H1
 \end{verbatim}
 
 We read this matrix as follow: the column is the origin of the move and the row
-the destination. For example a Rook on the a8 square cannot go to a8 (0) but can
-go B8 or C8. Nevertheless, we can see that the matrix still have initial values
-$1$ (for example A8-B7) meaning that this branch has not been explored and
-potentially can produce an illegal move.
+the destination. For example a Rook on the a8 square. Illegal moves like
+\wmove{Ra8-a8} is correctly understood (weight is $0$) as well as legal moves
+such as \wmove{Ra8-b8} or \wmove{Ra8-c8} (weights are $>0$). Nevertheless, we
+can see that the matrix still have initial values $1$ (for example
+\wmove{Ra8-b7}) meaning that this branch has not been explored and potentially
+can produce an illegal move.
 
-\subsection*{Code source}
+\subsection{Code source}
 
 The code of the supervisor is made in src/Chess/Rules.cpp and the code of the
 training is made in src/Players/NeuNeu.cpp. Enable the macro RANDOM\_MOVES.
 
-\subsection*{Optimized algorithm}
+\subsection{Optimized algorithm}
 
 With this simple algorithm that we need to iterate over millions of iterations
 to obtained a correct weights for synapses $A$ and explore all cases. If not, a
@@ -180,7 +183,7 @@ erroneous movement. As consequence the computer may choose an illegal
 movement. This is of course not acceptable because considered as cheating by a
 human player.
 
-We could improve the algorithm of the gradien but a simpler idea comes
+We could improve the algorithm of the gradient but a simpler idea comes
 immediately: why not simply iterate on all $64 \times 64$ cases and eliminate
 definitively synapses when the move is illegal ? This solution works nicely and
 only takes 4096 iterations.
@@ -198,12 +201,12 @@ G8   1   1   1   1   1   1   0   1   0   0   0
 H1
 \end{verbatim}
 
-\subsection*{Real game}
+\subsection{Real game}
 
-This algorithm can be applied on all pieces: Rook, Knigth, Bishop, Queen and
-King. Training a single color is sufficent for playing the oponent. Note that
+This algorithm can be applied on all pieces: Rook, Knight, Bishop, Queen and
+King. Training a single color is sufficient for playing the opponent. Note that
 the color of the square for Bishops is agnostic. For Pawns we have to create a
-network by type of color because the direction are oposite.
+network by type of color because the direction are opposite.
 
 Once trained, the machine can almost play against a human. We random a piece
 along the available pieces. This makes the origin of the move. We apply the
@@ -211,24 +214,23 @@ algorithm \ref{alg:SynapsesPlay} SynapsesPlay for the destination. Because we
 did not teach not to move a piece to move to a piece of the same color, the
 supervisor, knowing chess rules, makes iter again a new move.
 
-\subsection*{Code source}
+\subsection{Code source}
 
 The code of the supervisor is made in src/Chess/Rules.cpp and the code of the
 training is made in src/Players/NeuNeu.cpp. Disable the macro RANDOM\_MOVES.
 
-\section{Teach to move a single piece on an empty board}
+\section{Teach to move a single piece on an obstructed board}
 
-Now, the difficulty is to teach how to move a piece with obstacles. By obstacle
-we mean the presence of another piece of the same color.
-
-Again, to start simple, we simplify the problem to a 1-Dimension problem: the
-chessboard is no longer a $8 \times 8$ board but a $8 \times 1$ board. And to
-simplify again the problem the piece only can move to the right. The two next
-pictures show idea.
+The next step is to teach how to move a piece with obstacles. By obstacle we
+mean the presence of another pieces of the same color. Again, to start with the
+simplest case, we focus with a $8 \times 1$ chessboard (therefore to a
+1-Dimension problem) and we suppose that the moving piece can only go to the
+right. Chess rules concerning obstacles is maintained. The two next pictures
+show the idea.
 
 \chessboard[
     maxfield=h1,
-    setpieces={Rb1,Pg1},
+    setpieces={Rb1,Pe1,Pg1},
 %
     pgfstyle=straightmove,
     arrow=stealth,
@@ -238,14 +240,15 @@ pictures show idea.
     pgfstyle=straightmove,
     shortenstart=1ex,
     showmover=true,
-    markmoves={b1-e1}
+    markmoves={b1-d1}
 ]
 
-On this picture, the green arrow shows a random and valid move.
+On this picture, the green arrow shows a valid move. Note that the a1 square is
+not explored for this problem.
 
 \chessboard[
     maxfield=h1,
-    setpieces={Rb1,Pg1},
+    setpieces={Rb1,Pe1,Pg1},
 %
     pgfstyle=straightmove,
     arrow=stealth,
@@ -258,6 +261,113 @@ On this picture, the green arrow shows a random and valid move.
     markmoves={b1-h1}
 ]
 
-On this picture, the green arrow shows a random and invalid move.
+On this picture, the green arrow shows an invalid move because in chess rule a
+Rook, contrary to the Knight, cannot jump over other pieces.
+
+\subsection{Convolutional Neural Network}
+
+Contrary to the previous section where we used a fully neural network, we are
+going to use a convolutional neural network (CNN). CNN have been a great
+improvement for machine learning concerning image recognition: they allow to
+create numerous small kernel filters detecting small portion of images (such as
+edges). These filters have the property to be position invariant inside the
+image.
+
+CCN are so powerful that nowadays many non grid machine learning problems are
+translated into a grid problem. Fortunately for us, a chessboard is already a
+2-Dimension grid.
+
+The following
+\href{http://brohrer.github.io/how_convolutional_neural_networks_work.html}{document}
+is a very well good introduction to CNN and their convolution and pooling
+functions.
+
+Our CNN is made of the following layers:
+\begin{itemize}
+\item[$\bullet$] Input: two $8 \times 1$ chessboards. The first chessboard
+  contains the blocking figures. We do not care of the type of the piece
+  (Pawns, ...). Only their presence on squres is important: $1$ and their
+  absence is $0$ for each square. The second input contains the moving piece.
+  Layer is in fact we increase tensor of 7 elements (passing from 8 to 15)
+  because of the next layer: conv.
+\item[$\bullet$] First layer: Conv. Padding is 7 because the chessboard is not
+  infinite and we have to take care of borders.
+\item[$\bullet$] Second layer: max pool.
+\item[$\bullet$] Thrird layer: fully connected layer.
+\item[$\bullet$] Output: returns the probabily of the number of squares for the
+  movement from 0 (meaning a move of 0 square. Or in the case the piece cannot
+  move) to
+\end{itemize}
+
+\subsection{Training}
+
+We do not a database of chess games for training this CNN. The problem is so
+simple that we can generate chessboards and their solution for the supervisor.
+
+x = zeros(8,1,2,1)
+x[:,1,1,1] = Int.(floor.(0.5 .+ rand(8)))
+
+p = Int.(floor.(1 + 8 * rand(1)[1]))
+x[p,1,2,1] = 1
+
+The supervisor calcy training function will return y
+
+For example in the previous figures y will be $[0 0 1 0 0 0 0]$
+
+
+Say differently, this CNN learns the distance to the first blocking piece.
+
+\subsection{Testing}
+
+
+
+\subsection{Newbie error for the training}
+
+For this problem it is important to generate a board with several blocking
+pieces. If we generate only a single blocking piece, the CNN will learn the
+distance between the moving piece to the blocking piece but not the the distance
+between the moving piece to the \strong{first} blocking piece. As consquence if
+training with a single blocking piece and testing on a obstructed board, the CNN
+will not be able to detect the first blocking piece and will not be able to move
+correctly the piece.
+
+While one blocking piece the CNN will converge faster and explore more
+possibilities than an obstructed board, this is a different problem.
+
+\subsection{Drawback of this method}
+
+The probabilty of having a chessboard with 1 or 0 blocking pieces is very few
+contrary to a chessboard where the piece cannot move. As consequence, we have to
+be sure to generate a sufficient number of training where this case is produced
+for the training. For example with 20 thousands of iterations we can obtain 40
+cases of empty chessboard. As consequence a bad choice of iterations can produce
+inexplored case. A good choice of data for training shall include edges cases.
+
+\subsection{Test human} convolutional
+
+What we succeeded to make understand to the machine is the algorithm of the
+distance to first blocking piece placed on the right. This simple algorithm
+needed around 5 lines of Julia or C.
+
+We can compare in how many iterations are needed for a human to understand the
+
+It can be interesting to test humans with the same. Of course, the problem has
+to be shown differently. Firstly, human does not have to see it is a chessboard.
+So replace the chessboard of figure XX by a simple grid uniformly white and
+replace the piece to be moved (Rook) by a circle and blocking pieces (Pawns) by
+a cross. Show this figure to a human and simply ask to him ``give me a number
+between 0 and 7''. Repeat again until he understand that the answer is the
+number of empty squares to the first blocking pieces. Count the
+number of iterations needed.
+
+A human will not need thousand of iterations before understanding the solution
+because a human brain is good for localizing lines in a pattern. A more
+difficult variant of this problem could be the distance to the second blocking
+piece. The human brain is less good for this job.
+
+\subsection{Code source}
+
+The code of this section has been made with Julia (version >= 1.0) and the
+Knet package. See ChessNeuNeu/scripts/ChessKnet.jl
 
 \end{document}
