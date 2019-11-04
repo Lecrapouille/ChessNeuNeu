@@ -21,7 +21,10 @@
 
 PROJECT = ChessNeuNeu
 STANDARD = --std=c++14
-COMPIL_FLAGS = -W -Wall -Wextra
+# FIXME: override with less tough compilation flags
+# because this will produce too many errors that I
+# have not yet fixed! 
+CXXFLAGS = -W -Wall -Wextra
 
 include $(M)/Makefile.header
 
