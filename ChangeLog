@@ -1,3 +1,9 @@
+version 0.1.1:
+
+    Update Makefiles.
+    Update scripts for Julia 1.0.
+    Update documents.
+
 version 0.1:
 
     Basic but functional features.
