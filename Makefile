@@ -19,27 +19,23 @@
 ##=====================================================================
 
 ###################################################
-# Executable name
-PROJECT = ChessNeuNeu
+# Location of the project directory and Makefiles
+#
+P := .
+M := $(P)/.makefile
+
+###################################################
+# Project definition
+#
 TARGET = $(PROJECT)
 DESCRIPTION = Non serious chess engine for learning how to develop neural networks
-
-###################################################
-# Debug mode or Release mode
 BUILD_TYPE := debug
 
-###################################################
-# Location from the project root directory.
-P=.
-
-###################################################
-# Sharable informations between all Makefiles
-M=$(P)/.makefile
 include $(P)/Makefile.common
-include $(M)/Makefile.header
 
 ###################################################
-# Make the list of files to compile
+# Make the list of compiled files
+#
 OBJ_UTILS = IPC.o GUI.o main.o
 OBJ_CHESS = Debug.o FEN.o Rules.o
 OBJ_GUI = Board.o Promotion.o
@@ -56,6 +52,11 @@ all: $(TARGET)
 check:
 	@$(call print-simple,"Compiling unit tests")
 	@$(MAKE) -C tests coverage
+
+###################################################
+# Compile and launch unit tests and generate the code coverage html report.
+.PHONY: unit-tests
+unit-tests: check
 
 ###################################################
 # Install project. You need to be root.

@@ -19,40 +19,38 @@
 ##=====================================================================
 
 ###################################################
-# Executable name
-PROJECT = ChessNeuNeu
+# Location of the project directory and Makefiles
+#
+P=..
+M=$(P)/.makefile
+
+###################################################
+# Project definition
+#
 TARGET = $(PROJECT)-UnitTest
 DESCRIPTION = Unit-tests for $(PROJECT)
-
-###################################################
-# Debug mode or Release mode
 BUILD_TYPE := debug
 
-###################################################
-# Location from the project root directory.
-P=..
-
-###################################################
-# Sharable informations between all Makefiles
-M=$(P)/.makefile
 include $(P)/Makefile.common
-include $(M)/Makefile.header
 
 ###################################################
-# Make the list of files to compile
+# Make the list of compiled files
+#
 OBJS = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
 #PositionTests.o
 
 ###################################################
 # Code coverage. Comment these lines if coveraging
 # is not desired.
-CXXFLAGS += --coverage
-LDFLAGS += --coverage
+#
+COMPIL_FLAGS += --coverage
+LINKER_FLAGS += --coverage
 
 ###################################################
 # Set Libraries. For knowing which libraries
 # is needed please read the external/README.md file.
-LDFLAGS += -lcrpcut -ldl
+#
+LINKER_FLAGS += -lcrpcut -ldl
 
 ###################################################
 # Compile OpenGLCppWrapper unit tests.
@@ -64,6 +62,11 @@ all: $(TARGET)
 check: $(TARGET)
 	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
 	@$(SANITIZER) ./$(BUILD)/$(TARGET) || (cat $(TARGET).log; return 1)
+
+###################################################
+# Compile and run unit tests.
+.PHONY: unit-tests
+unit-tests: check
 
 ###################################################
 # Sharable informations between all Makefiles
