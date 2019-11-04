@@ -588,6 +588,7 @@ std::string Rules::revertLastMove()
   std::string moves(m_moved.erase(pos));
   bool res = applyMoves(moves, true);
   assert(res && "Failed reverting last move");
+  (void) res;
   return last_move;
 }
 
