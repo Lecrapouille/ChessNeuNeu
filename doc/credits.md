@@ -2,6 +2,11 @@
 
 The code source of this project gets its inspiration from different books, ethernet documents and code sources of opensource chess engines.
 
+## State of Art
+
+* https://github.com/ashudeep/ConvChess/blob/master/convchess.pdf
+* https://github.com/BarakOshri/ConvChess/blob/master/papers/ConvChess.pdf
+
 ## Books
 
 * `(french) Programmation efficace: Echecs et C` by _Yann Takvorian, Editions Radio, 1991._

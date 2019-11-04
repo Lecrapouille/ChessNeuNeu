@@ -63,53 +63,13 @@ Not for this scope:
 * Hard coded chess rules: thirty rules detection. Can be nice to create
   a NN for learning this rule.
 
-## State of Art
+## Table of Contents
 
-* Documents are placed in the doc/StateOfArt/ directory but also
-* https://github.com/ashudeep/ConvChess/blob/master/convchess.pdf
-* https://github.com/BarakOshri/ConvChess/blob/master/papers/ConvChess.pdf
-
-## Internal Documentation
-
-ChessNeuNeu internal documents are placed in doc/*.ml or doc/*.pdf:
-* [How to compile the project](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/install.md).
-* [Code source architecture](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/archi.md).
-* [Chess algebra](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/Regles.pdf). In french for the moment.
-* [Machine Learning](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/ChessNeuNeu.pdf). WIP.
+ChessNeuNeu internal documents are placed in doc/\*.ml or doc/\*.pdf:
+* [How to compile the project](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/compil.md).
+* [Command-Line](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/exec.md).
+* [Project Architecture](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/archi.md).
+* [Chess Algebra](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/Regles.pdf). In french for the moment.
+* [Machine Learning Algorithms](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/ChessNeuNeu.pdf). Work in progress.
 * [Credits](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/credits.md).
 
-## Command-Line Usage
-
-### Launch the project without arguments
-
-```
-./ChessNeuNeu
-```
-
-Will make human player play with White color against Stockfish with Black color.
-
-
-### Launch the project with arguments
-
-```
-./ChessNeuNeu --white <player> --black <player> [--fen <board>]
-```
-
-Where different players are:
-* `human` for letting play a human player through the interaction of the GUI board.
-* `neuneu` for letting play the Neural Network player.
-* `stockfish` for letting play [https://github.com/official-stockfish/Stockfish](Stockfish).
-* `tcsp` for letting play [http://www.tckerrigan.com/Chess/TSCP/](TCSP).
-
-Note: `--white` and `--black` can be shorten by `-w` and `-b`.
-
-Optional:
-* `board` is the board position using the Forsyth-Edwards
-  notation. Use this https://lichess.org/editor for generating the
-  input.
-
-### Example
-
-```
-./ChessNeuNeu --white stockfish --black human --fen "4k3/8/8/8/8/8/4P3/4K3 w - -"
-```
