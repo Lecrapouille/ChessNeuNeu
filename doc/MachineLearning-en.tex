@@ -1,0 +1,414 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\pagestyle{empty}\parindent=0pt
+\usepackage{chessboard, xskak}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage[ruled,longend]{algorithm2e}
+\begin{document}
+
+%
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\SetKwInOut{Init}{initialisation}
+%
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+
+\section*{Introduction}
+
+The goal of this document is to formalize and explain algorithms developed in
+the code source of this
+\href{https://github.com/Lecrapouille/ChessNeuNeu}{GitHub project} developed in
+the aim to know if it is possible for a computer to learn completely chess rules
+by itself, or in other words, if it is possible to make it played legal chess
+movements \textit{without cheating}. Its goal is not to make move predictions or
+to make learn chess strategy to a computer (chessboard evaluation), this has
+already been \href{https://github.com/ashudeep/ConvChess}{done}. This document
+allows to reflect upon how learning is expansive (in term of energy, iterations)
+for a computer in comparison to a human.
+
+\section{Notation of a chess movement}
+A chessboard is a $8 \times 8$ grid and therefore has 64 squares. A chess
+movement is a pair of chessboard squares: the origin and the destination.  For
+this document, and contrary to the official chess notation, we will encode the
+movement as follow: $(o, d)$ a pair of strictly positive integers and lower or
+equal to 63. We count squares left to right, top to bottom (i.e. from
+0\textsuperscript{th}, the a8 square, to 63\textsuperscript{th}, the h1
+square). For example the green move of the Rook on the next picture is
+classically written \wmove{Re4-g4} but for this document, the square e4 is the
+32\textsuperscript{th} square and g4 is the 34\textsuperscript{th} and therefore
+this move is encoded $(o, d) = (32, 34)$. The reason is to be usable in
+mathematics as coordinates for $64 \times 64$ matrices.
+
+\section{Teach moving a single piece on an empty board}
+
+Learning to move a single piece on an empty chess board with machine learning is
+the simplest case for teaching chess rules to a computer. For this case, no
+external library is needed: a home-made fully connected neural network is
+enough.
+
+We place randomly the desired piece on the empty chessboard. The computer tries
+a random move (legal or illegal) and a supervisor validates or invalidates the
+move which make reinforcing synapses: weights of synapses of the network are
+decreased or maintained. The supervisor knows the chess rules (while for this
+case slightly modified for accepting the non-presence of kings on the board).
+
+\chessboard[
+  setpieces={Re4},
+  pgfstyle=straightmove,
+  arrow=stealth,
+  linewidth=.25ex,
+  padding=1ex,
+  pgfstyle=straightmove,
+  shortenstart=1ex,
+  showmover=true,
+  %
+  color=red!75!white,
+  markmoves={e4-g5},
+  %
+  color=green!75!white,
+  markmoves={e4-g4}
+]
+
+The picture shows examples of random moves for a white Rook: -- in red the
+illegal move refused by the supervisor; -- in green the accepted move.
+
+\subsection{Algorithm}
+
+Let $A$ the matrix holding weights of the synapses, let $e$ the input of the
+neural network and $q$ its output. $A$ holds all combination of possible
+movements therefore $A$ is a $64 \times 64$ matrix. $e$ is a vector of $64$
+elements (squares of the chessboard): we place the value $1$ at the index
+associated to the origin square $o$ of the piece movement to move and $0$ in
+others. $q$ is the neural network output: it will contain the normalized
+probabilities of the destination squares for finishing the movement: from 0 for
+coding higly improbable move (forbidden) to 1 for higly probable (mandatory
+move).
+
+\newpage
+The algorithm \ref{alg:TrainSynapses} for training a given piece to move is the
+follow:
+
+\begin{algorithm}
+  \label{alg:TrainSynapses}
+  \DontPrintSemicolon
+  $A_{i,j} = 1 \text{ where } i,j \in \{0 \dotsc 63\}$\;
+  \For{$X$ \text{iterations}}
+  {
+    $o \gets \text{random a square}$\;
+    $d \gets \text{SynapsesPlay(}A,o\text{)}$\;
+    $A_{o,d} =
+    \begin{cases}
+      A_{o,d} + 1,& \text{if } (o, d) \text{\,is a legal move} \\
+      \max(1,A_{o,d}) - 1,& \text{else } (o, d) \text{\,is an illegal move}
+    \end{cases}
+    $\;
+  }
+  \caption{Train Synapses}
+\end{algorithm}
+
+Let us explain algorithm \ref{alg:TrainSynapses}. All synapses $A_{i,j}$ are set
+with a weight of 1. We random the origin $o$ of the movement. From $o$ and $A$
+we random for the destination of the move.  We decimate synapses when the
+obtained move is an illegal chess move.  We reinforce synapses when a legal move
+is found. The SynapsesPlay($A$, o) algorithm given in \ref{alg:SynapsesPlay}
+allows gets the destination $d$ of the move. The move is validated (legal) or
+invalidated (illegal) by an supervizor (an hard-coded function knowing the chess
+rules).
+
+\begin{algorithm}
+  \SetNoFillComment
+  \label{alg:SynapsesPlay}
+  \DontPrintSemicolon
+  \KwIn{
+    $A$: synapses, $o$: origin of the move\;
+  }
+  \KwOut{
+    $d$: destination of the move\;
+  }
+  \tcc*[h]{Initialization}\;
+  $e_i =
+  \begin{cases}
+    1,& \text{if } i = o \\
+    0,& \text{else}
+  \end{cases} \text{ where } i \in \{0 \dotsc 63\}$\;
+  \tcc*[h]{Matrix production with normalization of the result}\;
+  $q = A \times e$\;
+  $S = \sum_{i=0}^{63}q_i$\;
+  $q_i \gets q_i / S, \forall i \in \{0 \dotsc 63\}$\;
+  \tcc*[h]{Randomize the destination move}\;
+  $p \gets \text{random(0,1)}$\;
+  $q = 0$\;
+  \For{$(d=0$; $d<64$; $d=d+1)$}
+  {
+    $q = q + q_d$\;
+    \If{$q \geq p$}
+       {
+         \Return{$d$}
+       }
+  }
+  \Return{no move}
+  \caption{Synapses Play}
+\end{algorithm}
+
+Let us explain algorithm \ref{alg:SynapsesPlay}. Knowing the origin $o$ of the
+move, we initialise the input vector $e$ by placing $1$ to the index refering to
+$o$ and 0 for other elements. We compute probabilities $q$ of movement
+destinations by doing the matrix product of $A$ and $e$ and normalizing the
+result $q$. From probabilties of the destination $d$ of the move $(o, d)$ of
+select randomly a move.
+
+The following figure shows a extract of the Rook synapses (the $64 \times 64$
+matrix $A$) after $10^5$ iterations.
+
+\begin{verbatim}
+      A8    B8    C8    D8    E8    F8    G8    H8    A7    B7    C7 ... H1
+A8     0     8    60   128    69    47   100   313    77     1     1
+B8     6     0     2   263    75   111   138   156     0    75     0
+C8    54     3     0   111   139    15    48    96     1     0   183
+D8   132   254   107     0   124     9   236    21     0     1     1
+E8    73    78   156   130     0    88    28    17     0     0     0
+F8    56   115    18    10    89     0    68   142     0     1     0
+G8   105   150    52   244    35    81     0    21     0     1     0
+...
+H1
+\end{verbatim}
+
+We read this matrix as follow: the column is the origin of the move and the row
+the destination. Let suppose a Rook placed on the a8 square. Illegal moves like
+\wmove{Ra8-a8} is correctly understood: the weight is $0$. Legal moves such as
+\wmove{Ra8-b8} or \wmove{Ra8-c8} are correctly understood: weights are
+$>0$. Nevertheless, we can see that the matrix still have initial values $1$
+(for example \wmove{Ra8-b7}) meaning that this branch has not been explored and
+potentially could produce an illegal move.
+
+\subsection{Code source}
+
+\begin{itemize}
+\item[$\bullet$] the supervisor
+\href{https://github.com/Lecrapouille/ChessNeuNeu/blob/master/src/Chess/Rules.cpp}{src/Chess/Rules.cpp}
+\item[$\bullet$] the training is made in \href{https://github.com/Lecrapouille/ChessNeuNeu/blob/master/src/Players/NeuNeu.cpp}{src/Players/NeuNeu.cpp}.
+  You have to enable the macro RANDOM\_MOVES.
+\end{itemize}
+
+\subsection{Optimized algorithm}
+
+With this simple algorithm that we need to iterate over millions of iterations
+to obtained a correct weights for synapses $A$ and explore all cases. If not, a
+branch of movements may not have been tried and not decimated. As consequence
+the computer may choose an illegal movement. This is of course not acceptable
+because considered as cheating by a human player.
+
+We could improve the algorithm of the gradient descent but a simpler idea comes
+immediately: why not simply iterate on all $64 \times 64$ cases and eliminate
+definitively synapses when the move is illegal ? This solution works nicely and
+only takes 4096 iterations. Here synapses for the Rook:
+
+\begin{verbatim}
+    A8  B8  C8  D8  E8  F8  G8  H8  A7  B7  C7 ... H1
+A8   0   1   1   1   1   1   1   1   1   0   0 ...
+B8   1   0   1   1   1   1   1   1   0   1   0
+C8   1   1   0   1   1   1   1   1   0   0   1
+D8   1   1   1   0   1   1   1   1   0   0   0
+E8   1   1   1   1   0   1   1   1   0   0   0
+F8   1   1   1   1   1   0   1   1   0   0   0
+G8   1   1   1   1   1   1   0   1   0   0   0
+...
+H1
+\end{verbatim}
+
+\subsection{Real game}
+
+This algorithm can be applied for all type of pieces. Each piece owns its own
+synapses. For Rook, Knight, Bishop, Queen and King the training for a single
+color is sufficient: it is the same for the opposite color. Note that casttle
+moves, promotion and takes are not learnt. For Pawns, we have to create a
+synapses depending on the color because they have opposite move directions. Note
+that for Bishops, the color of the square where is placed the piece is agnostic.
+
+Once trained, the machine can almost play against a human. We random a piece
+along the available pieces. This makes the origin of the move. We apply the
+algorithm \ref{alg:SynapsesPlay} SynapsesPlay for the destination. Because we
+did not teach not to move a piece on/over a piece of the same color, the
+supervisor, knowing chess rules, has to force iterating a new move until a legal
+one is found.
+
+\subsection{Code source}
+
+\begin{itemize}
+\item[$\bullet$] the supervisor
+\href{https://github.com/Lecrapouille/ChessNeuNeu/blob/master/src/Chess/Rules.cpp}{src/Chess/Rules.cpp}
+\item[$\bullet$] the training is made in \href{https://github.com/Lecrapouille/ChessNeuNeu/blob/master/src/Players/NeuNeu.cpp}{src/Players/NeuNeu.cpp}.
+  You have to disable the macro RANDOM\_MOVES.
+\end{itemize}
+
+\section{Teach to move a single piece on an obstructed board}
+
+The next step is to teach how to move a piece with obstacles. By
+\textit{obstacles} we mean the presence of another pieces of the same
+color. Again, to start with the simplest case, we focus with a $8 \times 1$
+chessboard (therefore to a 1-Dimension problem) and we suppose that the moving
+piece is a Rook-like piece which can only go to the right. Chess rules
+concerning obstacles is maintained (the Rook cannot cross the piece of its
+color). The two next pictures summarizes the principle.
+
+\chessboard[
+    maxfield=h1,
+    setpieces={Rb1,Pe1,Pg1},
+%
+    pgfstyle=straightmove,
+    arrow=stealth,
+    linewidth=.25ex,
+    padding=1ex,
+    color=green!75!white,
+    pgfstyle=straightmove,
+    shortenstart=1ex,
+    showmover=true,
+    markmoves={b1-d1}
+]
+
+On this picture, the green arrow shows a valid move. The a1 square is not
+explored for this problem (right-only movement).
+
+\chessboard[
+    maxfield=h1,
+    setpieces={Rb1,Pe1,Pg1},
+%
+    pgfstyle=straightmove,
+    arrow=stealth,
+    linewidth=.25ex,
+    padding=1ex,
+    color=red!75!white,
+    pgfstyle=straightmove,
+    shortenstart=1ex,
+    showmover=true,
+    markmoves={b1-f1}
+]
+
+On this picture, the red arrow shows an invalid move because in chess rule a
+Rook, contrary to the Knight, cannot jump over other pieces.
+
+\subsection{Convolutional Neural Network}
+
+Contrary to the previous section, where a fully connected neural network have
+been used, we are going to use a convolutional neural network (CNN). CNN have
+done a great improvement for machine learning concerning image recognition: they
+allow to create numerous small kernel filters detecting small portion of images
+(such as edges). These filters have the property to be position invariant inside
+the image. CCN are so powerful that nowadays many non grid machine learning
+problems are translated into a grid problem. Fortunately for us, a chessboard is
+already a 2-Dimension grid. The following
+\href{http://brohrer.github.io/how_convolutional_neural_networks_work.html}{document}
+is a very well good introduction to CNN, their convolution and their pooling
+functions.
+
+In our case, the CNN is made of the following layers:
+\begin{itemize}
+\item[$\bullet$] The input of CNN is made of two layers representing each of
+  them a $8 \times 1$ chessboard.
+  \begin{itemize}
+  \item The first chessboard/layer contains the blocking pieces. We do not care
+    of the type of the piece bu only care of their presence or absence on each
+    square of the chessboard: we encode $1$ for their absence and $0$ for their
+    presence. For example the layer of the previous figure will be $\begin{bmatrix}
+      1 & 1 & 1 & 1 & 0 & 1 & 0 & 1 \end{bmatrix}$
+  \item The second chessboard/layer contains the moving piece and we encode $1$
+    on the index of its presence and $0$ for other squares. For example the
+    layer of the previous figure will be $\begin{bmatrix} 0 & 1 & 0 & 0 & 0 & 0
+      & 0 & 0 \end{bmatrix}$
+  \end{itemize}
+\item[$\bullet$] The first layer is a convolution operator with a window of 8
+  squares and a padding of 7 because the chessboard is not infinite and we have
+  to take care of borders. Therefore we extend the layer dimension to 8+7
+  squares for the Convolution operator.
+\item[$\bullet$] The second layer is a max pool operator.
+\item[$\bullet$] In practice CNN ends with a fully connected layer neural
+  network as final layer. For simplicity reasons, this will not be our case: we
+  only compute the entropy loss function.
+\item[$\bullet$] the output of CNN returns the probability of the number of
+  squares for the movement from 0 (meaning a move of 0 square in the case the
+  piece cannot move) to 7 (meaning no blocking piece and the moving piece is on
+  the a1 square). For example the layer of the previous figure will be:
+
+  $\begin{bmatrix} 0.01 & 0.01 & 0.9 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 \end{bmatrix}$
+\end{itemize}
+
+\subsection{Evolution -- WIP}
+
+This CNN finds the distance to the first blocking piece. For knowing the
+possible squares to move we have prefered to have the following result:
+$\begin{bmatrix} 0.01 & 0.45 & 0.45 & 0.01 & 0.01 & 0.01 & 0.01 &
+  0.01 \end{bmatrix}$ because the Rook can move to squares c1 or d1 (1 square
+and 2 sqaures).
+
+\subsection{Training and testing}
+
+We do not need a database of chessboards for training and testing this CNN. The
+problem is so simple that we can generate by ourselves chessboards and the
+expected answer needed by the supervisor. For the first layer, we simply
+generate random numbers 0 or 1. For the second layer is initially zeroed and we
+place a single 1 randomly.
+
+The supervisor function simply compute the distance (the number of squares set
+to 0) between the Rook and first blocking piece. For example the layer of the
+previous figure will be $\begin{bmatrix} 0 & 0 & 1 & 0 & 0 & 0 & 0 &
+  0 \end{bmatrix}$ encoding the fact the distance is 2.
+
+\subsection{Newbie error concerning the training}
+
+For this problem it is important to generate a board with several blocking
+pieces. If we generate only a single blocking piece, the CNN will learn
+\textbf{a} distance between the moving piece to the blocking piece but not
+\textbf{the} distance between the moving piece to the \textbf{first} blocking
+piece. As consequence, if we train the CNN with a single blocking piece and test
+it on a obstructed board, the CNN will not be able to detect the first blocking
+piece and all distances will have the same probability to appear and therefore
+the CNN will not be able to move correctly the piece.
+
+While the case of a single blocking piece, the CNN will converge faster and
+explore more possibilities than an obstructed board, this is a totally different
+problem. Indeed, the probability of having a chessboard with 1 or 0 blocking
+pieces is very few contrary to a chessboard where the piece cannot move. As
+consequence, we have to be sure to generate a sufficient number of training
+where this case is produced for the training. For example with 20 thousands of
+iterations we can obtain 40 cases of empty chessboard. As consequence a bad
+choice of iterations can produce unexplored case.
+
+As consequence, we see that we have two choices: -- either have an exhaustive
+set of data where edges case appears the same occurance than usual case -- or
+either over millions of iterations. We point out the limit of machine learning.
+
+\subsection{Test humans}
+
+What we succeeded to make understand to the machine is the algorithm of the
+distance to first blocking piece placed on the right. This simple algorithm
+needed around 5 lines of Julia or C code.
+
+It can be interesting to test humans with the same method: do not explain the
+goal of the game but simply show the figure and ask him a number between 0 and
+7. Wait his answer and simply say correct or incorrect. Count the number of
+iterations until he understand the algorithm. Of course, the chessboard has to
+be shown differently. Firstly, human does not have to see this problem as a
+chessboard with Rook and Pawns because he will immediatly understand the problem
+if he already knows how to play chess. Instead just replace the figure of pieces
+by dots and crosses to make the problem totaly abstract.
+
+Not tested, but probably, a human, contrary to the computer will not need
+thousand of iterations before understanding the solution because a human brain
+is good for localizing lines in a pattern. A more difficult variant of this
+problem could be the distance to the second blocking piece. The human brain is
+less good for this job and probabaly (not tested) a human will not succeed this
+test.
+
+\subsection{Code source}
+
+The code of this section has been made with
+\href{https://github.com/JuliaLang/julia}{Julia 1.0} and the
+\href{https://github.com/denizyuret/Knet.jl}{Knet} package. See
+\href{https://github.com/Lecrapouille/ChessNeuNeu/blob/master/scripts/ChessKnet.jl}
+{ChessNeuNeu/scripts/ChessKnet.jl}. This program have not yet been translated in
+C++.
+
+\section{To be continued}
+
+\end{document}

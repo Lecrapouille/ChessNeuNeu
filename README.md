@@ -33,43 +33,14 @@ equivalent of 100 lines of code. Finaly a question could be: is it
 possible to generate this 100 lines of code from what have learnt the
 neural network ?
 
-## Project features
-
-Implemented:
-* Hard coded chess rules for knowing legal moves on a given chessboard.
-  Can be used as supervizor for teaching NN.
-* Communication with some chess engines (Stockfish or TCSP). Other
-  engines can be easily added. They can be used as
-  supervizor for teaching NN like estimating the board position.
-* GUI: with basic interaction with the human player. GUI and Players
-  are thread separated meaning the GUI is not blocked when player is
-  computing the next move.
-* Self learning piece movement in a empty chessboard. Play random moves
-  (no chessboard evaluation).
-* Forsyth-Edwards notation for loading a given chessboard.
-
-In gestation:
-* Neural stuffs. Julia scripts using Knet library for learning basic
-  patterns like piece blocked by a piece of its same side.
-* Have to convert Julia script to C++ code (using [https://github.com/davisking/dlib](dlib) ?).
-* Documentation about algorithms.
-
-Not for this scope:
-* No game scoring analysis, no Alpha/beta or minimax algorithm.
-  No machine learning for optimizing the cost like AlphaGo.
-* No chess engine communication protocol: ChessNeuNeu does not read chess
-  moves from the console. Therefore, it cannot yet be used as chess
-  engine.
-* Hard coded chess rules: thirty rules detection. Can be nice to create
-  a NN for learning this rule.
-
 ## Table of Contents
 
-ChessNeuNeu internal documents are placed in doc/\*.ml or doc/\*.pdf:
-* [How to compile the project](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/compil.md).
-* [Command-Line](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/exec.md).
-* [Project Architecture](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/archi.md).
-* [Chess Algebra](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/Regles.pdf). In french for the moment.
-* [Machine Learning Algorithms](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/ChessNeuNeu.pdf). Work in progress.
-* [Credits](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/credits.md).
+* [How to compile the project](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/Compilation.md).
+* [Command-Line](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/CommandLine.md).
+* [Project features](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/ProjectFeatures.md).
+* [Software Architecture](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/SoftwareArchitecture.md).
+* [Chess Algebra](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/ChessAlgebra-fr.pdf). In french for the moment.
+* [Machine Learning Algorithms](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/MachineLearning-en.pdf). Work in progress.
+* [Credits](https://github.com/Lecrapouille/LEchecDeNeuneu/blob/master/doc/Credits.md).
+
 
