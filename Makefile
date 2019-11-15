@@ -29,7 +29,7 @@ M := $(P)/.makefile
 #
 TARGET = $(PROJECT)
 DESCRIPTION = Non serious chess engine for learning how to develop neural networks
-BUILD_TYPE := debug
+BUILD_TYPE := normal
 
 include $(P)/Makefile.common
 
