@@ -49,7 +49,7 @@ PKG_LIBS += sfml-graphics
 ###################################################
 # Inform Makefile where to find header files
 #
-INCLUDES += -I$(P)/src -I$(P)/src/Players -I$(P)/src/Utils -I$(THIRDPART)
+INCLUDES += -I$(P)/src -I$(THIRDPART)
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files

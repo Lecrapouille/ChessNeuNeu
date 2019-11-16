@@ -18,102 +18,55 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
-#include "IPC.hpp"
+#include "Utils/IPC.hpp"
+#include <string.h>
 #include <fcntl.h>
-#include <iostream>
-#include <stdexcept>
+#include <unistd.h>
 
-IPC::IPC(std::string const& command)
+// ----------------------------------------------------------------------------
+bool IPC::setNonBlockingRead()
 {
-  if (open(command))
+  if (!m_exec.isValid())
     {
-      throw std::invalid_argument("Failed Creating bidirectional pipe");
-    }
-}
-
-IPC::~IPC()
-{
-  close();
-}
-
-int IPC::open(std::string const& command)
-{
-  int wpipe[2];
-  int rpipe[2];
-
-  //fflush(stdout);
-
-  if (pipe(wpipe) || pipe(rpipe))
-    {
-      std::cerr << "Pipe creation failed" << std::endl;
-      return 1;
+      std::cerr << "IPC: failed configuring non-blocking read. Reason 'badly opened pipe"
+                << std::endl;
+      return false;
     }
 
-  m_pid = fork();
-  switch (m_pid)
+  int flags = fcntl(m_exec.getRfd(), F_GETFL, 0);
+  int retval = fcntl(m_exec.getRfd(), F_SETFL, flags | O_NONBLOCK);
+  if (retval < 0)
     {
-    case -1:
-      std::cerr << "fork failed" << std::endl;
-
-      ::close(wpipe[0]);
-      ::close(wpipe[1]);
-      ::close(rpipe[0]);
-      ::close(rpipe[1]);
-      return 1;
-
-    case 0: // child
-      dup2(wpipe[0], STDIN_FILENO);
-      dup2(rpipe[1], STDOUT_FILENO);
-      dup2(rpipe[1], STDERR_FILENO);
-
-      ::close(wpipe[1]);
-      ::close(rpipe[0]);
-
-      // Ask kernel to deliver SIGTERM in case the parent dies
-      //prctl(PR_SET_PDEATHSIG, SIGTERM);
-      if (-1 == execl("/bin/sh", "sh", "-c", command.c_str(), (char *) NULL))
-        {
-          std::cerr << "execl failed" << std::endl;
-        }
-
-      // Nothing below this line should be executed by child process. If so,
-      // it means that the execl function wasn't successfull, so lets exit:
-      exit(1);
-
-    default: // Parent
-      ::close(wpipe[0]);
-      ::close(rpipe[1]);
-
-      // Force to non-blocking read
-      int flags = fcntl(rpipe[0], F_GETFL, 0);
-      int retval = fcntl(rpipe[0], F_SETFL, flags | O_NONBLOCK);
-      if (retval < 0)
-        {
-          std::cerr << "IPC: failed configuring non-blocking read: " << retval << std::endl;
-        }
-      m_wfd = wpipe[1];
-      m_rfd = rpipe[0];
-      return 0;
+      std::cerr << "IPC: failed configuring non-blocking read. Reason '"
+                << strerror(errno) << "'" << std::endl;
+      return false;
     }
+
+  return true;
 }
 
-void IPC::close()
+// ----------------------------------------------------------------------------
+bool IPC::write(std::string const& msg)
 {
-  int status;
-  pid_t p;
+  if (!m_exec.isValid())
+    {
+      std::cerr << "Tried to write to a badly opened pipe" << std::endl;
+      return false;
+    }
 
-  ::close(m_wfd);
-  ::close(m_rfd);
-  do {
-    p = waitpid(m_pid, &status, 0);
-  } while (p == -1 && errno == EINTR);
+  //std::cout << "PIPE write '" << msg.c_str() << "'" << std::endl;
+  ssize_t bytes = ::write(m_exec.getWfd(), msg.c_str(), msg.size());
+  if (bytes != ssize_t(msg.size()))
+    {
+      std::cerr << "Failed writing " << bytes << " bytes. Reason '"
+                << strerror(errno) << "'" << std::endl;
+      return false;
+    }
+
+  return true;
 }
 
-int IPC::write(std::string const& msg)
-{
-  return ::write(m_wfd, msg.c_str(), msg.size());
-}
-
+// ----------------------------------------------------------------------------
 bool IPC::read(std::string& msg)
 {
   char buffer[128];
@@ -121,7 +74,7 @@ bool IPC::read(std::string& msg)
 
   msg.clear();
   do {
-    nb = ::read(m_rfd, buffer, 127);
+    nb = ::read(m_exec.getRfd(), buffer, 127);
     if (nb > 0)
       {
         buffer[nb] = '\0';
@@ -130,15 +83,11 @@ bool IPC::read(std::string& msg)
 
     // Non-blocking reading ==> Equivalent to nb == 0
     else if (errno == EWOULDBLOCK)
-      {
-        nb = 0;
-      }
+      nb = 0;
 
     // Failure
     if (nb < 0)
-      {
-        std::cerr << "IPC: Failed reading in pipe" << std::endl;
-      }
+      std::cerr << "IPC: Failed reading in pipe" << std::endl;
   } while (nb > 0);
 
   // Read at least one char ?

@@ -21,12 +21,7 @@
 #ifndef IPC_HPP
 #  define IPC_HPP
 
-#  include <unistd.h>
-#  include <sys/wait.h>
-//#  include <sys/prctl.h>
-#  include <signal.h>
-#  include <stdlib.h>
-#  include <string>
+#  include "Utils/Execve.hpp"
 
 // ***********************************************************************************************
 //! \brief Implement a Inter Process Communication based on Linux pipes. Be careful if process A
@@ -37,28 +32,55 @@ class IPC
 {
 public:
 
-  //! \brief Constructor. Create a bidirectional pipe and call a Linux
-  //! command for starting the process that we want to communicate
-  //! with.
-  IPC(std::string const& command);
+  // ----------------------------------------------------------------------------
+  //! \brief Constructor. Nothing is made.
+  // ----------------------------------------------------------------------------
+  IPC()
+  {}
 
-  //! \brief Destructor. Close file descriptors of pipes.
-  ~IPC();
+  // ----------------------------------------------------------------------------
+  //! \brief Destructor. Terminate the communication with the parent process.
+  // ----------------------------------------------------------------------------
+  ~IPC()
+  {}
+
+  // ----------------------------------------------------------------------------
+  //! \brief Terminate the communication with the parent process.
+  // ----------------------------------------------------------------------------
+  void close()
+  {
+    m_exec.close();
+  }
+
+  // ----------------------------------------------------------------------------
+  //! \brief Create a bidirectional pipe and call a Linux command for starting
+  //! the process that we want to communicate with.
+  // ----------------------------------------------------------------------------
+  bool operator()(std::string const& command)
+  {
+    const char* const arglist[] = { command.c_str(), nullptr };
+    const char* const env[] = { nullptr };
+
+    if (!m_exec(command.c_str(), arglist, env))
+      return false;
+
+    return setNonBlockingRead();
+  }
 
   //! \brief Send a message to the external process.
-  int write(std::string const& msg);
+  bool write(std::string const& msg);
 
   //! \brief Receive a message from the external process.
   bool read(std::string& msg);
 
 private:
 
-  int open(std::string const& command);
-  void close();
+  //! \brief Force to non-blocking read
+  bool setNonBlockingRead();
 
-  pid_t m_pid;
-  int m_wfd;
-  int m_rfd;
+private:
+
+  Execve m_exec;
 };
 
 #endif

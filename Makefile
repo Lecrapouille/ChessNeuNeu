@@ -36,7 +36,7 @@ include $(P)/Makefile.common
 ###################################################
 # Make the list of compiled files
 #
-OBJ_UTILS = IPC.o GUI.o main.o
+OBJ_UTILS = Execve.o IPC.o GUI.o main.o
 OBJ_CHESS = Debug.o FEN.o Rules.o
 OBJ_GUI = Board.o Promotion.o
 OBJ_PLAYERS = Player.o Stockfish.o TSCP.o NeuNeu.o Human.o

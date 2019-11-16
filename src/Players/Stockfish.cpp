@@ -19,17 +19,22 @@
 //=====================================================================
 
 #include "Stockfish.hpp"
+#include <unistd.h>
 
 Stockfish::Stockfish(const Rules &rules, const Color side, std::string const& fen)
-  : IPC("stockfish"),
-    IPlayer(PlayerType::StockfishIA, side),
+  : IPlayer(PlayerType::StockfishIA, side),
     m_initial_board(fen),
     m_rules(rules)
 {
+  if (!m_ipc("/usr/games/stockfish"))
+    throw std::invalid_argument("Failed creating bidirectional pipe");
+
+  // TODO read and check first token is "Stockfish'
 }
 
 Stockfish::~Stockfish()
 {
+  m_ipc.write("quit\n");
 }
 
 void Stockfish::abort()
@@ -60,7 +65,7 @@ std::string Stockfish::play()
   command += "\ngo\n";
 
   // Send the command to Stockfish
-  write(command);
+  m_ipc.write(command);
 
   // Get and parse the Stockfish answer
   std::string answer;
@@ -76,7 +81,7 @@ std::string Stockfish::play()
         goto l_quit;
 
       // Read Stockfish message from the IPC pipe
-      if (!read(answer))
+      if (!m_ipc.read(answer))
         goto l_error;
 
       // Look for the keyword giving the move

@@ -19,25 +19,28 @@
 //=====================================================================
 
 #include "TSCP.hpp"
-#include <algorithm> // std::min
+#include <unistd.h>
 
 // FIXME TSCP has a bug: it misses flushing code therefore complete
 // message cannot be received. So with version 181 you have to add
 // some "fflush(stdout);" on its code (after printf() function not
 // using "\n".
 Tscp::Tscp(const Rules &rules, const Color side)
-  : IPC("tscp"), IPlayer(PlayerType::TscpIA, side), m_rules(rules)
+  : IPlayer(PlayerType::TscpIA, side), m_rules(rules)
 {
+  if (!m_ipc("tscp"))
+    throw std::invalid_argument("Failed creating bidirectional pipe");
+
   // Force TSCP to move
   if (Color::White == side)
     {
-      write("on\n");
+      m_ipc.write("on\n");
     }
 }
 
 Tscp::~Tscp()
 {
-  write("bye\n");
+   m_ipc.write("bye\n");
 }
 
 void Tscp::abort()
@@ -57,7 +60,7 @@ std::string Tscp::play()
     }
 
   // Create and send the command to TSCP
-  write(last_move + '\n');
+  m_ipc.write(last_move + '\n');
 
   // Get and parse the TSCP answer
   std::string answer;
@@ -73,7 +76,7 @@ std::string Tscp::play()
         goto l_quit;
 
       // Read TSCP message from the IPC pipe
-      if (!read(answer))
+      if (!m_ipc.read(answer))
         goto l_error;
 
       // Look for the keyword giving the move

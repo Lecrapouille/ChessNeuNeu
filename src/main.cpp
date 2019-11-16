@@ -146,11 +146,16 @@ int main(int argc, char** argv)
       // Launch the GUI thread which will also start the game logic thread
       chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->players));
     }
+  catch (std::invalid_argument const& e)
+    {
+      std::cerr << "Fatal: " << e.what() << std::endl;
+      return EXIT_FAILURE;
+    }
   catch (std::string const& e)
     {
       std::cerr << "Fatal: " << e << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

@@ -28,7 +28,7 @@
 //! \brief Implement a chess player. Call the stockfish program and
 //! communicate with it through a bidirectional pipe.
 // ***********************************************************************************************
-class Stockfish: public IPC, public IPlayer
+class Stockfish: public IPlayer
 {
 public:
 
@@ -46,12 +46,15 @@ public:
 
 private:
 
-  //! \brief start the game from a loaded chessboard.
-  //! Use Forsyth-Edwards Notation.
+  //! \brief Bidirectional pipe for communicating with Stockfish.
+  IPC m_ipc;
+  //! \brief start the game from a loaded chessboard. Use Forsyth-Edwards
+  //! Notation.
   std::string m_initial_board;
-  //! \brief We need to access to the chess rules for
-  //! getting the list of played moves.
+  //! \brief We need to access to the chess rules for getting the list of played
+  //! moves.
   const Rules &m_rules;
+  //! \brief halt the process when aborting.
   bool m_aborting = false;
 };
 

@@ -28,7 +28,7 @@
 //! \brief Implement a chess player. Call the TSCP program and
 //! communicate with it through a bidirectional pipe.
 // ***********************************************************************************************
-class Tscp: public IPC, public IPlayer
+class Tscp: public IPlayer
 {
 public:
 
@@ -39,9 +39,12 @@ public:
 
 private:
 
-  //! \brief We need to access to the chess rules for
-  //! getting the list of played moves.
+  //! \brief Bidirectional pipe for communicating with Stockfish.
+  IPC m_ipc;
+  //! \brief We need to access to the chess rules for getting the list of played
+  //! moves.
   const Rules &m_rules;
+  //! \brief halt the process when aborting.
   bool m_aborting = false;
 };
 
