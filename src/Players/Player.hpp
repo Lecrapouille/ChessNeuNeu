@@ -54,7 +54,7 @@ public:
   }
 
   //! \brief Compute and return a legal move (like "e7e8q") or return
-  //! IPlayer::none for stalemate case or return IPlayer::error in
+  //! Move::none for stalemate case or return Move::error in
   //! case of internal error.
   //!
   //! This method can take long minutes to be done. This is normal
@@ -78,13 +78,11 @@ public:
     return m_type;
   }
 
-  //! \brief Used by the play() method when an internal error has
-  //! occured.
+  //! \brief Used by the play() method when an internal error has occured.
   static constexpr const char* error = "error";
 
-  //! \brief Used by the play() method when no move are available
-  //! (like stalemate).
-  static constexpr const char* none = "none";
+  //! \brief Used by the play() method when the user want to quit ChessNeuNeu.
+  static constexpr const char* quitting = "quitting";
 
 private:
 

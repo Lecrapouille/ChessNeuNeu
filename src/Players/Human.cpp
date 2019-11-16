@@ -22,16 +22,14 @@
 
 Human::Human(const Rules &rules, const Color side)
   : IPlayer(PlayerType::HumanPlayer, side), m_rules(rules)
-{
-}
+{}
 
 Human::~Human()
-{
-}
+{}
 
 void Human::abort()
 {
-  notified(IPlayer::error);
+  notified(IPlayer::quitting);
 }
 
 void Human::notified(std::string const& move)

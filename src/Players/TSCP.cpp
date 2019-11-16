@@ -125,13 +125,13 @@ std::string Tscp::play()
 
   // TSCP returns "(no legal move)" for stalemate
   if (move[0] == '(')
-    return IPlayer::none;
+    return Move::none;
 
   // Chess move extracted with success
   return move;
 
 l_quit:
-  return IPlayer::none;
+  return IPlayer::quitting;
 
 l_error:
   std::cerr << "Failed reading TSCP move" << std::endl;

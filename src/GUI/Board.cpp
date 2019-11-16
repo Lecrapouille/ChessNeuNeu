@@ -69,7 +69,7 @@ void Board::play()
 
       // Get the player move
       std::string move = m_players[m_rules.m_side]->play();
-      if (move == IPlayer::none)
+      if (move == Move::none)
         {
           // ChessNeuNeu is quitting ?
           if (!running())
@@ -82,7 +82,7 @@ void Board::play()
         {
           // Internal error
           ++failures;
-          std::cout << move << " " << failures << std::endl << std::endl;
+          std::cout << move << " " << int(failures) << " failures" << std::endl << std::endl;
           if (failures > 7)
             {
               previous_status = m_rules.m_status;
@@ -92,6 +92,11 @@ void Board::play()
 
           // Try to fix the error. TODO: to be tested !!!
           // m_rules.applyMove(m_rules.revertLastMove());
+        }
+      else if (move == IPlayer::quitting)
+        {
+          // Abort
+          return ;
         }
       else
         {
