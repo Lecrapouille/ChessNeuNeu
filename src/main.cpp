@@ -19,6 +19,7 @@
 //=====================================================================
 
 #include "main.hpp"
+#include "Utils/NonCppStd.hpp"
 #include "GUI/Board.hpp"
 #include "Players/Stockfish.hpp"
 #include "Players/TSCP.hpp"
@@ -29,18 +30,22 @@
 // ***********************************************************************************************
 //! \brief Chess palyer factory
 // ***********************************************************************************************
-IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
+void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
   switch (type)
     {
     case PlayerType::StockfishIA:
-      return new Stockfish(rules, side, m_fen);
+      m_players[side] = std::make_shared<Stockfish>(rules, side, m_fen);
+      break;
     case PlayerType::TscpIA:
-      return new Tscp(rules, side);
+      m_players[side] = std::make_shared<Tscp>(rules, side);
+      break;
     case PlayerType::NeuNeuIA:
-      return new NeuNeu(rules, side);
+      m_players[side] = std::make_shared<NeuNeu>(rules, side);
+      break;
     case PlayerType::HumanPlayer:
-      return new Human(rules, side);
+      m_players[side] = std::make_shared<Human>(rules, side);
+      break;
     default:
       throw std::string("createPlayer: Unknown PlayerType");
       break;
@@ -69,12 +74,10 @@ ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
 // ***********************************************************************************************
 //! \brief
 // ***********************************************************************************************
-void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
+void ChessNeuNeu::init(const PlayerType whiteOpponent, const PlayerType blackOpponent)
 {
-  //FIXME players[Color::White].reset(createPlayer(white, Color::White));
-  //FIXME players[Color::Black].reset(createPlayer(black, Color::Black));
-  players[Color::White] = createPlayer(white, Color::White);
-  players[Color::Black] = createPlayer(black, Color::Black);
+  createPlayer(whiteOpponent, Color::White);
+  createPlayer(blackOpponent, Color::Black);
 
   // Be sure to play with Kings (chessboard with no Kings is only
   // used for Neural trainings and unit tests).
@@ -82,13 +85,13 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 
   // Debug
   std::cout
-    << players[Color::White]->side()
+    << m_players[Color::White]->side()
     << " color is played by: "
-    << players[Color::White]->type()
+    << m_players[Color::White]->type()
     << std::endl
-    << players[Color::Black]->side()
+    << m_players[Color::Black]->side()
     << " color is played by: "
-    << players[Color::Black]->type()
+    << m_players[Color::Black]->type()
     << std::endl << std::endl
     << rules.m_board << std::endl
     << rules.m_side << " are thinking ... "
@@ -144,7 +147,7 @@ int main(int argc, char** argv)
         }
 
       // Launch the GUI thread which will also start the game logic thread
-      chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->players));
+      chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->m_players));
     }
   catch (std::invalid_argument const& e)
     {

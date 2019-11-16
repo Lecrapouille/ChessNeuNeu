@@ -24,12 +24,13 @@
 
 static const uint8_t NoFigure = NbPieces + 1u;
 
-Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer **players)
+Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer_SP players[2])
   : GUI(application),
     m_resources(resources),
-    m_rules(rules),
-    m_players(players)
+    m_rules(rules)
 {
+  m_players[0] = players[0];
+  m_players[1] = players[1];
   ungrabFigure();
   m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
   loadPosition(m_rules.m_board);
@@ -300,7 +301,7 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
     return false;
 
   ungrabFigure();
-  reinterpret_cast<Human*>(m_players[m_rules.m_side])->notified(m_move);
+  reinterpret_cast<Human*>(m_players[m_rules.m_side].get())->notified(m_move);
   return true;
 }
 

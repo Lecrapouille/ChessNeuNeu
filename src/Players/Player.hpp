@@ -22,6 +22,7 @@
 #  define PLAYER_HPP
 
 #  include "Chess/Rules.hpp"
+#  include "Utils/NonCppStd.hpp"
 
 // ***********************************************************************************************
 //! \brief Define here all type of chess players. Currently implemented:
@@ -31,6 +32,8 @@
 //! -- NeuNeuIA: play against my neural network IA.
 // ***********************************************************************************************
 enum PlayerType { HumanPlayer, StockfishIA, TscpIA, NeuNeuIA };
+
+DECLARE_CLASS(IPlayer);
 
 // ***********************************************************************************************
 //! \brief Abstract class for a chess player. If you desire to add your own IA makes it inherites

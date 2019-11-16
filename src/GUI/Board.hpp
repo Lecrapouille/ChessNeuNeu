@@ -37,7 +37,7 @@ class Board: public GUI
 public:
 
   //! \brief Constructor.
-  Board(Application& application, Rules &rules, Resources &resources, IPlayer **players);
+  Board(Application& application, Rules &rules, Resources &resources, IPlayer_SP players[2]);
 
   //! \brief Destructor
   ~Board();
@@ -110,7 +110,7 @@ private:
   bool               m_updated = true;
   std::string        m_move;
 
-  IPlayer**          m_players;
+  IPlayer_SP         m_players[2];
   std::string        m_opponent_move;
   std::atomic_bool   m_running_thread{true};
   std::atomic_bool   m_animating{false};

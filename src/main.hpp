@@ -49,7 +49,7 @@ private:
   void init(const PlayerType white, const PlayerType black);
 
   //! \brief Factory Create a player: human, IA with the desired color.
-  IPlayer *createPlayer(const PlayerType type, const Color side);
+  void createPlayer(const PlayerType type, const Color side);
 
 public:
 
@@ -63,9 +63,8 @@ public:
   //! \the Chess referee and game states.
   Rules    rules;
 
-  //! \brief The
-  //FIXME std::unique_ptr<IPlayer> m_players[2];
-  IPlayer* players[2];
+  //! \brief Hold the two interface class player
+  std::shared_ptr<IPlayer> m_players[2];
 };
 
 #endif
