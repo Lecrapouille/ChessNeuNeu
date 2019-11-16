@@ -31,8 +31,9 @@ enum Castle { NoCastle = 0u, Little = 1u, Big = 2u, Both = 3u };
 // ***********************************************************************************************
 struct Move
 {
+  Move()
+  {}
 
-  Move() {}
   Move(std::string const& m)
   {
     from = toSquare(&m[0]);
@@ -66,6 +67,10 @@ struct Move
   // valid: pseudo moves --> legal moves
   // Piece qui a joue (pour prettyprint)
   // prise: bool
+
+  //! \brief Used by the play() method when no move are available
+  //! (like stalemate).
+  static constexpr const char* none = "none";
 };
 
 struct CastleMove : public Move

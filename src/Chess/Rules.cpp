@@ -555,6 +555,10 @@ bool Rules::applyMove(std::string const& move)
 {
   Move m(move);
 
+  // Stalemate
+  if (move == Move::none)
+    return false;
+
   for (auto it: m_legal_moves)
     {
       if (it == m)

@@ -67,8 +67,8 @@ public:
   //! probablity for each destination. Random a move depending its probabilty to
   //! appear.
   //!
-  //! \return the move as string (ie "e2e4" or "e7e8Q") or IPlayer::none if or
-  //! IPlayer::error.
+  //! \return the move as string (ie "e2e4" or "e7e8Q") or Move::none if or
+  //! Move::error.
   virtual std::string play() override;
 
   //! \brief Abort signal for halting properly the play() method.
