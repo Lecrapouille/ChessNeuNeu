@@ -21,7 +21,9 @@
 #include "GUI/Board.hpp"
 #include "GUI/Promotion.hpp"
 #include <unistd.h>
+#include <csignal>
 
+static std::atomic_bool m_running_thread{true};
 static const uint8_t NoFigure = NbPieces + 1u;
 
 Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer **players)
@@ -33,6 +35,7 @@ Board::Board(Application &application, Rules &rules, Resources &resources, IPlay
   ungrabFigure();
   m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
   loadPosition(m_rules.m_board);
+  std::signal(SIGINT, sigintHandler);
   m_thread = std::thread(&Board::play, this);
 }
 
@@ -43,6 +46,16 @@ Board::~Board()
     {
       m_thread.join();
     }
+}
+
+void Board::sigintHandler(int signo)
+{
+  std::cerr << std::endl
+            << "Caught Ctrl-C signal. Quitting ..."
+            << std::endl;
+
+  if (signo == SIGINT)
+    m_running_thread = false;
 }
 
 void Board::play()

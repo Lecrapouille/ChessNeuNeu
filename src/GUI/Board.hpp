@@ -92,6 +92,9 @@ private:
   //! \brief
   sf::Vector2f toCoord(const char a, const char b) const;
 
+  //! \brief SIGINT signal handler
+  static void sigintHandler(int signo);
+
 private:
 
   //! \brief Reference on loaded resources (textures ...)
@@ -112,7 +115,6 @@ private:
 
   IPlayer**          m_players;
   std::string        m_opponent_move;
-  std::atomic_bool   m_running_thread{true};
   std::atomic_bool   m_animating{false};
   std::thread        m_thread;
   using MuxGuard = std::lock_guard<std::mutex>;
