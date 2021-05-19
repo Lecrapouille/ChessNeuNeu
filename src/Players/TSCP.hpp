@@ -32,17 +32,17 @@ class Tscp: public IPC, public IPlayer
 {
 public:
 
-  Tscp(const Rules &rules, const Color side);
-  ~Tscp();
-  virtual std::string play() override;
-  virtual void abort() override;
+    Tscp(const Rules &rules, const Color side);
+    ~Tscp();
+    virtual std::string play() override;
+    virtual void abort() override;
 
 private:
 
-  //! \brief We need to access to the chess rules for
-  //! getting the list of played moves.
-  const Rules &m_rules;
-  bool m_aborting = false;
+    //! \brief We need to access to the chess rules for
+    //! getting the list of played moves.
+    const Rules &m_rules;
+    bool m_aborting = false;
 };
 
 #endif

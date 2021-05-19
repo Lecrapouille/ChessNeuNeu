@@ -32,27 +32,27 @@ class Stockfish: public IPC, public IPlayer
 {
 public:
 
-  //! \brief Constructor.
+    //! \brief Constructor.
 
-  //! \param fen if the game shall starts from a loaded chessboard: in
-  //! this case use a Forsyth-Edwards Notation string. In the case you
-  //! desire starting from the initial chessboard position pass an
-  //! empty string.
-  Stockfish(const Rules &rules, const Color side, std::string const& fen = "");
-  ~Stockfish();
-  //! \brief return the Stockfish move.
-  virtual std::string play() override;
-  virtual void abort() override;
+    //! \param fen if the game shall starts from a loaded chessboard: in
+    //! this case use a Forsyth-Edwards Notation string. In the case you
+    //! desire starting from the initial chessboard position pass an
+    //! empty string.
+    Stockfish(const Rules &rules, const Color side, std::string const& fen = "");
+    ~Stockfish();
+    //! \brief return the Stockfish move.
+    virtual std::string play() override;
+    virtual void abort() override;
 
 private:
 
-  //! \brief start the game from a loaded chessboard.
-  //! Use Forsyth-Edwards Notation.
-  std::string m_initial_board;
-  //! \brief We need to access to the chess rules for
-  //! getting the list of played moves.
-  const Rules &m_rules;
-  bool m_aborting = false;
+    //! \brief start the game from a loaded chessboard.
+    //! Use Forsyth-Edwards Notation.
+    std::string m_initial_board;
+    //! \brief We need to access to the chess rules for
+    //! getting the list of played moves.
+    const Rules &m_rules;
+    bool m_aborting = false;
 };
 
 #endif

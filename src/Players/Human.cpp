@@ -21,7 +21,7 @@
 #include "Human.hpp"
 
 Human::Human(const Rules &rules, const Color side)
-  : IPlayer(PlayerType::HumanPlayer, side), m_rules(rules)
+    : IPlayer(PlayerType::HumanPlayer, side), m_rules(rules)
 {}
 
 Human::~Human()
@@ -29,24 +29,24 @@ Human::~Human()
 
 void Human::abort()
 {
-  notified(IPlayer::quitting);
+    notified(IPlayer::quitting);
 }
 
 void Human::notified(std::string const& move)
 {
-  {
-    std::unique_lock<std::mutex> mlock(m_mutex);
-    m_move = move;
-  }
-  m_cond.notify_one();
+    {
+        std::unique_lock<std::mutex> mlock(m_mutex);
+        m_move = move;
+    }
+    m_cond.notify_one();
 }
 
 // Tricky hack to get the move from the GUI.
 std::string Human::play()
 {
-  std::unique_lock<std::mutex> mlock(m_mutex);
+    std::unique_lock<std::mutex> mlock(m_mutex);
 
-  m_cond.wait(mlock);
-  std::string move(m_move);
-  return move;
+    m_cond.wait(mlock);
+    std::string move(m_move);
+    return move;
 }

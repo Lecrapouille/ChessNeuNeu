@@ -31,19 +31,19 @@
 // ***********************************************************************************************
 IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
-  switch (type)
+    switch (type)
     {
     case PlayerType::StockfishIA:
-      return new Stockfish(rules, side, m_fen);
+        return new Stockfish(rules, side, m_fen);
     case PlayerType::TscpIA:
-      return new Tscp(rules, side);
+        return new Tscp(rules, side);
     case PlayerType::NeuNeuIA:
-      return new NeuNeu(rules, side);
+        return new NeuNeu(rules, side);
     case PlayerType::HumanPlayer:
-      return new Human(rules, side);
+        return new Human(rules, side);
     default:
-      throw std::string("createPlayer: Unknown PlayerType");
-      break;
+        throw std::string("createPlayer: Unknown PlayerType");
+        break;
     }
 }
 
@@ -52,18 +52,18 @@ IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 //! https://lichess.org/editor for generating FEN strings.
 // ***********************************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::string const& fen)
-  : m_resources("figures.png", "board.png"), m_fen(fen), rules(fen)
+    : m_resources("figures.png", "board.png"), m_fen(fen), rules(fen)
 {
-  init(white, black);
+    init(white, black);
 }
 
 // ***********************************************************************************************
 //! \brief
 // ***********************************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
-  : m_resources("figures.png", "board.png")
+    : m_resources("figures.png", "board.png")
 {
-  init(white, black);
+    init(white, black);
 }
 
 // ***********************************************************************************************
@@ -71,28 +71,28 @@ ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
 // ***********************************************************************************************
 void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 {
-  //FIXME players[Color::White].reset(createPlayer(white, Color::White));
-  //FIXME players[Color::Black].reset(createPlayer(black, Color::Black));
-  players[Color::White] = createPlayer(white, Color::White);
-  players[Color::Black] = createPlayer(black, Color::Black);
+    //FIXME players[Color::White].reset(createPlayer(white, Color::White));
+    //FIXME players[Color::Black].reset(createPlayer(black, Color::Black));
+    players[Color::White] = createPlayer(white, Color::White);
+    players[Color::Black] = createPlayer(black, Color::Black);
 
-  // Be sure to play with Kings (chessboard with no Kings is only
-  // used for Neural trainings and unit tests).
-  assert(false == rules.m_no_kings);
+    // Be sure to play with Kings (chessboard with no Kings is only
+    // used for Neural trainings and unit tests).
+    assert(false == rules.m_no_kings);
 
-  // Debug
-  std::cout
-    << players[Color::White]->side()
-    << " color is played by: "
-    << players[Color::White]->type()
-    << std::endl
-    << players[Color::Black]->side()
-    << " color is played by: "
-    << players[Color::Black]->type()
-    << std::endl << std::endl
-    << rules.m_board << std::endl
-    << rules.m_side << " are thinking ... "
-    << std::flush;
+    // Debug
+    std::cout
+            << players[Color::White]->side()
+            << " color is played by: "
+            << players[Color::White]->type()
+            << std::endl
+            << players[Color::Black]->side()
+            << " color is played by: "
+            << players[Color::Black]->type()
+            << std::endl << std::endl
+            << rules.m_board << std::endl
+            << rules.m_side << " are thinking ... "
+            << std::flush;
 }
 
 // ***********************************************************************************************
@@ -100,12 +100,12 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 // ***********************************************************************************************
 static void configure_parser(cli::Parser& parser)
 {
-  parser.set_optional<std::string>
-    ("w", "white", "human", "Define the white player: human | stockfish | neuneu");
-  parser.set_optional<std::string>
-    ("b", "black", "stockfish", "Define the black player: human | stockfish | neuneu");
-  parser.set_optional<std::string>
-    ("f", "fen", "", "Forsyth-Edwards notation");
+    parser.set_optional<std::string>
+            ("w", "white", "human", "Define the white player: human | stockfish | neuneu");
+    parser.set_optional<std::string>
+            ("b", "black", "stockfish", "Define the black player: human | stockfish | neuneu");
+    parser.set_optional<std::string>
+            ("f", "fen", "", "Forsyth-Edwards notation");
 }
 
 // ***********************************************************************************************
@@ -113,44 +113,44 @@ static void configure_parser(cli::Parser& parser)
 // ***********************************************************************************************
 int main(int argc, char** argv)
 {
-  // Initialize random seed
-  srand(time(NULL));
+    // Initialize random seed
+    srand(time(NULL));
 
-  // Initialize the parser of command-line options
-  cli::Parser parser(argc, argv);
-  configure_parser(parser);
-  parser.run_and_exit_if_error();
+    // Initialize the parser of command-line options
+    cli::Parser parser(argc, argv);
+    configure_parser(parser);
+    parser.run_and_exit_if_error();
 
-  try
+    try
     {
-      //
-      std::unique_ptr<ChessNeuNeu> chess;
+        //
+        std::unique_ptr<ChessNeuNeu> chess;
 
-      // Get Player types from command-line options --white and --black.
-      // An exception is thrown if player type is badly typed.
-      PlayerType Whites = playerType(parser.get<std::string>("w"));
-      PlayerType Blacks = playerType(parser.get<std::string>("b"));
+        // Get Player types from command-line options --white and --black.
+        // An exception is thrown if player type is badly typed.
+        PlayerType Whites = playerType(parser.get<std::string>("w"));
+        PlayerType Blacks = playerType(parser.get<std::string>("b"));
 
-      // Optional: start the game with a given chessboard with the
-      // comand-line --fen (Forsyth-Edwards notation).
-      std::string fen = parser.get<std::string>("f");
-      if (fen.empty())
+        // Optional: start the game with a given chessboard with the
+        // comand-line --fen (Forsyth-Edwards notation).
+        std::string fen = parser.get<std::string>("f");
+        if (fen.empty())
         {
-          chess = std::make_unique<ChessNeuNeu>(Whites, Blacks);
+            chess = std::make_unique<ChessNeuNeu>(Whites, Blacks);
         }
-      else
+        else
         {
-          chess = std::make_unique<ChessNeuNeu>(Whites, Blacks, fen);
+            chess = std::make_unique<ChessNeuNeu>(Whites, Blacks, fen);
         }
 
-      // Launch the GUI thread which will also start the game logic thread
-      chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->players));
+        // Launch the GUI thread which will also start the game logic thread
+        chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->players));
     }
-  catch (std::string const& e)
+    catch (std::string const& e)
     {
-      std::cerr << "Fatal: " << e << std::endl;
-      return 1;
+        std::cerr << "Fatal: " << e << std::endl;
+        return 1;
     }
 
-  return 0;
+    return 0;
 }

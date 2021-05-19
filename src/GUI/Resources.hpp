@@ -18,28 +18,28 @@ class Resources
 {
 public:
 
-  //! \brief Load resources
-  Resources(std::string const& path_figures, std::string const& path_board)
-  {
-    bool res1 = textures[0].loadFromFile(conf::res::path + path_figures);
-    bool res2 = textures[1].loadFromFile(conf::res::path + path_board);
+    //! \brief Load resources
+    Resources(std::string const& path_figures, std::string const& path_board)
+    {
+        bool res1 = textures[0].loadFromFile(conf::res::path + path_figures);
+        bool res2 = textures[1].loadFromFile(conf::res::path + path_board);
 
-    if (!res1 || !res2)
-      throw std::string("Failed loading textures");
+        if (!res1 || !res2)
+            throw std::string("Failed loading textures");
 
-    board.setTexture(textures[1]);
-    for (uint8_t i = 0u; i < NbPieces; ++i)
-      {
-        figures[i].setTexture(textures[0]);
-      }
-  }
+        board.setTexture(textures[1]);
+        for (uint8_t i = 0u; i < NbPieces; ++i)
+        {
+            figures[i].setTexture(textures[0]);
+        }
+    }
 
-  //! \brief Chessboard and piece textures. Piece texture is an atlas texture.
-  sf::Texture        textures[2];
-  //! \brief A figure is a chess pieces texture knowing its position.
-  sf::Sprite         figures[NbPieces];
-  //! \brief Chessboard sprite.
-  sf::Sprite         board;
+    //! \brief Chessboard and piece textures. Piece texture is an atlas texture.
+    sf::Texture        textures[2];
+    //! \brief A figure is a chess pieces texture knowing its position.
+    sf::Sprite         figures[NbPieces];
+    //! \brief Chessboard sprite.
+    sf::Sprite         board;
 };
 
 #endif

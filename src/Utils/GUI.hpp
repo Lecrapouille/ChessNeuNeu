@@ -40,32 +40,32 @@ class GUI;
 // ***********************************************************************************************
 class Application
 {
-  friend class GUI;
+    friend class GUI;
 
 public:
 
-  //! \brief Create a SFML window.
-  Application();
-  //! \brief empty the whole stack
-  ~Application();
+    //! \brief Create a SFML window.
+    Application();
+    //! \brief empty the whole stack
+    ~Application();
 
-  //! \brief Push a new GUI which will be draw by SFML.
-  void push(GUI* gui);
-  //! \brief Drop the current GUI. The new GUI on the top will be draw
-  //! by SFML.
-  void pop();
-  //! \brief Get the GUI placed on the top of the stack.
-  GUI* peek();
-  //! \brief Push a new GUI on the top of the stack and start a loop for
-  //! managing its draw and IO events. When the GUI is closed it will be
-  //! drop from the stack.
-  void loop(GUI* gui);
+    //! \brief Push a new GUI which will be draw by SFML.
+    void push(GUI* gui);
+    //! \brief Drop the current GUI. The new GUI on the top will be draw
+    //! by SFML.
+    void pop();
+    //! \brief Get the GUI placed on the top of the stack.
+    GUI* peek();
+    //! \brief Push a new GUI on the top of the stack and start a loop for
+    //! managing its draw and IO events. When the GUI is closed it will be
+    //! drop from the stack.
+    void loop(GUI* gui);
 
 private:
 
-  std::stack<GUI*> m_guis; // FIXME: use unique_ptr and move()
-  //! \brief GUIs use th SMFL library for their rendering.
-  sf::RenderWindow m_window;
+    std::stack<GUI*> m_guis; // FIXME: use unique_ptr and move()
+    //! \brief GUIs use th SMFL library for their rendering.
+    sf::RenderWindow m_window;
 };
 
 // ***********************************************************************************************
@@ -73,32 +73,31 @@ private:
 // ***********************************************************************************************
 class GUI
 {
-  friend class Application;
+    friend class Application;
 
 public:
 
-  GUI(Application& application)
-    : m_application(application)
-  {
-  }
+    GUI(Application& application)
+        : m_application(application)
+    {}
 
-  virtual ~GUI() {}
+    virtual ~GUI() {}
 
-  sf::RenderWindow& window()
-  {
-    return m_application.m_window;
-  }
+    sf::RenderWindow& window()
+    {
+        return m_application.m_window;
+    }
 
 private:
 
-  virtual bool running() = 0;
-  virtual void draw(const float dt) = 0;
-  virtual void update(const float dt) = 0;
-  virtual void handleInput() = 0;
+    virtual bool running() = 0;
+    virtual void draw(const float dt) = 0;
+    virtual void update(const float dt) = 0;
+    virtual void handleInput() = 0;
 
 public:
 
-  Application& m_application;
+    Application& m_application;
 };
 
 #endif

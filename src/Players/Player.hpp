@@ -40,54 +40,54 @@ class IPlayer
 {
 public:
 
-  //! \brief Constructor.
-  //! \param type of player you desire (human, external software, IA ...)
-  //! \param side: the color to play (white or black)
-  IPlayer(const PlayerType type, const Color side)
-    : m_type(type), m_side(side)
-  {
-  }
+    //! \brief Constructor.
+    //! \param type of player you desire (human, external software, IA ...)
+    //! \param side: the color to play (white or black)
+    IPlayer(const PlayerType type, const Color side)
+        : m_type(type), m_side(side)
+    {
+    }
 
-  //! \brief Destructor. Nothing made.
-  virtual ~IPlayer()
-  {
-  }
+    //! \brief Destructor. Nothing made.
+    virtual ~IPlayer()
+    {
+    }
 
-  //! \brief Compute and return a legal move (like "e7e8q") or return
-  //! Move::none for stalemate case or return Move::error in
-  //! case of internal error.
-  //!
-  //! This method can take long minutes to be done. This is normal
-  //! because computations can be heavy. Therefore this method should
-  //! be called from a thread.
-  virtual std::string play() = 0;
+    //! \brief Compute and return a legal move (like "e7e8q") or return
+    //! Move::none for stalemate case or return Move::error in
+    //! case of internal error.
+    //!
+    //! This method can take long minutes to be done. This is normal
+    //! because computations can be heavy. Therefore this method should
+    //! be called from a thread.
+    virtual std::string play() = 0;
 
-  //! \brief Abort signal for halting properly the play() method.
-  //! Implement it as you desired (usually a simple bool).
-  virtual void abort() = 0;
+    //! \brief Abort signal for halting properly the play() method.
+    //! Implement it as you desired (usually a simple bool).
+    virtual void abort() = 0;
 
-  //! \brief Getter returning the color of the play (white/black).
-  inline Color side() const
-  {
-    return m_side;
-  }
+    //! \brief Getter returning the color of the play (white/black).
+    inline Color side() const
+    {
+        return m_side;
+    }
 
-  //! \brief Getter returning the color of the type of player.
-  inline PlayerType type() const
-  {
-    return m_type;
-  }
+    //! \brief Getter returning the color of the type of player.
+    inline PlayerType type() const
+    {
+        return m_type;
+    }
 
-  //! \brief Used by the play() method when an internal error has occured.
-  static constexpr const char* error = "error";
+    //! \brief Used by the play() method when an internal error has occured.
+    static constexpr const char* error = "error";
 
-  //! \brief Used by the play() method when the user want to quit ChessNeuNeu.
-  static constexpr const char* quitting = "quitting";
+    //! \brief Used by the play() method when the user want to quit ChessNeuNeu.
+    static constexpr const char* quitting = "quitting";
 
 private:
 
-  PlayerType m_type;
-  Color m_side;
+    PlayerType m_type;
+    Color m_side;
 };
 
 //! \brief Print on console the player type.

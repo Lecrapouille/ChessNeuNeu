@@ -45,7 +45,7 @@ using chessboard = std::array<Piece, NbSquares>;
 //! Note: 'sq' prefix is necessary because of conflicts with
 //! SFML names.
 enum Square
-  {
+{
     sqA8, sqB8, sqC8, sqD8, sqE8, sqF8, sqG8, sqH8,
     sqA7, sqB7, sqC7, sqD7, sqE7, sqF7, sqG7, sqH7,
     sqA6, sqB6, sqC6, sqD6, sqE6, sqF6, sqG6, sqH6,
@@ -56,63 +56,63 @@ enum Square
     sqA1, sqB1, sqC1, sqD1, sqE1, sqF1, sqG1, sqH1,
     // Out of Bound
     OOB
-  };
+};
 
 //! \brief Store square names. Mainly used for creating
 //! move notes.
 constexpr std::array<const char[3], NbSquares> c_square_names =
-  {{
-      "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
-      "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-      "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-      "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-      "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-      "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-      "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-      "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+{{
+        "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+        "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+        "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+        "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+        "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+        "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+        "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
     }};
 
 constexpr Square toSquare(const char* square)
 {
-  int val = ('8' - square[1]) * 8 + (square[0] - 'a');
-  assert(val < NbSquares);
-  return static_cast<Square>(val);
+    int val = ('8' - square[1]) * 8 + (square[0] - 'a');
+    assert(val < NbSquares);
+    return static_cast<Square>(val);
 }
 
 inline std::string toStrMove(const uint8_t from, const uint8_t to)
 {
-  return std::string(c_square_names[from])
-    + std::string(c_square_names[to]);
+    return std::string(c_square_names[from])
+            + std::string(c_square_names[to]);
 }
 
 namespace Chessboard
 {
 
-  //! \brief Define the initial chessboard position. You can use the operator= for copy it.
-  constexpr chessboard Init =
+    //! \brief Define the initial chessboard position. You can use the operator= for copy it.
+    constexpr chessboard Init =
     {{
-        BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
-        BlackPawn, BlackPawn,   BlackPawn,   BlackPawn,  BlackPawn, BlackPawn,   BlackPawn,   BlackPawn,
-        NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
-        NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
-        NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
-        NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
-        WhitePawn, WhitePawn,   WhitePawn,   WhitePawn,  WhitePawn, WhitePawn,   WhitePawn,   WhitePawn,
-        WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
-      }};
+            BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook,
+            BlackPawn, BlackPawn,   BlackPawn,   BlackPawn,  BlackPawn, BlackPawn,   BlackPawn,   BlackPawn,
+            NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
+            NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
+            NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
+            NoPiece,   NoPiece,     NoPiece,     NoPiece,    NoPiece,   NoPiece,     NoPiece,     NoPiece,
+            WhitePawn, WhitePawn,   WhitePawn,   WhitePawn,  WhitePawn, WhitePawn,   WhitePawn,   WhitePawn,
+            WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook,
+    }};
 
-  //! \brief Define a chessboard with no piece (and no kings). You can use the operator= for copy it.
-  constexpr chessboard Empty =
+    //! \brief Define a chessboard with no piece (and no kings). You can use the operator= for copy it.
+    constexpr chessboard Empty =
     {{
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-        NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
-      }};
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+            NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
+    }};
 }
 
 //! \brief Pretty print a chessboard in console

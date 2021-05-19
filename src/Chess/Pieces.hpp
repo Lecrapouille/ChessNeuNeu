@@ -45,24 +45,24 @@ enum PieceType { Empty, Rook, Knight, Bishop, Queen, King, Pawn, NotUsed, WPawn 
 //! searching them many times.
 struct Piece
 {
-  unsigned int color : 2;    // Bit 7-6: store Color enum
-  unsigned int slide : 1;    // Bit 5  : can do more than one relative movement
-  unsigned int moved : 1;    // Bit 4  : piece has moved
-  unsigned int type  : 4;    // Bit 3-0: store PieceType enum
+    unsigned int color : 2;    // Bit 7-6: store Color enum
+    unsigned int slide : 1;    // Bit 5  : can do more than one relative movement
+    unsigned int moved : 1;    // Bit 4  : piece has moved
+    unsigned int type  : 4;    // Bit 3-0: store PieceType enum
 };
 
 //! \brief Piece comparator. We only compare color and type of piece.
 //! Other informations are ignored.
 inline bool operator==(const Piece& lhs, const Piece& rhs)
 {
-  return (lhs.color == rhs.color) && (lhs.type == rhs.type);
+    return (lhs.color == rhs.color) && (lhs.type == rhs.type);
 }
 
 //! \brief Piece comparator. We only compare color and type of piece.
 //! Other informations are ignored.
 inline bool operator!=(const Piece& lhs, const Piece& rhs)
 {
-  return !(lhs == rhs);
+    return !(lhs == rhs);
 }
 
 //! \brief Empty square when there is no piece on the square.

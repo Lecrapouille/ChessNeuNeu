@@ -22,32 +22,32 @@
 #include <algorithm>
 
 static const char *c_player_types[] =
-  {
+{
     [PlayerType::HumanPlayer] = "Human",
     [PlayerType::StockfishIA] = "Stockfish",
     [PlayerType::TscpIA] = "TSCP",
     [PlayerType::NeuNeuIA] = "NeuNeu"
-  };
+};
 
 const char *playerType(const PlayerType p)
 {
-  return c_player_types[p];
+    return c_player_types[p];
 }
 
 PlayerType playerType(const std::string& player)
 {
-  std::string name(player);
-  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-  if (name == "stockfish") return PlayerType::StockfishIA;
-  if (name == "neuneu") return PlayerType::NeuNeuIA;
-  if (name == "human") return PlayerType::HumanPlayer;
-  if (name == "tscp") return PlayerType::TscpIA;
+    std::string name(player);
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    if (name == "stockfish") return PlayerType::StockfishIA;
+    if (name == "neuneu") return PlayerType::NeuNeuIA;
+    if (name == "human") return PlayerType::HumanPlayer;
+    if (name == "tscp") return PlayerType::TscpIA;
 
-  throw std::string("Unknonw PlayerType '" + player + "'");
+    throw std::string("Unknonw PlayerType '" + player + "'");
 }
 
 std::ostream& operator<<(std::ostream& os, const PlayerType& p)
 {
-  os << c_player_types[p];
-  return os;
+    os << c_player_types[p];
+    return os;
 }

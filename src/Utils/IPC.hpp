@@ -37,28 +37,28 @@ class IPC
 {
 public:
 
-  //! \brief Constructor. Create a bidirectional pipe and call a Linux
-  //! command for starting the process that we want to communicate
-  //! with.
-  IPC(std::string const& command);
+    //! \brief Constructor. Create a bidirectional pipe and call a Linux
+    //! command for starting the process that we want to communicate
+    //! with.
+    IPC(std::string const& command);
 
-  //! \brief Destructor. Close file descriptors of pipes.
-  ~IPC();
+    //! \brief Destructor. Close file descriptors of pipes.
+    ~IPC();
 
-  //! \brief Send a message to the external process.
-  int write(std::string const& msg);
+    //! \brief Send a message to the external process.
+    int write(std::string const& msg);
 
-  //! \brief Receive a message from the external process.
-  bool read(std::string& msg);
+    //! \brief Receive a message from the external process.
+    bool read(std::string& msg);
 
 private:
 
-  int open(std::string const& command);
-  void close();
+    int open(std::string const& command);
+    void close();
 
-  pid_t m_pid;
-  int m_wfd;
-  int m_rfd;
+    pid_t m_pid;
+    int m_wfd;
+    int m_rfd;
 };
 
 #endif
