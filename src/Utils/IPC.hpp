@@ -28,18 +28,19 @@
 #  include <stdlib.h>
 #  include <string>
 
-// ***********************************************************************************************
-//! \brief Implement a Inter Process Communication based on Linux pipes. Be careful if process A
-//! is expects B will send to it an message and B is expected A will send it a message. Both
-//! processes will loop indefinitely.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Implement a generic bidirectional Inter Process Communication (IPC)
+//! link based on Linux pipes. This allows two processes to talk (requests and
+//! answers) but be careful: if the process A is expecting to receive a message
+//! from the process B but B is expecting to receive a message from A, they will
+//! both loop indefinitely. This class does not manage this case.
+// *****************************************************************************
 class IPC
 {
 public:
 
-    //! \brief Constructor. Create a bidirectional pipe and call a Linux
-    //! command for starting the process that we want to communicate
-    //! with.
+    //! \brief Constructor. Create a bidirectional pipe and call a Linux command
+    //! for starting the process that we want to communicate with.
     IPC(std::string const& command);
 
     //! \brief Destructor. Close file descriptors of pipes.
