@@ -26,9 +26,7 @@
 #include "Players/Human.hpp"
 #include "CmdParser/cmdparser.hpp"
 
-// *****************************************************************************
-//! \brief Chess player factory
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
     switch (type)
@@ -51,28 +49,21 @@ void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
     }
 }
 
-// *****************************************************************************
-//! \brief \param fen: the board using the Forsyth-Edwards notation. You can use this site
-//! https://lichess.org/editor for generating FEN strings.
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::string const& fen)
     : m_resources("figures.png", "board.png"), m_fen(fen), m_rules(fen)
 {
     init(white, black);
 }
 
-// *****************************************************************************
-//! \brief
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
     : m_resources("figures.png", "board.png")
 {
     init(white, black);
 }
 
-// *****************************************************************************
-//! \brief
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 {
     createPlayer(white, Color::White);
@@ -100,9 +91,9 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
     m_gui_board = std::make_unique<Board>(*this, m_rules, m_resources, m_players);
 }
 
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 //! \brief Parser the command-line option
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 static void configure_parser(cli::Parser& parser)
 {
     parser.set_optional<std::string>
@@ -113,9 +104,7 @@ static void configure_parser(cli::Parser& parser)
             ("f", "fen", "", "Board position in Forsyth-Edwards notation https://lichess.org/editor");
 }
 
-// *****************************************************************************
-//! \brief
-// *****************************************************************************
+// -----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
     // Initialize random seed

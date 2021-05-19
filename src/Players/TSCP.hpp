@@ -24,10 +24,10 @@
 #  include "Player.hpp"
 #  include "Utils/IPC.hpp"
 
-// ***********************************************************************************************
-//! \brief Implement a chess player. Call the TSCP program and
-//! communicate with it through a bidirectional pipe.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Implement a chess player. Call the TSCP program and communicate with
+//! it through a bidirectional pipe.
+// *****************************************************************************
 class Tscp: public IPC, public IPlayer
 {
 public:
@@ -39,8 +39,8 @@ public:
 
 private:
 
-    //! \brief We need to access to the chess rules for
-    //! getting the list of played moves.
+    //! \brief We need to access to the chess rules for getting the list of
+    //! played moves.
     const Rules &m_rules;
     bool m_aborting = false;
 };

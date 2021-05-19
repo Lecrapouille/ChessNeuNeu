@@ -21,6 +21,7 @@
 #include "TSCP.hpp"
 #include <algorithm> // std::min
 
+//------------------------------------------------------------------------------
 // FIXME TSCP has a bug: it misses flushing code therefore complete
 // message cannot be received. So with version 181 you have to add
 // some "fflush(stdout);" on its code (after printf() function not
@@ -35,16 +36,19 @@ Tscp::Tscp(const Rules &rules, const Color side)
     }
 }
 
+//------------------------------------------------------------------------------
 Tscp::~Tscp()
 {
     write("bye\n");
 }
 
+//------------------------------------------------------------------------------
 void Tscp::abort()
 {
     m_aborting = true;
 }
 
+//------------------------------------------------------------------------------
 std::string Tscp::play()
 {
     // Extract the last move

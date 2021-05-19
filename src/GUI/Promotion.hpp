@@ -25,20 +25,20 @@
 #  include "GUI/Resources.hpp"
 #  include "Chess/Rules.hpp"
 
-// ***********************************************************************************************
-//! \brief GUI managing the pawn promotion. Display a board with possible pieces to promote.
-//! When the player selects one piece, this piece is used for the game.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief GUI managing the pawn promotion. Display a board with the possible
+//! pieces to promote. When the player selects one piece, this piece is used
+//! for the game.
+// *****************************************************************************
 class Promotion: public GUI
 {
 public:
 
-    //! \brief Constructor get references on game rules
-    //! and the main window needed for drawing the GUI.
+    //! \brief Constructor get references on game rules and the main window
+    //! needed for drawing the GUI.
     Promotion(Application& application, Resources &resources, Color color);
 
-    //! \brief Destructor. Release only GUI resources
-    //! but not game rules.
+    //! \brief Destructor. Release only GUI resources but not game rules.
     ~Promotion() = default;
 
     //! \brief Return the promoted figure.
@@ -53,8 +53,8 @@ private:
 
     const Piece& getPiece(const sf::Vector2f& p) const;
 
-    //! \brief Action on mouse button pressed event.
-    //! Grab the piece (if present).
+    //! \brief Action on mouse button pressed event. Grab the piece (if
+    //! present).
     Piece takeFigure();
 
     //! \brief Load chessboard and pieces textures.

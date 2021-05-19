@@ -20,23 +20,21 @@
 
 #include "Stockfish.hpp"
 
+//------------------------------------------------------------------------------
 Stockfish::Stockfish(const Rules &rules, const Color side, std::string const& fen)
     : IPC("stockfish"),
       IPlayer(PlayerType::StockfishIA, side),
       m_initial_board(fen),
       m_rules(rules)
-{
-}
+{}
 
-Stockfish::~Stockfish()
-{
-}
-
+//------------------------------------------------------------------------------
 void Stockfish::abort()
 {
     m_aborting = true;
 }
 
+//------------------------------------------------------------------------------
 std::string Stockfish::play()
 {
     // Create the command to be sent to Stockfish

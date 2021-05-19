@@ -325,8 +325,6 @@ bool Board::isRunning()
 }
 
 //------------------------------------------------------------------------------
-//! \param a column 'a' .. 'h'
-//! \param b line '1' .. '8'
 sf::Vector2f Board::toCoord(const char a, const char b) const
 {
     return sf::Vector2f(conf::dim::border, conf::dim::border)
@@ -335,8 +333,6 @@ sf::Vector2f Board::toCoord(const char a, const char b) const
 }
 
 //------------------------------------------------------------------------------
-//! \param move the newly played move in format like "e2e4".
-//! \note: the move shall be valid !
 void Board::animate(const std::string& move)
 {
     const sf::Vector2f from(toCoord(move[0], move[1]));

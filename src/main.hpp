@@ -26,9 +26,11 @@
 #  include "Players/Player.hpp"
 #  include <memory>
 
-// ***********************************************************************************************
-//! \brief Main window showing the chessboard and allowing two players to play chess on this board.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Main window showing the chessboard and allowing two opponents (human
+//! or engine or IA) to play chess on this board and arbitrated by a chess rules
+//! class.
+// *****************************************************************************
 class ChessNeuNeu : public Application
 {
 public:
@@ -36,11 +38,11 @@ public:
     //! \brief Constructor. Start with initial board and white to play.
     ChessNeuNeu(const PlayerType Whites, const PlayerType Blacks);
 
-    //! \brief Constructor. Start with a given board using the Forsyth-Edwards notation.
+    //! \brief Constructor. Start with a given board using the Forsyth-Edwards
+    //! notation.
+    //! \param fen: the board using the Forsyth-Edwards notation.
+    //! You can use this site https://lichess.org/editor for generating FEN strings.
     ChessNeuNeu(const PlayerType Whites, const PlayerType Blacks, std::string const& fen);
-
-    //! \brief Create the GUI and and the start a t
-    void run();
 
     //! \brief Return the main GUI (board)
     GUI& gui() { return *m_gui_board; }
@@ -56,11 +58,11 @@ private:
 
 public:
 
-    // Textures ...
+    // SFML Textures, sprites ...
     Resources m_resources;
 
-    //! \brief Save the chessboard passed in command-line option.
-    //! This will be used for Stockfish.
+    //! \brief Save the chessboard position passed in command-line option. This
+    //! will be used for Stockfish.
     std::string m_fen;
 
     //! \the Chess referee and game states.
@@ -69,7 +71,7 @@ public:
     //! \brief The two opponents.
     std::shared_ptr<IPlayer> m_players[2];
 
-    //! \brief The GUIs: board and promotion
+    //! \brief The GUI board.
     std::unique_ptr<GUI> m_gui_board;
 };
 

@@ -4,21 +4,22 @@
 #  include "Config.hpp"
 #  include "Chess/Pieces.hpp"
 
-// ***********************************************************************************************
-//! \brief Define GUI resources (textures ...). This class is shared for the chessboard and the
-//! pawn promotion selection.
+// *****************************************************************************
+//! \brief Define SFML resources (textures, sprited ...). This class is shared
+//! by GUIs: chessboard and the pawn promotion selection.
 //!
-//! Textures are picture loaded in the CPU memory from files disk (jpeg, png ...). They are then
-//! transfered in the GPU memory. Important: Variable storing textures shall not be released while
-//! the program is not ended, else white squares appear.
+//! Textures are picture loaded in the CPU memory from files disk (jpeg,
+//! png ...). They are then transfered in the GPU memory. Important: Variable
+//! storing textures shall not be released while the program is not ended, else
+//! white squares will appeared.
 //!
-//! A sprite is a textured rectangle knowing its position on the screen.
-// ***********************************************************************************************
+//! Sprites are textured rectangles knowing their positions on the screen.
+// *****************************************************************************
 class Resources
 {
 public:
 
-    //! \brief Load resources
+    //! \brief Load resources from the OS
     Resources(std::string const& path_figures, std::string const& path_board)
     {
         bool res1 = textures[0].loadFromFile(conf::res::path + path_figures);

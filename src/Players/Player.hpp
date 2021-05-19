@@ -23,19 +23,20 @@
 
 #  include "Chess/Rules.hpp"
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief Define here all type of chess players. Currently implemented:
-//! -- HumanPlayer: Use the GUI and a mouse for moving pieces
-//! -- StockfishIA: play against Stockfish software (you shall install it)
-//! -- TscpIA: play against TSCP software (you shall install it)
-//! -- NeuNeuIA: play against my neural network IA.
-// ***********************************************************************************************
+//! -- Human player: Use the GUI and a mouse for moving pieces.
+//! -- Stockfish: play against Stockfish software (you shall install it)
+//! -- TSCP: play against TSCP software (you shall install it)
+//! -- NeuNeu: play against my neural network IA.
+// *****************************************************************************
 enum PlayerType { HumanPlayer, StockfishIA, TscpIA, NeuNeuIA };
 
-// ***********************************************************************************************
-//! \brief Abstract class for a chess player. If you desire to add your own IA makes it inherites
-//! from this class and implement the play() method which shall return a valid move as a string.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Abstract class for a chess player. If you desire to add your own IA
+//! makes it inherites from this class and implement the play() method which
+//! shall return a valid move as a string.
+// *****************************************************************************
 class IPlayer
 {
 public:
@@ -45,21 +46,18 @@ public:
     //! \param side: the color to play (white or black)
     IPlayer(const PlayerType type, const Color side)
         : m_type(type), m_side(side)
-    {
-    }
+    {}
 
-    //! \brief Destructor. Nothing made.
-    virtual ~IPlayer()
-    {
-    }
+    //! \brief Need because of virtual methods.
+    virtual ~IPlayer() = default;
 
     //! \brief Compute and return a legal move (like "e7e8q") or return
-    //! Move::none for stalemate case or return Move::error in
-    //! case of internal error.
+    //! Move::none for stalemate case or return Move::error in case of internal
+    //! error.
     //!
-    //! This method can take long minutes to be done. This is normal
-    //! because computations can be heavy. Therefore this method should
-    //! be called from a thread.
+    //! This method can take long minutes to be done. This is normal because
+    //! computations can be heavy. Therefore this method should be called from a
+    //! thread.
     virtual std::string play() = 0;
 
     //! \brief Abort signal for halting properly the play() method.

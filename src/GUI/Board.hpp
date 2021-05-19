@@ -30,10 +30,12 @@
 
 class Promotion;
 
-// ***********************************************************************************************
-//! \brief Class displaying a Chess board, its figures and let to the player moving
-//! pieces. Inspired by the Youtube video 'Let's make 16 games in C++: Chess' by FamTrinli.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Class displaying a chess board, its figures (piece sprite) and let to
+//! the player moving pieces. This code has been inspired by the Youtube video
+//! "Let's make 16 games in C++: Chess" by FamTrinli but has been adapted for my
+//! own purpose.
+// *****************************************************************************
 class Board: public GUI
 {
 public:
@@ -47,22 +49,29 @@ public:
 
 private:
 
-    //! \brief Main loop (launched by a thread) reachs to human actions
-    //! on the GUI (mouse: grab/ungrab figure, keyboard, paint the
-    //! chessboard), react on the chess player move and animate the
-    //! figure move). Even if the game is ended the loop is
-    //! maintained. The loop is broken when user ask to close the window.
+    //! \brief infinite loop launched by the thread.
+    //!
+    //! Respond to human interaction: mouse (grab/ungrab figure), keyboard 'ESC
+    //! for leaving the application), rendering (refresh the chessboard and its
+    //! figures), react on the chess player move and animate the figure
+    //! movement.
+    //!
+    //! Even if the game is ended (win, draw ...), the infinite loop is
+    //! maintained. The loop will be halt only when the user asked to close the
+    //! window.
     void play();
 
-    //! \brief Place figures on their position.
+    //! \brief Place figures on their initial position.
     void loadPosition(chessboard const& board);
 
-    //! \brief Action on mouse button pressed event.
-    //! Grab the piece (if present).
+    //! \brief Action on mouse button pressed event. Grab the figure (if
+    //! present).
+    //! \return true if the figure is grabbed.
     bool takeFigure(sf::Vector2f const& mouse);
 
-    //! \brief Action on mouse button pressed event.
-    //! Grab the piece (if present).
+    //! \brief Action on mouse button pressed event. Ubgrab the piece (if
+    //! grabbed).
+    //! \return true if the figure is ungrabbed.
     bool releaseFigure(sf::Vector2f const& mouse);
 
     //! \brief Inherit from GUI class. Draw the chessboard and pieces.
@@ -74,28 +83,35 @@ private:
     //! \brief Inherit from GUI class. Manage mouse and keyboard events.
     virtual void handleInput() override;
 
-    //! \brief Inherit from GUI class. Return if GUI is alive.
+    //! \brief Inherit from GUI class. Return true if GUI is alive.
     virtual bool isRunning() override;
 
+    //! \brief Called when the GUI has been enabled.
     virtual void activate() override {}
+
+    //! \brief Called when the GUI has been disabled.
     virtual void deactivate() override {}
 
     //! \brief Release the taken piece.
     void ungrabFigure();
 
-    //! \brief Is the player is holding a piece for making its move ?
+    //! \brief Is the player holding a piece for making its move ?
     bool grabbedFigure() const;
 
-    //! \brief Get the Piece from a position
+    //! \brief Get the piece under the mouse cursor.
     Piece const& getPiece(sf::Vector2f const& mouse) const;
 
-    //! \brief Get the chessboard square from a position
+    //! \brief Get the chessboard square under the mouse cursor.
     Square getSquare(sf::Vector2f const& mouse) const;
 
-    //! \brief Draw the piece movement animation.
+    //! \brief Animate the piece move.
+    //! \param move the newly played move in format like "e2e4".
+    //! \note: the move shall be valid !
     void animate(const std::string& move);
 
-    //! \brief
+    //! \brief Return coordinate of the chessboard square.
+    //! \param a column 'a' .. 'h' of the chessboard square.
+    //! \param b line '1' .. '8' of the chessboard square.
     sf::Vector2f toCoord(const char a, const char b) const;
 
     //! \brief SIGINT signal handler

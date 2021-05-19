@@ -41,9 +41,9 @@ constexpr bool WithKings = false;
 //! \brief Print the game status.
 std::ostream& operator<<(std::ostream& os, const Status& s);
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief Initial chessboard (loaded with FEN) used for reverting moves.
-// ***********************************************************************************************
+// *****************************************************************************
 struct Initial
 {
     chessboard  board;
@@ -52,10 +52,10 @@ struct Initial
     Color       side;
 };
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief Structure storing the piece position on the board and all movements.
 //! This structure can be used by other classes.
-// ***********************************************************************************************
+// *****************************************************************************
 class Rules // TODO add Kings positions, add number of pieces
 {
 public:

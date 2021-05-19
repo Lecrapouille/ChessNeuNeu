@@ -49,11 +49,12 @@ struct Synaps
     float weights[NbSquares][NbSquares];
 };
 
-// ***********************************************************************************************
-//! \brief Implement a chess player. Here, we are protopying a hand made neural network
-//! learning by itself how to move pieces (for the moment learnt from an empty square).
-//! For more information see the pdf document in the doc/ folder.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Implement an IA chess player. Here, we are protopying a hand made
+//! neural network learning by itself how to move pieces (for the moment learnt
+//! from an empty square). For more information see the pdf document in the
+//! doc/ folder. This is a working in progress research work.
+// *****************************************************************************
 class NeuNeu: public IPlayer
 {
 public:
@@ -64,11 +65,11 @@ public:
     //! \brief return the valid move when playing against a component.
     //!
     //! Random a piece to move then make the neural network computes the
-    //! probablity for each destination. Random a move depending its probabilty to
-    //! appear.
+    //! probablity for each destination. Random a move depending its probabilty
+    //! to appear.
     //!
-    //! \return the move as string (ie "e2e4" or "e7e8Q") or Move::none if or
-    //! Move::error.
+    //! \return the move as string (ie "e2e4" or "e7e8Q") or Move::none if not
+    //! possible to move a piece or Move::error for internal failure.
     virtual std::string play() override;
 
     //! \brief Abort signal for halting properly the play() method.

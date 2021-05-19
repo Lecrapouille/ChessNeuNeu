@@ -21,6 +21,7 @@
 #include "Player.hpp"
 #include <algorithm>
 
+//------------------------------------------------------------------------------
 static const char *c_player_types[] =
 {
     [PlayerType::HumanPlayer] = "Human",
@@ -29,11 +30,13 @@ static const char *c_player_types[] =
     [PlayerType::NeuNeuIA] = "NeuNeu"
 };
 
+//------------------------------------------------------------------------------
 const char *playerType(const PlayerType p)
 {
     return c_player_types[p];
 }
 
+//------------------------------------------------------------------------------
 PlayerType playerType(const std::string& player)
 {
     std::string name(player);
@@ -46,6 +49,7 @@ PlayerType playerType(const std::string& player)
     throw std::string("Unknonw PlayerType '" + player + "'");
 }
 
+//------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& os, const PlayerType& p)
 {
     os << c_player_types[p];

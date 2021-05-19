@@ -20,6 +20,7 @@
 
 #include "GUI/Promotion.hpp"
 
+//------------------------------------------------------------------------------
 Promotion::Promotion(Application& application, Resources &resources, Color color)
     : GUI("Promotion", application),
       m_resources(resources)
@@ -33,15 +34,18 @@ Promotion::Promotion(Application& application, Resources &resources, Color color
     m_board[sqF4] = (color == Color::Black) ? BlackQueen : WhiteQueen;
 }
 
+//------------------------------------------------------------------------------
 void Promotion::activate()
 {
     m_promoted_figure = NoPiece;
     loadPosition();
 }
 
+//------------------------------------------------------------------------------
 void Promotion::deactivate()
 {}
 
+//------------------------------------------------------------------------------
 void Promotion::loadPosition()
 {
     uint8_t fig = 0;
@@ -74,6 +78,7 @@ void Promotion::loadPosition()
         m_resources.figures[fig].setPosition(-1000, -1000);
 }
 
+//------------------------------------------------------------------------------
 const Piece &Promotion::getPiece(const sf::Vector2f& mouse) const
 {
     // Get the square from mouse position
@@ -87,6 +92,7 @@ const Piece &Promotion::getPiece(const sf::Vector2f& mouse) const
     return m_board[y * 8 + x];
 }
 
+//------------------------------------------------------------------------------
 Piece Promotion::takeFigure()
 {
     // Find which piece is in the mouse cursor
@@ -100,6 +106,7 @@ Piece Promotion::takeFigure()
     return NoPiece;
 }
 
+//------------------------------------------------------------------------------
 void Promotion::draw(const float /*dt*/)
 {
     // Draw the chessboard
@@ -113,15 +120,18 @@ void Promotion::draw(const float /*dt*/)
     window().display();
 }
 
+//------------------------------------------------------------------------------
 void Promotion::update(const float /*dt*/)
 {}
 
+//------------------------------------------------------------------------------
 bool Promotion::isRunning()
 {
     return window().isOpen() &&
             (PieceType::Empty == m_promoted_figure.type);
 }
 
+//------------------------------------------------------------------------------
 void Promotion::handleInput()
 {
     sf::Event event;

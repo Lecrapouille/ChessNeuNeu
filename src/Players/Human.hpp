@@ -25,22 +25,21 @@
 #  include <mutex>
 #  include <condition_variable>
 
-// ***********************************************************************************************
-//! \brief Implement a chess player. The user uses the GUI for moving pieces.
-//! Contrary to external software where we use bidir pipe, here the difficulty
-//! is to synchronize the GUI thread events with this thread. So we use here
-//! std::condition_variable.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Implement a human chess player. The user uses the GUI for moving
+//! pieces. Contrary to external software where we use bidirectional pipe, here
+//! the difficulty is to synchronize the GUI thread events with this thread. So
+//! we use here std::condition_variable to achieve it.
+// *****************************************************************************
 class Human: public IPlayer
 {
 public:
 
     Human(const Rules &rules, const Color side);
-    ~Human();
     virtual std::string play() override;
     virtual void abort() override;
 
-    //! \brief Notification from the GUI.  When the mouse released event
+    //! \brief Notification from the GUI. When the mouse released event
     //! occured The human has made a valid move and we need to get it.
     void notified(std::string const& move);
 
