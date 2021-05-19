@@ -27,7 +27,7 @@
 #include "CmdParser/cmdparser.hpp"
 
 // ***********************************************************************************************
-//! \brief Chess palyer factory
+//! \brief Chess player factory
 // ***********************************************************************************************
 IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
