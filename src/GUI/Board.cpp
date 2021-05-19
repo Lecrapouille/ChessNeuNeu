@@ -26,19 +26,26 @@
 static std::atomic_bool m_running_thread{true};
 static const uint8_t NoFigure = NbPieces + 1u;
 
-Board::Board(Application &application, Rules &rules, Resources &resources, IPlayer **players)
-    : GUI(application),
+//------------------------------------------------------------------------------
+Board::Board(Application &application, Rules &rules, Resources &resources,
+             std::shared_ptr<IPlayer> players[2])
+    : GUI("Board", application),
       m_resources(resources),
-      m_rules(rules),
-      m_players(players)
+      m_rules(rules)
 {
+    m_players[0] = players[0];
+    m_players[1] = players[1];
+    m_gui_promotion[Color::Black] =
+            std::make_unique<Promotion>(application, resources, Color::Black);
+    m_gui_promotion[Color::White] =
+            std::make_unique<Promotion>(application, resources, Color::White);
     ungrabFigure();
     m_mouse = sf::Vector2f(sf::Mouse::getPosition(window()));
     loadPosition(m_rules.m_board);
-    std::signal(SIGINT, sigintHandler);
     m_thread = std::thread(&Board::play, this);
 }
 
+//------------------------------------------------------------------------------
 Board::~Board()
 {
     m_players[m_rules.m_side]->abort();
@@ -48,16 +55,7 @@ Board::~Board()
     }
 }
 
-void Board::sigintHandler(int signo)
-{
-    std::cerr << std::endl
-              << "Caught Ctrl-C signal. Quitting ..."
-              << std::endl;
-
-    if (signo == SIGINT)
-        m_running_thread = false;
-}
-
+//------------------------------------------------------------------------------
 void Board::play()
 {
     uint8_t failures = 0u;
@@ -66,7 +64,7 @@ void Board::play()
     // Ugly but need some time to let all threads finish their init.
     usleep(100000);
 
-    while (running())
+    while (isRunning())
     {
         // End of game ?
         if (Status::Playing != m_rules.m_status)
@@ -82,10 +80,11 @@ void Board::play()
 
         // Get the player move
         std::string move = m_players[m_rules.m_side]->play();
+
         if (move == Move::none)
         {
             // ChessNeuNeu is quitting ?
-            if (!running())
+            if (!isRunning())
                 return ;
 
             // Stalemate case
@@ -105,11 +104,6 @@ void Board::play()
 
             // Try to fix the error. TODO: to be tested !!!
             // m_rules.applyMove(m_rules.revertLastMove());
-        }
-        else if (move == IPlayer::quitting)
-        {
-            // Abort
-            return ;
         }
         else
         {
@@ -153,16 +147,19 @@ void Board::play()
     }
 }
 
+//------------------------------------------------------------------------------
 void Board::ungrabFigure()
 {
     m_grabbed = NoFigure;
 }
 
+//------------------------------------------------------------------------------
 bool Board::grabbedFigure() const
 {
     return NoFigure != m_grabbed;
 }
 
+//------------------------------------------------------------------------------
 void Board::loadPosition(chessboard const& board)
 {
     uint8_t fig = 0;
@@ -195,6 +192,7 @@ void Board::loadPosition(chessboard const& board)
         m_resources.figures[fig].setPosition(-1000, -1000);
 }
 
+//------------------------------------------------------------------------------
 Square Board::getSquare(sf::Vector2f const& mouse) const
 {
     // Get the square from mouse position
@@ -208,6 +206,7 @@ Square Board::getSquare(sf::Vector2f const& mouse) const
     return static_cast<Square>(8 * y + x);
 }
 
+//------------------------------------------------------------------------------
 Piece const& Board::getPiece(sf::Vector2f const& mouse) const
 {
     Square sq = getSquare(mouse);
@@ -218,6 +217,7 @@ Piece const& Board::getPiece(sf::Vector2f const& mouse) const
     return m_rules.m_board[sq];
 }
 
+//------------------------------------------------------------------------------
 bool Board::takeFigure(sf::Vector2f const& mouse)
 {
     // No end game (checkmate, stalemate ...)
@@ -254,6 +254,7 @@ bool Board::takeFigure(sf::Vector2f const& mouse)
     return true;
 }
 
+//------------------------------------------------------------------------------
 bool Board::releaseFigure(sf::Vector2f const& mouse)
 {
     // End of the game ?
@@ -298,12 +299,11 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
             if (((Color::White == p.color) && (1 == row)) ||
                 ((Color::Black == p.color) && (6 == row)))
             {
-                // Pop up a new window for selecting the promoted piece
-                Piece promote = NoPiece;
-                m_application.loop(new Promotion(m_application, m_resources, promote, m_rules.m_side));
+                // Pop up a new window for selecting the promoting piece
+                m_application.loop(*m_gui_promotion[p.color]);
 
                 // and complete the next move
-                m_move += piece2char(promote);
+                m_move += piece2char(m_gui_promotion[p.color]->promoted());
             }
         }
     }
@@ -313,16 +313,18 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
         return false;
 
     ungrabFigure();
-    reinterpret_cast<Human*>(m_players[m_rules.m_side])->notified(m_move);
+    reinterpret_cast<Human*>(m_players[m_rules.m_side].get())->notified(m_move);
     return true;
 }
 
-bool Board::running()
+//------------------------------------------------------------------------------
+bool Board::isRunning()
 {
-    //m_running_thread = window().isOpen();
+    //FIXME m_running_thread && window().isOpen(); ???
     return m_running_thread;
 }
 
+//------------------------------------------------------------------------------
 //! \param a column 'a' .. 'h'
 //! \param b line '1' .. '8'
 sf::Vector2f Board::toCoord(const char a, const char b) const
@@ -332,6 +334,7 @@ sf::Vector2f Board::toCoord(const char a, const char b) const
                            ('8' - int(b)) * conf::dim::figure);
 }
 
+//------------------------------------------------------------------------------
 //! \param move the newly played move in format like "e2e4".
 //! \note: the move shall be valid !
 void Board::animate(const std::string& move)
@@ -363,6 +366,7 @@ void Board::animate(const std::string& move)
     }
 }
 
+//------------------------------------------------------------------------------
 void Board::draw(float const /*dt*/)
 {
     sf::Vector2f delta(-conf::dim::border, -conf::dim::border);
@@ -379,12 +383,15 @@ void Board::draw(float const /*dt*/)
 
     // Draw figures
     for (uint8_t i = 0u; i < NbPieces; ++i)
+    {
         window().draw(m_resources.figures[i]);
+    }
 
     // Swap buffer
     window().display();
 }
 
+//------------------------------------------------------------------------------
 void Board::update(float const /*dt*/)
 {
     if (!m_updated)
@@ -405,6 +412,7 @@ void Board::update(float const /*dt*/)
     m_animating = false;
 }
 
+//------------------------------------------------------------------------------
 void Board::handleInput()
 {
     sf::Event event;

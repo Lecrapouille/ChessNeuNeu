@@ -35,18 +35,16 @@ Application::~Application()
     }
 }
 
-void Application::push(GUI* gui)
+void Application::push(GUI& gui)
 {
-    assert(nullptr != gui);
-    m_guis.push(gui);
+    m_guis.push(&gui);
+    gui.activate();
 }
 
 void Application::pop()
 {
     assert(!m_guis.empty());
-    GUI* gui = m_guis.top();
-    assert(nullptr != gui);
-    delete gui;
+    m_guis.top()->deactivate();
     m_guis.pop();
 }
 
@@ -57,25 +55,26 @@ GUI* Application::peek()
     return m_guis.top();
 }
 
-void Application::loop(GUI* gui)
+void Application::loop(GUI& gui)
 {
     // Push
-    assert(nullptr != gui);
-    m_guis.push(gui);
+    m_guis.push(&gui);
+    gui.activate();
 
     // Infinite loop
     sf::Clock clock;
-    while (gui->running())
+    while (gui.isRunning())
     {
         float dt = clock.restart().asSeconds();
-
-        peek()->handleInput();
-        peek()->update(dt);
+        GUI* gui = peek();
+        assert(gui != nullptr);
+        gui->handleInput();
+        gui->update(dt);
         m_window.clear();
-        peek()->draw(dt);
+        gui->draw(dt);
     }
 
     // Pop
-    delete m_guis.top();
+    m_guis.top()->deactivate();
     m_guis.pop();
 }

@@ -24,7 +24,7 @@
 #  include "GUI/Resources.hpp"
 #  include "Utils/GUI.hpp"
 #  include "Players/Player.hpp"
-
+#  include <memory>
 
 // ***********************************************************************************************
 //! \brief Main window showing the chessboard and allowing two players to play chess on this board.
@@ -42,6 +42,9 @@ public:
     //! \brief Create the GUI and and the start a t
     void run();
 
+    //! \brief Return the main GUI (board)
+    GUI& gui() { return *m_gui_board; }
+
 private:
 
     //! \brief Shall only be called by constructors. This method is here just
@@ -49,7 +52,7 @@ private:
     void init(const PlayerType white, const PlayerType black);
 
     //! \brief Factory Create a player: human, IA with the desired color.
-    IPlayer *createPlayer(const PlayerType type, const Color side);
+    void createPlayer(const PlayerType type, const Color side);
 
 public:
 
@@ -61,11 +64,13 @@ public:
     std::string m_fen;
 
     //! \the Chess referee and game states.
-    Rules    rules;
+    Rules m_rules;
 
-    //! \brief The
-    //FIXME std::unique_ptr<IPlayer> m_players[2];
-    IPlayer* players[2];
+    //! \brief The two opponents.
+    std::shared_ptr<IPlayer> m_players[2];
+
+    //! \brief The GUIs: board and promotion
+    std::unique_ptr<GUI> m_gui_board;
 };
 
 #endif

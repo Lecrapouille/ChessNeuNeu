@@ -28,6 +28,8 @@
 #  include <thread>
 #  include <atomic>
 
+class Promotion;
+
 // ***********************************************************************************************
 //! \brief Class displaying a Chess board, its figures and let to the player moving
 //! pieces. Inspired by the Youtube video 'Let's make 16 games in C++: Chess' by FamTrinli.
@@ -37,7 +39,8 @@ class Board: public GUI
 public:
 
     //! \brief Constructor.
-    Board(Application& application, Rules &rules, Resources &resources, IPlayer **players);
+    Board(Application& application, Rules &rules, Resources &resources,
+          std::shared_ptr<IPlayer> players[2]);
 
     //! \brief Destructor
     ~Board();
@@ -72,7 +75,10 @@ private:
     virtual void handleInput() override;
 
     //! \brief Inherit from GUI class. Return if GUI is alive.
-    virtual bool running() override;
+    virtual bool isRunning() override;
+
+    virtual void activate() override {}
+    virtual void deactivate() override {}
 
     //! \brief Release the taken piece.
     void ungrabFigure();
@@ -113,8 +119,10 @@ private:
     bool               m_updated = true;
     std::string        m_move;
 
-    IPlayer**          m_players;
+    std::shared_ptr<IPlayer> m_players[2];
+    std::unique_ptr<Promotion> m_gui_promotion[2];
     std::string        m_opponent_move;
+    std::atomic_bool   m_running_thread{true};
     std::atomic_bool   m_animating{false};
     std::thread        m_thread;
     using MuxGuard = std::lock_guard<std::mutex>;

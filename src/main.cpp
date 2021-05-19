@@ -26,78 +26,83 @@
 #include "Players/Human.hpp"
 #include "CmdParser/cmdparser.hpp"
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief Chess player factory
-// ***********************************************************************************************
-IPlayer *ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
+// *****************************************************************************
+void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
 {
     switch (type)
     {
     case PlayerType::StockfishIA:
-        return new Stockfish(rules, side, m_fen);
+        m_players[side] = std::make_shared<Stockfish>(m_rules, side, m_fen);
+        break;
     case PlayerType::TscpIA:
-        return new Tscp(rules, side);
+        m_players[side] = std::make_shared<Tscp>(m_rules, side);
+        break;
     case PlayerType::NeuNeuIA:
-        return new NeuNeu(rules, side);
+        m_players[side] = std::make_shared<NeuNeu>(m_rules, side);
+        break;
     case PlayerType::HumanPlayer:
-        return new Human(rules, side);
+        m_players[side] = std::make_shared<Human>(m_rules, side);
+        break;
     default:
         throw std::string("createPlayer: Unknown PlayerType");
         break;
     }
 }
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief \param fen: the board using the Forsyth-Edwards notation. You can use this site
 //! https://lichess.org/editor for generating FEN strings.
-// ***********************************************************************************************
+// *****************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black, std::string const& fen)
-    : m_resources("figures.png", "board.png"), m_fen(fen), rules(fen)
+    : m_resources("figures.png", "board.png"), m_fen(fen), m_rules(fen)
 {
     init(white, black);
 }
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief
-// ***********************************************************************************************
+// *****************************************************************************
 ChessNeuNeu::ChessNeuNeu(const PlayerType white, const PlayerType black)
     : m_resources("figures.png", "board.png")
 {
     init(white, black);
 }
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief
-// ***********************************************************************************************
+// *****************************************************************************
 void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 {
-    //FIXME players[Color::White].reset(createPlayer(white, Color::White));
-    //FIXME players[Color::Black].reset(createPlayer(black, Color::Black));
-    players[Color::White] = createPlayer(white, Color::White);
-    players[Color::Black] = createPlayer(black, Color::Black);
+    createPlayer(white, Color::White);
+    createPlayer(black, Color::Black);
 
     // Be sure to play with Kings (chessboard with no Kings is only
     // used for Neural trainings and unit tests).
-    assert(false == rules.m_no_kings);
+    assert(false == m_rules.m_no_kings);
 
     // Debug
     std::cout
-            << players[Color::White]->side()
+            << m_players[Color::White]->side()
             << " color is played by: "
-            << players[Color::White]->type()
+            << m_players[Color::White]->type()
             << std::endl
-            << players[Color::Black]->side()
+            << m_players[Color::Black]->side()
             << " color is played by: "
-            << players[Color::Black]->type()
+            << m_players[Color::Black]->type()
             << std::endl << std::endl
-            << rules.m_board << std::endl
-            << rules.m_side << " are thinking ... "
+            << m_rules.m_board << std::endl
+            << m_rules.m_side << " are thinking ... "
             << std::flush;
+
+    // Create GUIs
+    m_gui_board = std::make_unique<Board>(*this, m_rules, m_resources, m_players);
 }
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief Parser the command-line option
-// ***********************************************************************************************
+// *****************************************************************************
 static void configure_parser(cli::Parser& parser)
 {
     parser.set_optional<std::string>
@@ -105,12 +110,12 @@ static void configure_parser(cli::Parser& parser)
     parser.set_optional<std::string>
             ("b", "black", "stockfish", "Define the black player: human | stockfish | neuneu");
     parser.set_optional<std::string>
-            ("f", "fen", "", "Forsyth-Edwards notation");
+            ("f", "fen", "", "Board position in Forsyth-Edwards notation https://lichess.org/editor");
 }
 
-// ***********************************************************************************************
+// *****************************************************************************
 //! \brief
-// ***********************************************************************************************
+// *****************************************************************************
 int main(int argc, char** argv)
 {
     // Initialize random seed
@@ -123,7 +128,6 @@ int main(int argc, char** argv)
 
     try
     {
-        //
         std::unique_ptr<ChessNeuNeu> chess;
 
         // Get Player types from command-line options --white and --black.
@@ -144,13 +148,13 @@ int main(int argc, char** argv)
         }
 
         // Launch the GUI thread which will also start the game logic thread
-        chess->loop(new Board(*chess, chess->rules, chess->m_resources, chess->players));
+        chess->loop(chess->gui());
     }
-    catch (std::string const& e)
+    catch (std::string const& msg)
     {
-        std::cerr << "Fatal: " << e << std::endl;
-        return 1;
+        std::cerr << "Fatal: " << msg << std::endl;
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

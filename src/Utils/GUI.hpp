@@ -26,78 +26,103 @@
 #  include <stack>
 #  include <cassert>
 
-// ***********************************************************************************************
-//! \file This file get its inspiration by the document (I adapted it for my usage):
+// *****************************************************************************
+//! \file This file gets its inspiration from the following document but I
+//! adapted it for my own usage:
 //! https://www.binpress.com/tutorial/creating-a-city-building-game-with-sfml/137
-// ***********************************************************************************************
+// *****************************************************************************
 
 class GUI;
 
-// ***********************************************************************************************
-//! \brief Manage a stack of GUI class. Here we desire to have a very simple GUI: windows are
-//! poped up and pushed down in the same way than pages in an Android application: only the top
-//! windows is showed and the other are disabled until they reached the top position in the stack.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Manage a stack of GUI class. Since we desire to manage a very simple
+//! application (chess board GUI and promotion GUI), GUIs are simply pushed and
+//! poped on a stack and only the GUI of the top of the stack (TOS) is active
+//! (drawn by SFML and reactives to IO events), others are inactive until they
+//! reached the stack top position. Poped GUI are not released.
+// *****************************************************************************
 class Application
 {
     friend class GUI;
 
 public:
 
-    //! \brief Create a SFML window.
+    //! \brief Create a SFML window with an empty stack.
     Application();
-    //! \brief empty the whole stack
+    //! \brief Release the whole stack (GUIs are released).
     ~Application();
-
     //! \brief Push a new GUI which will be draw by SFML.
-    void push(GUI* gui);
-    //! \brief Drop the current GUI. The new GUI on the top will be draw
-    //! by SFML.
+    void push(GUI& gui);
+    //! \brief Drop the current GUI. The new GUI on the top of the stack will be
+    //! active and draw by SFML.
     void pop();
     //! \brief Get the GUI placed on the top of the stack.
     GUI* peek();
     //! \brief Push a new GUI on the top of the stack and start a loop for
-    //! managing its draw and IO events. When the GUI is closed it will be
-    //! drop from the stack.
-    void loop(GUI* gui);
+    //! managing its draw and IO events. When the GUI is closed it will be drop
+    //! from the stack.
+    void loop(GUI& gui);
 
 private:
 
-    std::stack<GUI*> m_guis; // FIXME: use unique_ptr and move()
+    std::stack<GUI*> m_guis;
     //! \brief GUIs use th SMFL library for their rendering.
     sf::RenderWindow m_window;
 };
 
-// ***********************************************************************************************
-//! \brief Interface class for drawing a windows and handling to mouse and keyboard events.
-// ***********************************************************************************************
+// *****************************************************************************
+//! \brief Interface class for drawing a SFML window and handling mouse and
+//! keyboard events.
+// *****************************************************************************
 class GUI
 {
     friend class Application;
 
 public:
 
-    GUI(Application& application)
-        : m_application(application)
+    //! \brief Hold and manage an application. The application shall be destroy
+    //! after this class.
+    GUI(const char* name, Application& application)
+        : m_application(application),
+          m_name(name)
     {}
 
-    virtual ~GUI() {}
+    //! \brief Needed because of virtual methods.
+    virtual ~GUI() = default;
 
+    //! \brief Return the SFML window.
     sf::RenderWindow& window()
     {
         return m_application.m_window;
     }
 
-private:
+    //! \brief Return then GUI name (debug purpose)
+    std::string const& name() const { return m_name; }
 
-    virtual bool running() = 0;
+private:
+    //! \brief Private methods that derived classes have to implement: called
+    //! when the GUI is pushed.
+    virtual void activate() = 0;
+    //! \brief Private methods that derived classes have to implement: called
+    //! when the GUI is poped.
+    virtual void deactivate() = 0;
+    //! \brief Private methods that derived classes have to implement: return
+    //! true if the thread of the GUI is running.
+    virtual bool isRunning() = 0;
+    //! \brief Private methods that derived classes have to implement: draw the
+    //! GUI.
     virtual void draw(const float dt) = 0;
+    //! \brief Private methods that derived classes have to implement: manage
+    //! the logic of the GUI.
     virtual void update(const float dt) = 0;
+    //! \brief Private methods that derived classes have to implement: manage IO
+    //! events (mouse, keyboard).
     virtual void handleInput() = 0;
 
 public:
 
     Application& m_application;
+    std::string m_name;
 };
 
 #endif

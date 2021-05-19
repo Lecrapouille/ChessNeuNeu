@@ -20,23 +20,27 @@
 
 #include "GUI/Promotion.hpp"
 
-Promotion::Promotion(Application& application, Resources &resources, Piece &taken_piece, Color color)
-    : GUI(application), m_resources(resources), m_taken_piece(taken_piece)
+Promotion::Promotion(Application& application, Resources &resources, Color color)
+    : GUI("Promotion", application),
+      m_resources(resources)
 {
     // Load a dummy board with major pieces.
 
     m_board = Chessboard::Empty;
-    m_board[sqC4] = { color, 0, 0, PieceType::Rook };
-    m_board[sqD4] = { color, 0, 0, PieceType::Knight };
-    m_board[sqE4] = { color, 0, 0, PieceType::Bishop };
-    m_board[sqF4] = { color, 0, 0, PieceType::Queen };
+    m_board[sqC4] = (color == Color::Black) ? BlackRook : WhiteRook;
+    m_board[sqD4] = (color == Color::Black) ? BlackKnight : WhiteKnight;
+    m_board[sqE4] = (color == Color::Black) ? BlackBishop : WhiteBishop;
+    m_board[sqF4] = (color == Color::Black) ? BlackQueen : WhiteQueen;
+}
 
+void Promotion::activate()
+{
+    m_promoted_figure = NoPiece;
     loadPosition();
 }
 
-Promotion::~Promotion()
-{
-}
+void Promotion::deactivate()
+{}
 
 void Promotion::loadPosition()
 {
@@ -110,13 +114,12 @@ void Promotion::draw(const float /*dt*/)
 }
 
 void Promotion::update(const float /*dt*/)
-{
-}
+{}
 
-bool Promotion::running()
+bool Promotion::isRunning()
 {
     return window().isOpen() &&
-            (PieceType::Empty == m_taken_piece.type);
+            (PieceType::Empty == m_promoted_figure.type);
 }
 
 void Promotion::handleInput()
@@ -139,7 +142,7 @@ void Promotion::handleInput()
             if (PieceType::Empty != taken_piece.type)
             {
                 std::cout << "Promotion::Promotion: " << taken_piece << std::endl;
-                m_taken_piece = taken_piece;
+                m_promoted_figure = taken_piece;
             }
             break;
 

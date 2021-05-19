@@ -35,19 +35,27 @@ public:
 
     //! \brief Constructor get references on game rules
     //! and the main window needed for drawing the GUI.
-    Promotion(Application& application, Resources &resources, Piece &taken_piece, Color color);
+    Promotion(Application& application, Resources &resources, Color color);
 
     //! \brief Destructor. Release only GUI resources
     //! but not game rules.
-    ~Promotion();
+    ~Promotion() = default;
+
+    //! \brief Return the promoted figure.
+    Piece promoted()
+    {
+        Piece promoted = m_promoted_figure;
+        m_promoted_figure = NoPiece;
+        return promoted;
+    }
+
+private:
+
+    const Piece& getPiece(const sf::Vector2f& p) const;
 
     //! \brief Action on mouse button pressed event.
     //! Grab the piece (if present).
     Piece takeFigure();
-
-    const Piece& getPiece(const sf::Vector2f& p) const;
-
-private:
 
     //! \brief Load chessboard and pieces textures.
     void loadTextures();
@@ -59,18 +67,20 @@ private:
     virtual void draw(const float dt) override;
     virtual void update(const float dt) override;
     virtual void handleInput() override;
-    virtual bool running() override;
+    virtual bool isRunning() override;
+    virtual void activate() override;
+    virtual void deactivate() override;
 
 private:
 
     //! \brief Reference on loaded resources (textures ...)
-    Resources         &m_resources;
+    Resources& m_resources;
     //! \brief Memorize the last moving figure.
-    Piece             &m_taken_piece;
+    Piece m_promoted_figure = NoPiece;
     //! \brief
-    chessboard         m_board;
+    chessboard m_board;
     //! \brief Memorize the mouse position when moving a figure.
-    sf::Vector2f       m_mouse;
+    sf::Vector2f m_mouse;
 };
 
 #endif
