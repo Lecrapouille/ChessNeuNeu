@@ -67,7 +67,7 @@ bool Rules::import(std::string const& fen)
 {
     uint8_t count_rows = 0u;
     uint8_t count_cols = 0u;
-    uint8_t i = 0u;
+    uint32_t i = 0u;
     uint8_t ij = 0u;
     uint8_t kings[2] = { 0u, 0u };
 
@@ -126,10 +126,10 @@ bool Rules::import(std::string const& fen)
         while (fen[i] != ' ')
         {
             if (c > 3) goto l_err_castle1;
-            else if (fen[i] == 'K') m_castle[Color::Black] |= Castle::Little;
-            else if (fen[i] == 'Q') m_castle[Color::Black] |= Castle::Big;
-            else if (fen[i] == 'k') m_castle[Color::White] |= Castle::Little;
-            else if (fen[i] == 'q') m_castle[Color::White] |= Castle::Big;
+            else if (fen[i] == 'K') m_castle[Color::White] |= Castle::Little;
+            else if (fen[i] == 'Q') m_castle[Color::White] |= Castle::Big;
+            else if (fen[i] == 'k') m_castle[Color::Black] |= Castle::Little;
+            else if (fen[i] == 'q') m_castle[Color::Black] |= Castle::Big;
             else goto l_err_castle1;
             //TODO if (!verifyValidCastlingInfo()) goto l_err_castle2;
             ++i; ++c;
@@ -167,19 +167,23 @@ l_err_cols2:
     return false;
 
 l_err_piece:
-    std::cerr << "Bad FEN format: invalid piece format '" << fen[i] << "'" << std::endl;
+    std::cerr << "Bad FEN format:" << i << ": invalid piece format" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 
 l_err_space:
-    std::cerr << "Bad FEN format: missing space char. Got instead '" << fen[i] << "' char" << std::endl;
+    std::cerr << "Bad FEN format:" << i << ": missing space char" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 
 l_err_color:
-    std::cerr << "Bad FEN format: invalid color format '" << fen[i] << "'" << std::endl;
+    std::cerr << "Bad FEN format:" << i << ": invalid color format" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 
 l_err_castle1:
-    std::cerr << "Bad FEN format: invalid castle format '" << fen[i] << "'" << std::endl;
+    std::cerr << "Bad FEN format" << i << ": invalid castle format" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 
     /*l_err_castle2:
@@ -188,10 +192,12 @@ l_err_castle1:
 
 l_err_kings:
     std::cerr << "Expecting 1 or 0 King by color" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 
 l_err_ep:
-    std::cerr << "Bad FEN format: invalid en passant format '" << fen[i] << "'" << std::endl;
+    std::cerr << "Bad FEN format" << i << ": invalid en passant format" << std::endl;
+    std::cerr << fen << std::endl << std::string(i-1, ' ') << '^' << std::endl;
     return false;
 }
 
