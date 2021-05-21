@@ -616,6 +616,10 @@ void Rules::applyMove(Move const& move)
 //-----------------------------------------------------------------------------
 bool Rules::applyMove(std::string const& move)
 {
+    // Internal message (error, quitting ...)
+    if ((move[0] == ':') && (move[1] == ':'))
+        return false;
+
     Move mvt(move);
 
     // Stalemate
@@ -634,7 +638,6 @@ bool Rules::applyMove(std::string const& move)
         }
     }
 
-    //assert(1 && "No valid moves found");
     std::cerr << "Cannot apply illegal move '"
               << move << "'" << std::endl;
     return false;

@@ -105,6 +105,10 @@ void Board::play()
             // Try to fix the error. TODO: to be tested !!!
             // m_rules.applyMove(m_rules.revertLastMove());
         }
+        else if (move == IPlayer::quitting)
+        {
+            return ;
+        }
         else
         {
             failures = 0;
@@ -129,7 +133,8 @@ void Board::play()
 
         // After the GUI animation
         previous_status = m_rules.m_status;
-        m_rules.applyMove(move);
+        if (!m_rules.applyMove(move))
+            break;
 
         // Debug
         if (m_rules.m_status == Status::Playing)

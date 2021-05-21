@@ -77,10 +77,10 @@ public:
     }
 
     //! \brief Used by the play() method when an internal error has occured.
-    static constexpr const char* error = "error";
+    static constexpr const char* error = "::error";
 
     //! \brief Used by the play() method when the user want to quit ChessNeuNeu.
-    static constexpr const char* quitting = "quitting";
+    static constexpr const char* quitting = "::quitting";
 
 private:
 

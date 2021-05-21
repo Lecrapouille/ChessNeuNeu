@@ -70,7 +70,7 @@ struct Move
 
     //! \brief Used by the play() method when no move are available
     //! (like stalemate).
-    static constexpr const char* none = "none";
+    static constexpr const char* none = "::none";
 };
 
 struct CastleMove : public Move
