@@ -22,7 +22,10 @@
 #include <valarray>
 #include <sstream>
 
-//! \brief
+//-----------------------------------------------------------------------------
+//! \brief Lookup table used for piece movements. See explaination concerning
+//! c_relative_movements.
+//-----------------------------------------------------------------------------
 static const std::array<uint8_t, 64> c_mailbox64 =
 {{
         21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u,
@@ -35,7 +38,18 @@ static const std::array<uint8_t, 64> c_mailbox64 =
         91u, 92u, 93u, 94u, 95u, 96u, 97u, 98u
 }};
 
-//! \brief
+//-----------------------------------------------------------------------------
+//! \brief Lookup table to figure out what pieces can go where. Let's say we
+//! have a rook on square A4 (32) and we want to know if it can move one square
+//! to the left. We subtract 1, and we get 31 (H5). The rook obviously can't
+//! move to H5, but we don't know that without doing a lot of annoying
+//! work. Sooooo, what we do is figure out A4's mailbox number, which is
+//! 61. Then we subtract 1 from 61 (60) and see what mailbox[60] is. In this
+//! case, it's -1, so it's out of bounds and we can forget it.
+//!
+//! \fixme Used in http://www.tckerrigan.com/Chess/TSCP/ but see in
+//! doc/ChessAlgebra-fr.pdf that an addition and a modulo 100 can do the job.
+//-----------------------------------------------------------------------------
 static const std::array<uint8_t, 120> c_mailbox120 =
 {{
         OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB,
@@ -52,15 +66,20 @@ static const std::array<uint8_t, 120> c_mailbox120 =
         OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB, OOB
 }};
 
+//-----------------------------------------------------------------------------
+//! \brief Rosas of movements: North, West, East, South.
+//-----------------------------------------------------------------------------
 enum Rosas { N = -10, W = -1, E = 1, S = 10 };
 
+//-----------------------------------------------------------------------------
 //! \brief Define for each pieces their displacement in the c_mailbox64.
-//! Let's suppose a King is placed on the chessboard square e4. This
+//! Let's suppose a King is placed on the chessboard square E4. This
 //! corresponds to the square 65 of the c_mailbox64. The King can moves to
-//! squares d3, e3, f3, f4, f5, e5, d5 and d4 which corresponds to squares
+//! squares D3, E3, F3, F4, F5, E5, D5 and D4 which corresponds to squares
 //! 64, 75, 76, 66, 56, 55, 54 and 64 in c_mailbox64. Relative displacement
 //! is their difference with the 65. For example -11 = 54 - 65. For other
 //! pieces which can slide we store the displacement of a distance of 1.
+//-----------------------------------------------------------------------------
 static const std::valarray<int> c_relative_movements[8] =
 {
     [PieceType::Empty]  = { },
@@ -73,6 +92,7 @@ static const std::valarray<int> c_relative_movements[8] =
     [PieceType::BPawn]  = { S, S+S, S+E, S+W },
 };
 
+//-----------------------------------------------------------------------------
 Rules::Rules()
     : m_status(Status::Playing),
       m_side(Color::White),
@@ -86,9 +106,9 @@ Rules::Rules()
     saveStates();
 }
 
-Rules::Rules(const chessboard &board, const Color side,
-             bool noking, Castle wcastle, Castle bcastle,
-             uint8_t ep)
+//-----------------------------------------------------------------------------
+Rules::Rules(const chessboard &board, const Color side, bool noking,
+             Castle wcastle, Castle bcastle, uint8_t ep)
     : m_status(Status::Playing),
       m_side(side),
       m_board(board),
@@ -109,16 +129,20 @@ Rules::Rules(const chessboard &board, const Color side,
     saveStates();
 }
 
+//-----------------------------------------------------------------------------
 Rules::Rules(std::string const& fen)
 {
-    if (false == import(fen))
+    if (!import(fen))
     {
+        // FIXME throwing in a constructor is a poor idea. Better to set
+        // Status::InternalError.
         throw std::string("Incorrect FEN string");
     }
     generateValidMoves();
     saveStates();
 }
 
+//-----------------------------------------------------------------------------
 bool Rules::applyMoves(std::string const& moves, bool const init_board)
 {
     if (init_board)
@@ -148,9 +172,10 @@ bool Rules::applyMoves(std::string const& moves, bool const init_board)
     return true;
 }
 
+//-----------------------------------------------------------------------------
 bool Rules::load(std::string const& fen)
 {
-    if (false == import(fen))
+    if (!import(fen))
         return false;
 
     generateValidMoves();
@@ -158,6 +183,7 @@ bool Rules::load(std::string const& fen)
     return true;
 }
 
+//-----------------------------------------------------------------------------
 void Rules::saveStates()
 {
     m_initial.board = m_board;
@@ -167,6 +193,7 @@ void Rules::saveStates()
     m_initial.castle[1] = m_castle[1];
 }
 
+//-----------------------------------------------------------------------------
 const std::vector<Move>& Rules::generatePseudoValidMoves()
 {
     Piece p;
@@ -211,6 +238,7 @@ const std::vector<Move>& Rules::generatePseudoValidMoves()
     return m_pseudo_moves;
 }
 
+//-----------------------------------------------------------------------------
 // FIXME passer cdirectement _relative_movements[pt]
 void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
 {
@@ -266,6 +294,7 @@ void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
     }
 }
 
+//-----------------------------------------------------------------------------
 void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
 {
     Piece piece;
@@ -305,6 +334,7 @@ void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
     }
 }
 
+//-----------------------------------------------------------------------------
 void Rules::generatePseudoLegalCastleMove()
 {
     Color xside = opposite(m_side);
@@ -342,7 +372,7 @@ void Rules::generatePseudoLegalCastleMove()
     }
 }
 
-// generatePseudoValidMoves() shall be called before
+//-----------------------------------------------------------------------------
 const std::vector<Move>& Rules::generateValidMoves()
 {
     m_legal_moves.clear();
@@ -362,13 +392,15 @@ const std::vector<Move>& Rules::generateValidMoves()
 }
 
 // generateValidMoves() shall be called before
+//-----------------------------------------------------------------------------
+//! \note generateValidMoves() shall be called before calling this method
 bool Rules::isValidMove(std::string const& move) const
 {
-    Move m(move);
+    Move mvt(move);
 
     for (const auto it: m_legal_moves)
     {
-        if (it == m)
+        if (it == mvt)
         {
             return true;
         }
@@ -400,7 +432,7 @@ void Rules::dispPseudoMoves() const
 
 bool Rules::tryMove(const Move move) const
 {
-    //! \brief Temporary board for computations.
+    //! \brief Temporary board for computations. TODO: can we avoid copy ?
     chessboard board = this->m_board;
 
     // Simulate the next move.
@@ -409,7 +441,7 @@ bool Rules::tryMove(const Move move) const
     return !isKingInCheck(board, m_side);
 }
 
-// FIXME: Optim memoriser la position du roi au lieu de la retrouver
+//-----------------------------------------------------------------------------
 bool Rules::isKingInCheck(chessboard const& board, const Color side) const
 {
     // Special case for Neural network using empty chessboard with no Kings
@@ -428,6 +460,7 @@ bool Rules::isKingInCheck(chessboard const& board, const Color side) const
     return false;
 }
 
+//-----------------------------------------------------------------------------
 bool Rules::attack(const chessboard& position, const uint8_t sq, const Color side) const
 {
     int n;
@@ -482,6 +515,7 @@ bool Rules::attack(const chessboard& position, const uint8_t sq, const Color sid
     return false;
 }
 
+//-----------------------------------------------------------------------------
 void Rules::applyMove(Move const& move)
 {
     //FIXME
@@ -551,9 +585,10 @@ void Rules::applyMove(Move const& move)
     generateValidMoves();
 }
 
+//-----------------------------------------------------------------------------
 bool Rules::applyMove(std::string const& move)
 {
-    Move m(move);
+    Move mvt(move);
 
     // Stalemate
     if (move == Move::none)
@@ -561,7 +596,7 @@ bool Rules::applyMove(std::string const& move)
 
     for (auto it: m_legal_moves)
     {
-        if (it == m)
+        if (it == mvt)
         {
             // Note: use it not m because it contains
             // more informations because computed by
@@ -577,6 +612,7 @@ bool Rules::applyMove(std::string const& move)
     return false;
 }
 
+//-----------------------------------------------------------------------------
 std::string Rules::revertLastMove()
 {
     if (m_moved.empty())
@@ -596,6 +632,7 @@ std::string Rules::revertLastMove()
     return last_move;
 }
 
+//-----------------------------------------------------------------------------
 void Rules::updateBoard(Move const& move, chessboard& board) const
 {
     uint8_t from = move.from;
@@ -648,35 +685,36 @@ void Rules::updateBoard(Move const& move, chessboard& board) const
     }
 }
 
-// generateValidMoves() shall be called before
+//-----------------------------------------------------------------------------
+//! \note generateValidMoves() shall be called before calling this method
 void Rules::updateGameStatus()
 {
     if (m_legal_moves.size() != 0)
     {
-        // Legal moves are possible means the game
-        // is in progress.
+        // If legal moves are possible this means the
+        // game is still in progress.
         m_status = Status::Playing;
     }
     else if (m_no_kings)
     {
         // This is not a valid chess rule but for
-        // neural network of unit tests we sometimes
-        // need a chessboard without king. This hack
-        // allows to return a status different from
+        // neural network and unit tests we sometimes
+        // need a chessboard without Kings. This hack
+        // allows to return a different status from
         // stalemate.
         m_status = Status::NoMoveAvailable;
     }
     else if (isKingInCheck(m_board, m_side))
     {
-        // No legal moves possible with the King in
-        // check means checkmate and therefore the end
-        // of the game.
+        // If no legal moves are possible but a King is
+        // in check: that means checkmate and therefore
+        // the end of the game.
         m_status = (Color::White == m_side) ?
                    Status::BlackWon : Status::WhiteWon;
     }
     else
     {
-        // No legal moves and the King not in check
+        // No legal moves and the King not in check:
         // that means stalemate and therefore the end
         // of the game.
         m_status = Status::Stalemate;
