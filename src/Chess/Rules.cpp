@@ -199,7 +199,8 @@ const std::vector<Move>& Rules::generatePseudoValidMoves()
     Piece p;
     PieceType pt;
 
-    m_pseudo_moves.clear();
+    m_legal_moves.clear();
+    m_legal_moves.reserve(128u);
 
     for (uint8_t ij = 0u; ij < NbSquares; ++ij)
     {
@@ -235,7 +236,7 @@ const std::vector<Move>& Rules::generatePseudoValidMoves()
     }
 
     //dispPseudoMoves();
-    return m_pseudo_moves;
+    return m_legal_moves;
 }
 
 //-----------------------------------------------------------------------------
@@ -277,18 +278,18 @@ void Rules::generatePseudoLegalPawnMove(const uint8_t from, const PieceType pt)
         {
             for (int promote = PieceType::Rook; promote <= PieceType::Queen; ++promote)
             {
-                m_pseudo_moves.push_back(PromoteMove(from, to, static_cast<PieceType>(promote)));
+                m_legal_moves.push_back(PromoteMove(from, to, static_cast<PieceType>(promote)));
             }
         }
         else // Normal move
         {
             if (mvt == 1)
             {
-                m_pseudo_moves.push_back(PawnDoubleMove(from, to));
+                m_legal_moves.push_back(PawnDoubleMove(from, to));
             }
             else
             {
-                m_pseudo_moves.push_back(PawnSimpleMove(from, to, to == m_ep));
+                m_legal_moves.push_back(PawnSimpleMove(from, to, to == m_ep));
             }
         }
     }
@@ -319,13 +320,13 @@ void Rules::generatePseudoLegalPieceMove(const uint8_t from, const PieceType pt)
                 // Piece takes other piece
                 if (piece.color != m_side)
                 {
-                    m_pseudo_moves.push_back(PieceMove(from, to));
+                    m_legal_moves.push_back(PieceMove(from, to));
                 }
                 break;
             }
 
             // Arrive to an empty square or to an opposite piece
-            m_pseudo_moves.push_back(PieceMove(from, to));
+            m_legal_moves.push_back(PieceMove(from, to));
 
             // If cannot do more than one relative movement
             if (can_slide == false)
@@ -354,9 +355,9 @@ void Rules::generatePseudoLegalCastleMove()
         (m_board[sqG1 - offset].type == PieceType::Empty) &&
         (!attack(m_board, sqF1 - offset, xside)))
     {
-        m_pseudo_moves.push_back(CastleMove(sqE1 - offset,
-                                            sqG1 - offset,
-                                            Castle::Little));
+        m_legal_moves.push_back(CastleMove(sqE1 - offset,
+                                           sqG1 - offset,
+                                           Castle::Little));
     }
 
     // Queeen castle
@@ -366,23 +367,32 @@ void Rules::generatePseudoLegalCastleMove()
         (m_board[sqC1 - offset].type == PieceType::Empty) &&
         (!attack(m_board, sqD1 - offset, xside)))
     {
-        m_pseudo_moves.push_back(CastleMove(sqE1 - offset,
-                                            sqC1 - offset,
-                                            Castle::Big));
+        m_legal_moves.push_back(CastleMove(sqE1 - offset,
+                                           sqC1 - offset,
+                                           Castle::Big));
     }
 }
 
 //-----------------------------------------------------------------------------
 const std::vector<Move>& Rules::generateValidMoves()
 {
-    m_legal_moves.clear();
+    Square sqKing = findKing(m_board, m_side);
     generatePseudoValidMoves();
 
-    for (const auto it: m_pseudo_moves)
+    // No King found
+    if (sqKing != Square::OOB)
     {
-        if (tryMove(it))
+        size_t i = m_legal_moves.size();
+        while (i--)
         {
-            m_legal_moves.push_back(it);
+            if (!tryMove(m_legal_moves[i], sqKing))
+            {
+                // Remove the move by swapping it with the last element that is
+                // discarding.
+                size_t s = m_legal_moves.size() - 1u;
+                m_legal_moves[i] = m_legal_moves[s];
+                m_legal_moves.pop_back();
+            }
         }
     }
 
@@ -391,7 +401,17 @@ const std::vector<Move>& Rules::generateValidMoves()
     return m_legal_moves;
 }
 
-// generateValidMoves() shall be called before
+//-----------------------------------------------------------------------------
+void Rules::dispMoves(std::vector<Move> const& list, std::string const& msg) const
+{
+    std::cout << msg << std::endl;
+    for (const auto it: list)
+    {
+        std::cout << "  " << it << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 //-----------------------------------------------------------------------------
 //! \note generateValidMoves() shall be called before calling this method
 bool Rules::isValidMove(std::string const& move) const
@@ -408,29 +428,8 @@ bool Rules::isValidMove(std::string const& move) const
     return false;
 }
 
-// generateValidMoves() shall be called before
-void Rules::dispLegalMoves() const
-{
-    std::cout << "Legal moves: " << std::endl;
-    for (const auto it: m_legal_moves)
-    {
-        std::cout << "  " << it << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-// generateValidMoves() shall be called before
-void Rules::dispPseudoMoves() const
-{
-    std::cout << "Pseudo moves: " << std::endl;
-    for (const auto it: m_pseudo_moves)
-    {
-        std::cout << "  " << it << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-bool Rules::tryMove(const Move move) const
+//-----------------------------------------------------------------------------
+bool Rules::tryMove(const Move move, Square sqKing) const
 {
     //! \brief Temporary board for computations. TODO: can we avoid copy ?
     chessboard board = this->m_board;
@@ -438,7 +437,17 @@ bool Rules::tryMove(const Move move) const
     // Simulate the next move.
     updateBoard(move, board);
 
-    return !isKingInCheck(board, m_side);
+    // King moved ? Update its position
+    if (move.from == sqKing)
+        sqKing = static_cast<Square>(move.to);
+
+    return !isKingInCheck(board, sqKing, m_side);
+}
+
+//-----------------------------------------------------------------------------
+bool Rules::isKingInCheck(chessboard const& board, const Square sqKing, const Color side) const
+{
+    return attack(board, uint8_t(sqKing), opposite(side));
 }
 
 //-----------------------------------------------------------------------------
@@ -458,6 +467,25 @@ bool Rules::isKingInCheck(chessboard const& board, const Color side) const
     }
     assert(1 && "isKingInCheck() did not find the King");
     return false;
+}
+
+//-----------------------------------------------------------------------------
+Square Rules::findKing(chessboard const& board, const Color side) const
+{
+    // Special case for Neural network using empty chessboard with no Kings
+    if (m_no_kings)
+        return Square::OOB;
+
+    for (uint8_t i = 0u; i < NbSquares; ++i)
+    {
+        if ((board[i].type == PieceType::King) &&
+            (board[i].color == side))
+        {
+            return static_cast<Square>(i);
+        }
+    }
+
+    return Square::OOB;
 }
 
 //-----------------------------------------------------------------------------

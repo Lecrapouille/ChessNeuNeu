@@ -1167,7 +1167,6 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(Status::Playing, rules.status());
     ASSERT_EQ(20, rules.m_legal_moves.size());
 
-    rules.dispPseudoMoves();
     rules.dispLegalMoves();
 
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
@@ -1192,8 +1191,6 @@ TESTSUITE(KingMoves)
     ASSERT_NE(e, std::find(b, e, Move("b1a3")));
     ASSERT_NE(e, std::find(b, e, Move("g1h3")));
     ASSERT_NE(e, std::find(b, e, Move("g1f3")));
-
-    ASSERT_EQ(true, rules.m_legal_moves == rules.m_pseudo_moves);
   }
 }
 
