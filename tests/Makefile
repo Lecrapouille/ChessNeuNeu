@@ -19,32 +19,47 @@
 ##=====================================================================
 
 ###################################################
+# Project definition
+#
+PROJECT = ChessNeuNeu
+TARGET = $(PROJECT)-UnitTest
+DESCRIPTION = Unit-tests for $(PROJECT)
+STANDARD = --std=c++14
+BUILD_TYPE := debug
+USE_COVERAGE = 1
+
+###################################################
 # Location of the project directory and Makefiles
 #
 P=..
 M=$(P)/.makefile
+include $(M)/Makefile.header
 
 ###################################################
-# Project definition
+# Inform Makefile where to find header files
 #
-TARGET = $(PROJECT)-UnitTest
-DESCRIPTION = Unit-tests for $(PROJECT)
-BUILD_TYPE := debug
+INCLUDES += -I$(P)/src -I$(P)/src/Players -I$(P)/src/Utils -I$(THIRDPART)
 
-include $(P)/Makefile.common
+###################################################
+# Inform Makefile where to find *.cpp and *.o files
+#
+VPATH += $(P)/src $(P)/src/Players $(P)/src/Utils $(P)/src/Chess $(P)/src/GUI $(THIRDPART)
+
+###################################################
+# Suppress warnings
+#
+CXXFLAGS = -W -Wall -Wextra -Wshadow
+
+###################################################
+# Project defines
+#
+DEFINES = -DDATADIR=\"$(DATADIR)\"
 
 ###################################################
 # Make the list of compiled files
 #
 OBJS = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
 #PositionTests.o
-
-###################################################
-# Code coverage. Comment these lines if coveraging
-# is not desired.
-#
-COMPIL_FLAGS += --coverage
-LINKER_FLAGS += --coverage
 
 ###################################################
 # Set Libraries. For knowing which libraries
@@ -54,19 +69,16 @@ LINKER_FLAGS += -lcrpcut -ldl
 
 ###################################################
 # Compile OpenGLCppWrapper unit tests.
+.PHONY: all
 all: $(TARGET)
 
 ###################################################
 # Compile and run unit tests.
+.PHONY: unit-tests
 .PHONY: check
-check: $(TARGET)
+unit-tests check: $(TARGET)
 	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
 	@$(SANITIZER) ./$(BUILD)/$(TARGET) || (cat $(TARGET).log; return 1)
-
-###################################################
-# Compile and run unit tests.
-.PHONY: unit-tests
-unit-tests: check
 
 ###################################################
 # Sharable informations between all Makefiles

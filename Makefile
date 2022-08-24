@@ -19,19 +19,57 @@
 ##=====================================================================
 
 ###################################################
+# Project definition
+#
+PROJECT = ChessNeuNeu
+TARGET = $(PROJECT)
+DESCRIPTION = Non serious chess engine for learning how to develop neural networks
+STANDARD = --std=c++14
+BUILD_TYPE := debug
+
+###################################################
 # Location of the project directory and Makefiles
 #
 P := .
 M := $(P)/.makefile
+include $(M)/Makefile.header
 
 ###################################################
-# Project definition
+# Inform Makefile where to find header files
 #
-TARGET = $(PROJECT)
-DESCRIPTION = Non serious chess engine for learning how to develop neural networks
-BUILD_TYPE := normal
+INCLUDES += -I$(P)/src -I$(P)/src/Players -I$(P)/src/Utils -I$(THIRDPART)
 
-include $(P)/Makefile.common
+###################################################
+# Inform Makefile where to find *.cpp and *.o files
+#
+VPATH += $(P)/src $(P)/src/Players $(P)/src/Utils $(P)/src/Chess $(P)/src/GUI $(THIRDPART)
+
+###################################################
+# Project defines
+#
+DEFINES = -DDATADIR=\"$(DATADIR)\"
+
+###################################################
+# Suppress warnings
+#
+CXXFLAGS = -W -Wall -Wextra -Wshadow
+
+###################################################
+# Installed libraries on your system.
+#
+LINKER_FLAGS  += -pthread
+PKG_LIBS += sfml-graphics
+
+###################################################
+# MacOS X
+#
+ifeq ($(ARCHI),Darwin)
+BUILD_MACOS_APP_BUNDLE = 1
+APPLE_IDENTIFIER = lecrapouille
+MACOS_BUNDLE_ICON = data/ChessNeuNeu.icns
+
+LINKER_FLAGS += -framework CoreFoundation
+endif
 
 ###################################################
 # Make the list of compiled files
@@ -58,6 +96,7 @@ check:
 .PHONY: unit-tests
 unit-tests: check
 
+ifeq ($(ARCHI),Linux)
 ###################################################
 # Install project. You need to be root.
 .PHONY: install
@@ -72,6 +111,7 @@ install: $(TARGET)
 #	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
 #	@rm $(PROJECT_EXE)
 #	@rm -r $(PROJECT_DATA_ROOT)
+endif
 
 ###################################################
 # Clean the whole project.
