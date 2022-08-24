@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <csignal>
 
-static std::atomic_bool m_running_thread{true};
+//static std::atomic_bool m_running_thread{true};
 static const uint8_t NoFigure = NbPieces + 1u;
 
 //------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ bool Board::releaseFigure(sf::Vector2f const& mouse)
         return false;
 
     // Outside the board dimension ?
-    uint8_t m_to = getSquare(mouse);
+    m_to = getSquare(mouse);
     if (Square::OOB == m_to)
         return false;
 
