@@ -99,7 +99,7 @@ static void configure_parser(cli::Parser& parser)
     parser.set_optional<std::string>
             ("w", "white", "human", "Define the white player: human | stockfish | neuneu");
     parser.set_optional<std::string>
-            ("b", "black", "stockfish", "Define the black player: human | stockfish | neuneu");
+            ("b", "black", "neuneu", "Define the black player: human | stockfish | neuneu");
     parser.set_optional<std::string>
             ("f", "fen", "", "Board position in Forsyth-Edwards notation https://lichess.org/editor");
 }

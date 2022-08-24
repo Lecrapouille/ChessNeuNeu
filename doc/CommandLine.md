@@ -6,7 +6,7 @@
 ./ChessNeuNeu
 ```
 
-Will make human player play with White color against Stockfish with Black color.
+Will make human player play as White color against the neural network as Black color.
 
 
 ## Launch the project with arguments
