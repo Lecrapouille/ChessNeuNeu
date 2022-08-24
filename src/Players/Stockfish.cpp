@@ -55,7 +55,7 @@ std::string Stockfish::play()
     // Append the list of moves
     command += " moves ";
     command += m_rules.m_moved;
-    command += "\ngo\n";
+    command += "\ngo depth 6\n";
 
     // Send the command to Stockfish
     write(command);
@@ -63,7 +63,7 @@ std::string Stockfish::play()
     // Get and parse the Stockfish answer
     std::string answer;
     std::string move;
-    uint8_t retry = 0u;
+    uint32_t retry = 0u;
     int found;
 
     do
@@ -102,26 +102,29 @@ std::string Stockfish::play()
             usleep(1000);
 
             // Too many failures: abort
-            if (++retry > 100)
+            if (++retry > 1000)
                 goto l_error;
         }
     }
     while (-1 == found);
 
     // Check if the returned move is well formed.
-    assert(
-        // Stalemate case
-        (move == "(none") ||
-        // Regexp of move [a-h][1-8][a-h][1-8]
-        ((move[0] >= 'a') && (move[0] <= 'h') &&
-         (move[1] >= '1') && (move[1] <= '8') &&
-         (move[2] >= 'a') && (move[2] <= 'h') &&
-         (move[3] >= '1') && (move[3] <= '8') &&
-         // Regexp of pawn promotion or white space
-         ((move[4] == ' ') || (move[4] == '\n') ||
-          (move[4] == 'n') || (move[4] == 'b') ||
-          (move[4] == 'q') || (move[4] == 'r')))
-           );
+    if (!(
+            // Stalemate case
+            (move == "(none") ||
+            // Regexp of move [a-h][1-8][a-h][1-8]
+            ((move[0] >= 'a') && (move[0] <= 'h') &&
+             (move[1] >= '1') && (move[1] <= '8') &&
+             (move[2] >= 'a') && (move[2] <= 'h') &&
+             (move[3] >= '1') && (move[3] <= '8') &&
+             // Regexp of pawn promotion or white space
+             ((move[4] == ' ') || (move[4] == '\n') ||
+              (move[4] == 'n') || (move[4] == 'b') ||
+              (move[4] == 'q') || (move[4] == 'r')))
+          ))
+    {
+        goto l_error;
+    }
 
     // Stockfish returns "(none)" for stalemate
     if (move[0] == '(')
@@ -134,6 +137,7 @@ l_quit:
     return IPlayer::quitting;
 
 l_error:
-    std::cerr << "Failed reading Stockfish move" << std::endl;
+    std::cerr << "Failed reading Stockfish move '"
+              << move << "'" << std::endl;
     return IPlayer::error;
 }

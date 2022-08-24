@@ -21,11 +21,13 @@
 #include "IPC.hpp"
 #include <fcntl.h>
 #include <iostream>
+#include <vector>
 #include <stdexcept>
+#include <stdio.h>
 
 IPC::IPC(std::string const& command)
 {
-    if (open(command))
+    if (!open(command))
     {
         throw std::invalid_argument("Failed Creating bidirectional pipe");
     }
@@ -36,17 +38,25 @@ IPC::~IPC()
     close();
 }
 
-int IPC::open(std::string const& command)
+bool IPC::open(std::string const& command)
 {
+    std::cout << "Opening IPC with " << command
+              << " ..." << std::endl;
+    int status;
     int wpipe[2];
     int rpipe[2];
+
+    std::vector<char*> argc{
+        const_cast<char*>(command.c_str()),
+        nullptr
+    };
 
     //fflush(stdout);
 
     if (pipe(wpipe) || pipe(rpipe))
     {
         std::cerr << "Pipe creation failed" << std::endl;
-        return 1;
+        return false;
     }
 
     m_pid = fork();
@@ -59,28 +69,46 @@ int IPC::open(std::string const& command)
         ::close(wpipe[1]);
         ::close(rpipe[0]);
         ::close(rpipe[1]);
-        return 1;
+        return false;
 
     case 0: // child
         dup2(wpipe[0], STDIN_FILENO);
         dup2(rpipe[1], STDOUT_FILENO);
-        dup2(rpipe[1], STDERR_FILENO);
 
         ::close(wpipe[1]);
         ::close(rpipe[0]);
 
         // Ask kernel to deliver SIGTERM in case the parent dies
         //prctl(PR_SET_PDEATHSIG, SIGTERM);
-        if (-1 == execl("/bin/sh", "sh", "-c", command.c_str(), (char *) NULL))
+        if (execvp(command.c_str(), argc.data()) == -1)
         {
-            std::cerr << "execl failed" << std::endl;
+            std::cerr << "execl failed. Reason: "
+                      << strerror(errno) << std::endl;
         }
 
-        // Nothing below this line should be executed by child process. If so,
-        // it means that the execl function wasn't successfull, so lets exit:
+        // Check if child succeed
+        m_pid = wait(&status);
+        if (WIFEXITED(status))
+        {
+            std::cerr << "PID " << m_pid << " exited with status "
+                      << WEXITSTATUS(status) << std::endl;
+            return false;
+        }
+        else
+        {
+            std::cerr << "PID " << m_pid << " exited abnormally"
+                      << std::endl;
+            return false;
+        }
+
+        // FIXME never preinted
+        std::cerr << "Child forked process eneded" << std::endl;
         exit(1);
+        break;
 
     default: // Parent
+        std::cout << "PID created " << m_pid << std::endl;
+
         ::close(wpipe[0]);
         ::close(rpipe[1]);
 
@@ -89,11 +117,12 @@ int IPC::open(std::string const& command)
         int retval = fcntl(rpipe[0], F_SETFL, flags | O_NONBLOCK);
         if (retval < 0)
         {
-            std::cerr << "IPC: failed configuring non-blocking read: " << retval << std::endl;
+            std::cerr << "IPC: failed configuring non-blocking read: "
+                      << retval << std::endl;
         }
         m_wfd = wpipe[1];
         m_rfd = rpipe[0];
-        return 0;
+        return true;
     }
 }
 

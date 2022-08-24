@@ -144,6 +144,11 @@ int main(int argc, char** argv)
         std::cerr << "Fatal: " << msg << std::endl;
         return EXIT_FAILURE;
     }
+    catch (std::exception const& e)
+    {
+        std::cerr << "Fatal: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

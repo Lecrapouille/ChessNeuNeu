@@ -52,9 +52,12 @@ public:
     //! \brief Receive a message from the external process.
     bool read(std::string& msg);
 
+    //! \brief Return the PID of the process in communication
+    inline int pid() const { return m_pid; }
+
 private:
 
-    int open(std::string const& command);
+    bool open(std::string const& command);
     void close();
 
     pid_t m_pid;
