@@ -52,7 +52,9 @@ DEFINES = -DDATADIR=\"$(DATADIR)\"
 ###################################################
 # Suppress warnings
 #
-CXXFLAGS = -W -Wall -Wextra -Wshadow
+DEFINES += -Wno-conversion -Wno-old-style-cast -Wno-pedantic
+DEFINES += -Wno-sign-conversion -Wno-switch-enum -Wno-undef
+DEFINES += -Wno-float-equal
 
 ###################################################
 # Installed libraries on your system.
@@ -77,7 +79,7 @@ endif
 OBJ_UTILS = IPC.o GUI.o main.o
 OBJ_CHESS = Debug.o FEN.o Rules.o
 OBJ_GUI = Board.o Promotion.o
-OBJ_PLAYERS = Player.o Stockfish.o TSCP.o NeuNeu.o Human.o
+OBJ_PLAYERS = Player.o Stockfish.o Loki.o TSCP.o NeuNeu.o Human.o
 OBJS += $(OBJ_UTILS) $(OBJ_CHESS) $(OBJ_GUI) $(OBJ_PLAYERS)
 
 ###################################################

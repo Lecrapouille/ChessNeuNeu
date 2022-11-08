@@ -57,22 +57,28 @@ GUI* Application::peek()
 
 void Application::loop(GUI& gui)
 {
+    GUI* g;
+
     // Push
     m_guis.push(&gui);
     gui.activate();
 
     // Infinite loop
     sf::Clock clock;
-    while (gui.isRunning())
+
+    do
     {
         float dt = clock.restart().asSeconds();
-        GUI* gui = peek();
-        assert(gui != nullptr);
-        gui->handleInput();
-        gui->update(dt);
-        m_window.clear();
-        gui->draw(dt);
+        g = peek();
+        if (g != nullptr)
+        {
+            g->handleInput();
+            g->update(dt);
+            m_window.clear();
+            g->draw(dt);
+       }
     }
+    while (g->isRunning());
 
     // Pop
     m_guis.top()->deactivate();

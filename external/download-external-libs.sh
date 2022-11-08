@@ -1,8 +1,8 @@
 #!/bin/bash
 
-### This script will git clone some libraries that SimTaDyn needs and
+### This script will git clone some libraries that ChessNeuNeu needs and
 ### compile them. To avoid pollution, they are not installed into your
-### environement. Therefore SimTaDyn Makefiles have to know where to
+### environement. Therefore ChessNeuNeu Makefiles have to know where to
 ### find their files (includes and static/shared libraries).
 
 ### $1 is given by ../Makefile and refers to the current architecture.
@@ -11,17 +11,21 @@ if [ "$1" == "" ]; then
   exit 1
 fi
 ARCHI="$1"
-TARGET=ChessNeuNeu
+TARGET="$2"
 
 ### Delete all previous directories to be sure to have and compile
 ### fresh code source.
-rm -fr backward-cpp CmdParser 2> /dev/null
+rm -fr CmdParser Loki 2> /dev/null
 
-function print-clone
+function cloning
 {
-    echo -e "\033[35m*** Cloning:\033[00m \033[36m$TARGET\033[00m <= \033[33m$1\033[00m"
+    REPO="$1"
+    shift
+
+    echo -e "\033[35m*** Cloning: \033[36mhttps://github.com/$REPO\033[00m >= \033[33m$TARGET\033[00m"
+    git clone https://github.com/$REPO.git --depth=1 $* > /dev/null
 }
 
 ### Library CmdParser is a C++ alternative to C getopt for parsing options like --help
-print-clone CmdParser
-git clone https://github.com/FlorianRappl/CmdParser.git --depth=1 > /dev/null 2> /dev/null
+### License: MIT
+cloning FlorianRappl/CmdParser
