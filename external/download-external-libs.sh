@@ -29,3 +29,7 @@ function cloning
 ### Library CmdParser is a C++ alternative to C getopt for parsing options like --help
 ### License: MIT
 cloning FlorianRappl/CmdParser
+
+### C++17 chess engine
+### License: GPL-3.0
+cloning Lecrapouille/Loki

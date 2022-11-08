@@ -22,6 +22,7 @@
 #include "GUI/Board.hpp"
 #include "Players/Stockfish.hpp"
 #include "Players/TSCP.hpp"
+#include "Players/Loki.hpp"
 #include "Players/NeuNeu.hpp"
 #include "Players/Human.hpp"
 #include "CmdParser/cmdparser.hpp"
@@ -36,6 +37,9 @@ void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
         break;
     case PlayerType::TscpIA:
         m_players[side] = std::make_shared<Tscp>(m_rules, side);
+        break;
+    case PlayerType::LokiIA:
+        m_players[side] = std::make_shared<Loki>(m_rules, side);
         break;
     case PlayerType::NeuNeuIA:
         m_players[side] = std::make_shared<NeuNeu>(m_rules, side);
@@ -97,9 +101,9 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 static void configure_parser(cli::Parser& parser)
 {
     parser.set_optional<std::string>
-            ("w", "white", "human", "Define the white player: human | stockfish | neuneu");
+            ("w", "white", "human", "Define the white player: human | stockfish | loki | tcsp | neuneu");
     parser.set_optional<std::string>
-            ("b", "black", "neuneu", "Define the black player: human | stockfish | neuneu");
+            ("b", "black", "neuneu", "Define the black player: human | stockfish | loki | tcsp | neuneu");
     parser.set_optional<std::string>
             ("f", "fen", "", "Board position in Forsyth-Edwards notation https://lichess.org/editor");
 }

@@ -55,6 +55,8 @@
 build/*
 external/backward-cpp
 external/CmdParser
+external/Loki
+
 _*
 tests/build/*
 tests/doc/coverage/*

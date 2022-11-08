@@ -27,6 +27,7 @@ static const char *c_player_types[] =
     [PlayerType::HumanPlayer] = "Human",
     [PlayerType::StockfishIA] = "Stockfish",
     [PlayerType::TscpIA] = "TSCP",
+    [PlayerType::LokiIA] = "Loki",
     [PlayerType::NeuNeuIA] = "NeuNeu"
 };
 
@@ -45,6 +46,7 @@ PlayerType playerType(const std::string& player)
     if (name == "neuneu") return PlayerType::NeuNeuIA;
     if (name == "human") return PlayerType::HumanPlayer;
     if (name == "tscp") return PlayerType::TscpIA;
+    if (name == "loki") return PlayerType::LokiIA;
 
     throw std::string("Unknonw PlayerType '" + player + "'");
 }

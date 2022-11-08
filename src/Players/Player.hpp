@@ -28,9 +28,10 @@
 //! -- Human player: Use the GUI and a mouse for moving pieces.
 //! -- Stockfish: play against Stockfish software (you shall install it)
 //! -- TSCP: play against TSCP software (you shall install it)
+//! -- Loki: play against Loki3 software (you shall install it)
 //! -- NeuNeu: play against my neural network IA.
 // *****************************************************************************
-enum PlayerType { HumanPlayer, StockfishIA, TscpIA, NeuNeuIA };
+enum PlayerType { HumanPlayer, StockfishIA, TscpIA, LokiIA, NeuNeuIA };
 
 // *****************************************************************************
 //! \brief Abstract class for a chess player. If you desire to add your own IA

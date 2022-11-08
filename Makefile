@@ -47,7 +47,7 @@ VPATH += $(P)/src $(P)/src/Players $(P)/src/Utils $(P)/src/Chess $(P)/src/GUI $(
 ###################################################
 # Project defines
 #
-DEFINES = -DDATADIR=\"$(DATADIR)\"
+DEFINES = -DDATADIR=\"$(DATADIR)\" -DTHIRDPART=\"$(abspath $(THIRDPART))\"
 
 ###################################################
 # Suppress warnings
