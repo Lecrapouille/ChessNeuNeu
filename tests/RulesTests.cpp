@@ -18,24 +18,34 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
+#include "main.hpp"
 #include "Chess/Rules.hpp"
-#include <crpcut.hpp>
 #include <iostream>
 #include <ostream>
 #include <algorithm>
 
-TESTSUITE(Constructor)
+//------------------------------------------------------------------------------
+TEST(Constructor, ConstructorFail)
 {
-  TEST(ConstructorFail, EXPECT_EXCEPTION(std::string))
-    {
-      // Not enough '/':
-      //                       error
-      //                         v
-      Rules rules("6k1/5ppp/8/8/8/8/R5K1 b - -");
-    }
+    EXPECT_THROW({
+            try
+            {
+                // Not enough '/':
+                //                       error
+                //                         v
+                Rules rules("6k1/5ppp/8/8/8/8/R5K1 b - -");
+            }
+            catch (const std::string& e)
+            {
+                EXPECT_STREQ("Incorrect FEN string", e.c_str());
+                throw;
+            }
+        }, std::string);
+}
 
-  TEST(LoadFromMovesCorrect)
-  {
+//------------------------------------------------------------------------------
+TEST(Constructor, LoadFromMovesCorrect)
+{
     Rules rulesRef("rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -");
     Rules rules;
 
@@ -83,13 +93,14 @@ TESTSUITE(Constructor)
     ASSERT_EQ(true, rulesRef.m_board == rules.m_board);
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(true, rules.m_moved == "e2e4 e7e5 g1f3 g8f6 f1c4");
-  }
+}
 
-  // TODO castle + revert
-  // TODO  ep + revert
+// TODO castle + revert
+// TODO  ep + revert
 
-  TEST(LoadFromMovesFailure)
-  {
+//------------------------------------------------------------------------------
+TEST(Constructor, LoadFromMovesFailure)
+{
     Rules rules0("rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -");
     Rules rules1("rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -");
     Rules rules2;
@@ -98,13 +109,11 @@ TESTSUITE(Constructor)
     ASSERT_NE(true, rules1.m_board == rules2.m_board);
     ASSERT_EQ(true, rules0.m_board == rules2.m_board);
     ASSERT_EQ(Color::White, rules2.m_side);
-  }
 }
 
-TESTSUITE(PawnMoves)
+//------------------------------------------------------------------------------
+TEST(PawnMoves, NoMove)
 {
-  TEST(NoMove)
-  {
     // Empty chessboard. No Kings.
     Rules rules(Chessboard::Empty, Color::White, WithNoKings);
 
@@ -117,10 +126,11 @@ TESTSUITE(PawnMoves)
     rules.generateValidMoves();
     ASSERT_EQ(Status::NoMoveAvailable, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(PawnMoveWE2_BE7)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, PawnMoveWE2_BE7)
+{
     // Empty chessboard, No King, White Pawn E2
     chessboard board = Chessboard::Empty;
     board[sqE2] = WhitePawn;
@@ -150,10 +160,11 @@ TESTSUITE(PawnMoves)
     e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("e7e6")));
     ASSERT_NE(e, std::find(b, e, Move("e7e5")));
-  }
+}
 
-  TEST(PawnMoveWD3_BD6)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, PawnMoveWD3_BD6)
+{
     // Empty chessboard, No King, White Pawn D3
     chessboard board = Chessboard::Empty;
     board[sqD3] = WhitePawn;
@@ -180,10 +191,11 @@ TESTSUITE(PawnMoves)
     b = rules.m_legal_moves.begin();
     e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("d6d5")));
-  }
+}
 
-  TEST(PawnMoveWA4_BA5)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, PawnMoveWA4_BA5)
+{
     // Empty chessboard, No King, White Pawn A4
     chessboard board = Chessboard::Empty;
     board[sqA4] = WhitePawn;
@@ -193,10 +205,11 @@ TESTSUITE(PawnMoves)
     Rules rules(board, Color::White, WithNoKings);
     ASSERT_EQ(Status::NoMoveAvailable, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(PawnMoveWC4_BB5)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, PawnMoveWC4_BB5)
+{
     // Empty chessboard, No King, White Pawn C4
     chessboard board = Chessboard::Empty;
     board[sqA4] = WhitePawn;
@@ -223,10 +236,11 @@ TESTSUITE(PawnMoves)
     ASSERT_NE(e, std::find(b, e, Move("b5a4")));
     ASSERT_NE(e, std::find(b, e, Move("b5c4")));
     ASSERT_NE(e, std::find(b, e, Move("b5b4")));
-  }
+}
 
-  TEST(PawnPromotionMove)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, PawnPromotionMove)
+{
     // Empty chessboard, No King, White Pawn G7
     chessboard board = Chessboard::Empty;
     board[sqG7] = WhitePawn;
@@ -258,10 +272,11 @@ TESTSUITE(PawnMoves)
 
     rules.applyMove("b2b1r");
     ASSERT_EQ(BlackRook, rules.m_board[sqB1]);
-  }
+}
 
-  TEST(WhiteEnPassantAllowed)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, WhiteEnPassantAllowed)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/8/3pP3/8/8/8/8 w - d6"));
 
@@ -283,10 +298,11 @@ TESTSUITE(PawnMoves)
     ASSERT_EQ(NoPiece, rules.m_board[sqE5]);
 
     ASSERT_EQ(Square::OOB, rules.m_ep);
-  }
+}
 
-  TEST(BlackEnPassantAllowed)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, BlackEnPassantAllowed)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/8/8/3pP3/8/8/8 b - e3"));
 
@@ -308,10 +324,11 @@ TESTSUITE(PawnMoves)
     ASSERT_EQ(NoPiece, rules.m_board[sqE4]);
 
     ASSERT_EQ(Square::OOB, rules.m_ep);
-  }
+}
 
-  TEST(EnPassantNotAllowed)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, EnPassantNotAllowed)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/8/8/3pP3/8/8/8 b - -"));
 
@@ -323,10 +340,11 @@ TESTSUITE(PawnMoves)
     std::vector<Move>::iterator b = rules.m_legal_moves.begin();
     std::vector<Move>::iterator e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("d4d3")));
-  }
+}
 
-  TEST(GenerateWhiteEnPassant)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, GenerateWhiteEnPassant)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/3p4/8/4P3/8/8/8/8 b - -"));
 
@@ -342,10 +360,11 @@ TESTSUITE(PawnMoves)
     std::vector<Move>::iterator e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("e5e6")));
     ASSERT_NE(e, std::find(b, e, Move("e5d6")));
-  }
+}
 
-  TEST(GenerateBlackEnPassant)
-  {
+//------------------------------------------------------------------------------
+TEST(PawnMoves, GenerateBlackEnPassant)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/8/8/3p4/8/4P3/8 w - -"));
 
@@ -361,13 +380,11 @@ TESTSUITE(PawnMoves)
     std::vector<Move>::iterator e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("d4d3")));
     ASSERT_NE(e, std::find(b, e, Move("d4e3")));
-  }
 }
 
-TESTSUITE(KnightMoves)
+//------------------------------------------------------------------------------
+TEST(KnightMoves, BasicKnightMoves)
 {
-  TEST(BasicKnightMoves)
-  {
     // Empty chessboard, No King, White Knight B1, Black Knight H8
     Rules rules(Chessboard::Empty, Color::White, WithNoKings);
     rules.m_board[sqB1] = WhiteKnight;
@@ -430,10 +447,11 @@ TESTSUITE(KnightMoves)
     b = rules.m_legal_moves.begin();
     e = rules.m_legal_moves.end();
     ASSERT_NE(e, std::find(b, e, Move("e4d6")));
-  }
+}
 
-  TEST(BlockedKnightMoves)
-  {
+//------------------------------------------------------------------------------
+TEST(KnightMoves, BlockedKnightMoves)
+{
     // Empty chessboard, No King, White Knight A1 blocks by
     // pawns in B3 and C2
     Rules rules(Chessboard::Empty, Color::White, WithNoKings);
@@ -447,13 +465,11 @@ TESTSUITE(KnightMoves)
     std::vector<Move>::iterator e = rules.m_legal_moves.end();
     ASSERT_EQ(e, std::find(b, e, Move("a1b3")));
     ASSERT_EQ(e, std::find(b, e, Move("a1c2")));
-  }
 }
 
-TESTSUITE(BishopMoves)
+//------------------------------------------------------------------------------
+TEST(BishopMoves, BasicBishopMoves)
 {
-  TEST(BasicBishopMoves)
-  {
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/3b4/8/3BB1b1/8/8/8 w - -"));
 
@@ -519,10 +535,11 @@ TESTSUITE(BishopMoves)
     ASSERT_NE(e, std::find(b, e, Move("g4f3")));
     ASSERT_NE(e, std::find(b, e, Move("g4e2")));
     ASSERT_NE(e, std::find(b, e, Move("g4d1")));
-  }
+}
 
-  TEST(BlockedBoshopMoves)
-  {
+//------------------------------------------------------------------------------
+TEST(BishopMoves, BlockedBoshopMoves)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/3B2b1/3b4/8/3BB1b1/8/2B1b3/8 w - -"));
 
@@ -604,13 +621,11 @@ TESTSUITE(BishopMoves)
     ASSERT_NE(e, std::find(b, e, Move("e2a6")));
     ASSERT_NE(e, std::find(b, e, Move("e2f1")));
     ASSERT_NE(e, std::find(b, e, Move("e2d1")));
-  }
 }
 
-TESTSUITE(RookMoves)
+//------------------------------------------------------------------------------
+TEST(RookMoves, BasicRookMoves)
 {
-  TEST(BasicRookMoves)
-  {
     Rules rules;
     ASSERT_EQ(true, rules.load("8/6r1/8/3R4/4R3/2r5/8/8 w - -"));
 
@@ -683,10 +698,11 @@ TESTSUITE(RookMoves)
     ASSERT_NE(e, std::find(b, e, Move("c3c1")));
     ASSERT_NE(e, std::find(b, e, Move("c3b3")));
     ASSERT_NE(e, std::find(b, e, Move("c3a3")));
-  }
+}
 
-  TEST(BlockedRookMoves)
-  {
+//------------------------------------------------------------------------------
+TEST(RookMoves, BlockedRookMoves)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/1r1R4/4r3/3R4/4R1r1/1r3R2/8/8 w - -"));
 
@@ -776,13 +792,11 @@ TESTSUITE(RookMoves)
     ASSERT_NE(e, std::find(b, e, Move("g4g1")));
     ASSERT_NE(e, std::find(b, e, Move("g4f4")));
     ASSERT_NE(e, std::find(b, e, Move("g4e4")));
-  }
 }
 
-TESTSUITE(QueenMoves)
+//------------------------------------------------------------------------------
+TEST(QueenMoves, BasicQueenMoves)
 {
-  TEST(BasicQueenMoves)
-  {
     Rules rules;
     ASSERT_EQ(true, rules.load("8/4q3/8/1Q6/3Q4/8/2q5/8 w - -"));
 
@@ -842,10 +856,11 @@ TESTSUITE(QueenMoves)
     ASSERT_NE(e, std::find(b, e, Move("d4c3")));
     ASSERT_NE(e, std::find(b, e, Move("d4b2")));
     ASSERT_NE(e, std::find(b, e, Move("d4a1")));
-  }
+}
 
-  TEST(BlockedQueenMoves)
-  {
+//------------------------------------------------------------------------------
+TEST(QueenMoves, BlockedQueenMoves)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/4q3/8/2Q5/4Q3/8/2q5/8 w - -"));
 
@@ -947,13 +962,11 @@ TESTSUITE(QueenMoves)
     ASSERT_NE(e, std::find(b, e, Move("c2e4")));
     ASSERT_NE(e, std::find(b, e, Move("c2d1")));
     ASSERT_NE(e, std::find(b, e, Move("c2b1")));
-  }
 }
 
-TESTSUITE(KingMoves)
+//------------------------------------------------------------------------------
+TEST(KingMoves, BasicKingMoves)
 {
-  TEST(BasicKingMoves)
-  {
     Rules rules;
     ASSERT_EQ(true, rules.load("8/6k1/8/8/4K3/8/8/8 w - -"));
 
@@ -985,10 +998,11 @@ TESTSUITE(KingMoves)
     ASSERT_NE(e, std::find(b, e, Move("g7h8")));
     ASSERT_NE(e, std::find(b, e, Move("g7h6")));
     ASSERT_NE(e, std::find(b, e, Move("g7f6")));
-  }
+}
 
-  TEST(BlockedKingMoves)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, BlockedKingMoves)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("7k/8/8/3PP3/4KP2/4P3/8/8 w - -"));
 
@@ -1010,10 +1024,11 @@ TESTSUITE(KingMoves)
     ASSERT_NE(e, std::find(b, e, Move("h8g8")));
     ASSERT_NE(e, std::find(b, e, Move("h8h7")));
     ASSERT_NE(e, std::find(b, e, Move("h8g7")));
-  }
+}
 
-  TEST(WhiteBlockedByCheck)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, WhiteBlockedByCheck)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("7k/1b2rb2/8/8/n2K4/8/8/4n3 w - -"));
 
@@ -1021,10 +1036,11 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(BlackBlockedByCheck)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, BlackBlockedByCheck)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("7K/1B2RB2/8/8/N2k4/8/8/4N3 b - -"));
 
@@ -1032,10 +1048,11 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(WithKings, rules.m_no_kings);
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(AllowedCastle)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, AllowedCastle)
+{
     Rules rules("r3k2r/8/8/8/8/8/8/R3K2R w KQkq -");
 
     ASSERT_EQ(Color::White, rules.m_side);
@@ -1148,19 +1165,22 @@ TESTSUITE(KingMoves)
     ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
     rules.applyMove("e8f8");
     ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
-  }
+}
 
-  TEST(NotAllowedCastle)
-  {
-  }
+//------------------------------------------------------------------------------
+TEST(KingMoves, NotAllowedCastle)
+{
+}
 
-  TEST(TestInCheck)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, TestInCheck)
+{
 
-  }
+}
 
-  TEST(InitPos)
-  {
+//------------------------------------------------------------------------------
+TEST(KingMoves, InitPos)
+{
     Rules rules;
 
     ASSERT_EQ(Color::White, rules.m_side);
@@ -1191,13 +1211,11 @@ TESTSUITE(KingMoves)
     ASSERT_NE(e, std::find(b, e, Move("b1a3")));
     ASSERT_NE(e, std::find(b, e, Move("g1h3")));
     ASSERT_NE(e, std::find(b, e, Move("g1f3")));
-  }
 }
 
-TESTSUITE(ChessStatus)
+//------------------------------------------------------------------------------
+TEST(ChessStatus, WhiteCheckMate)
 {
-  TEST(WhiteCheckMate)
-  {
     Rules rules;
     ASSERT_EQ(true, rules.load("6k1/5ppp/8/8/8/8/8/R5K1 w k -"));
     ASSERT_EQ(Color::White, rules.m_side);
@@ -1207,31 +1225,33 @@ TESTSUITE(ChessStatus)
     rules.applyMove("a1a8");
     ASSERT_EQ(Status::WhiteWon, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(BlackCheckMate, DEADLINE_CPU_MS(3000))
-    {
-      Rules rules;
-      ASSERT_EQ(true, rules.load("k2r4/4b3/8/8/8/8/PPP5/2K5 b - -"));
-      ASSERT_EQ(Color::Black, rules.m_side);
-      ASSERT_EQ(Status::Playing, rules.status());
-      ASSERT_EQ(true, rules.m_legal_moves.size() > 1);
+//------------------------------------------------------------------------------
+TEST(ChessStatus, BlackCheckMate)
+{
+    Rules rules;
+    ASSERT_EQ(true, rules.load("k2r4/4b3/8/8/8/8/PPP5/2K5 b - -"));
+    ASSERT_EQ(Color::Black, rules.m_side);
+    ASSERT_EQ(Status::Playing, rules.status());
+    ASSERT_EQ(true, rules.m_legal_moves.size() > 1);
 
-      rules.applyMove("e7g5");
-      ASSERT_EQ(Status::Playing, rules.status());
-      ASSERT_EQ(1, rules.m_legal_moves.size());
-      std::vector<Move>::iterator b = rules.m_legal_moves.begin();
-      std::vector<Move>::iterator e = rules.m_legal_moves.end();
-      ASSERT_NE(e, std::find(b, e, Move("c1b1")));
+    rules.applyMove("e7g5");
+    ASSERT_EQ(Status::Playing, rules.status());
+    ASSERT_EQ(1, rules.m_legal_moves.size());
+    std::vector<Move>::iterator b = rules.m_legal_moves.begin();
+    std::vector<Move>::iterator e = rules.m_legal_moves.end();
+    ASSERT_NE(e, std::find(b, e, Move("c1b1")));
 
-      rules.applyMove("c1b1");
-      rules.applyMove("d8d1");
-      ASSERT_EQ(Status::BlackWon, rules.status());
-      ASSERT_EQ(0, rules.m_legal_moves.size());
-    }
+    rules.applyMove("c1b1");
+    rules.applyMove("d8d1");
+    ASSERT_EQ(Status::BlackWon, rules.status());
+    ASSERT_EQ(0, rules.m_legal_moves.size());
+}
 
-  TEST(WhiteStalemate)
-  {
+//------------------------------------------------------------------------------
+TEST(ChessStatus, WhiteStalemate)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("2k5/2P5/3K4/8/8/8/8/8 w - -"));
     ASSERT_EQ(Color::White, rules.m_side);
@@ -1242,10 +1262,11 @@ TESTSUITE(ChessStatus)
     rules.generateValidMoves();
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
+}
 
-  TEST(BlackStalemate)
-  {
+//------------------------------------------------------------------------------
+TEST(ChessStatus, BlackStalemate)
+{
     Rules rules;
     ASSERT_EQ(true, rules.load("8/8/8/8/8/5k2/6p1/6K1 b - -"));
     ASSERT_EQ(Color::Black, rules.m_side);
@@ -1256,5 +1277,4 @@ TESTSUITE(ChessStatus)
     rules.generateValidMoves();
     ASSERT_EQ(Status::Stalemate, rules.status());
     ASSERT_EQ(0, rules.m_legal_moves.size());
-  }
 }

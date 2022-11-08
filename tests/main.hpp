@@ -18,9 +18,12 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
-#include <crpcut.hpp>
+#ifndef MAIN_HPP
+#  define MAIN_HPP
 
-int main(int argc, char *argv[])
-{
-  return crpcut::run(argc, argv);
-}
+#  include <gmock/gmock.h>
+#  include <gtest/gtest.h>
+
+using namespace ::testing;
+
+#endif // MAIN_HPP

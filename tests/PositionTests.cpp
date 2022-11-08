@@ -18,37 +18,38 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
+#include "main.hpp"
 #include "Chess/Rules.hpp"
-#include <crpcut.hpp>
 #include <iostream>
 #include <ostream>
 #include <algorithm>
 
-TESTSUITE(Position)
+//------------------------------------------------------------------------------
+// Load an initial chessboard
+TEST(Position, RulesConstructor1)
 {
-  // Load an initial chessboard
-  TEST(RulesConstructor1)
-  {
     Rules rules("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
     ASSERT_EQ(WithKings, rules.hasNoKing);
     ASSERT_EQ(true, Chessboard::Init == rules.m_board);
     ASSERT_EQ(255, rules.m_ep);
     // TODO: can castle
-  }
+}
 
-  // Load an empty chessboard
-  TEST(RulesConstructor2)
-  {
+//------------------------------------------------------------------------------
+// Load an empty chessboard
+TEST(Position, RulesConstructor2)
+{
     Rules rules("8/8/8/8/8/8/8/8 w - -");
     ASSERT_EQ(WithNoKings, rules.hasNoKing);
     ASSERT_EQ(true, Chessboard::Empty == rules.m_board);
     ASSERT_EQ(255, rules.m_ep);
     // TODO: can castle
-  }
+}
 
-  // Load a chessboard from initial board and list of moves
-  TEST(LoadPosition)
-  {
+//------------------------------------------------------------------------------
+// Load a chessboard from initial board and list of moves
+TEST(Position, LoadPosition)
+{
     // Load empty chessboard
     Rules rules("8/8/8/8/8/8/8/8 w - -");
     rules.m_moved = "blah blah";
@@ -67,10 +68,11 @@ TESTSUITE(Position)
 
     // Compare boards
     ASSERT_EQ(true, board == rules.m_board);
-  }
+}
 
-  TEST(MoveBack1)
-  {
+//------------------------------------------------------------------------------
+TEST(Position, MoveBack1)
+{
     std::string moves0 = "";
     std::string moves1 = "e2e4";
     std::string moves2 = "e2e4 e7e5";
@@ -91,5 +93,4 @@ TESTSUITE(Position)
     ASSERT_EQ(moves0, rules.m_moved);
 
     ASSERT_EQ(true, Chessboard::Init == rules.m_board);
-  }
 }

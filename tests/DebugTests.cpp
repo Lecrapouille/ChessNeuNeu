@@ -18,15 +18,14 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
+#include "main.hpp"
 #include "Chess/Rules.hpp"
-#include <crpcut.hpp>
 #include <iostream>
 #include <sstream>
 
-TESTSUITE(Debug)
+//------------------------------------------------------------------------------
+TEST(DebugTests, charTopiece)
 {
-  TEST(charTopiece)
-  {
     ASSERT_EQ(WhitePawn, char2Piece('P'));
     ASSERT_EQ(WhiteBishop, char2Piece('B'));
     ASSERT_EQ(WhiteKnight, char2Piece('N'));
@@ -42,10 +41,11 @@ TESTSUITE(Debug)
     ASSERT_EQ(BlackQueen, char2Piece('q'));
 
     ASSERT_EQ(NoPiece, char2Piece('l'));
-  }
+}
 
-  TEST(pieceTochar)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, pieceTochar)
+{
     ASSERT_EQ('p', piece2char(WhitePawn));
     ASSERT_EQ('p', piece2char(BlackPawn));
     ASSERT_EQ('b', piece2char(WhiteBishop));
@@ -58,10 +58,11 @@ TESTSUITE(Debug)
     ASSERT_EQ('k', piece2char(BlackKing));
     ASSERT_EQ('q', piece2char(WhiteQueen));
     ASSERT_EQ('q', piece2char(BlackQueen));
-  }
+}
 
-  TEST(Operator1)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, Operator1)
+{
     std::stringstream out;
 
     out << Color::White;
@@ -70,10 +71,11 @@ TESTSUITE(Debug)
     out.str(std::string());
     out << Color::Black;
     ASSERT_EQ("Black", out.str());
-  }
+}
 
-  TEST(Operator2)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, Operator2)
+{
     std::stringstream out;
 
     out << PieceType::Pawn;
@@ -98,10 +100,11 @@ TESTSUITE(Debug)
     out.str(std::string());
     out << PieceType::King;
     ASSERT_EQ("K", out.str());
-  }
+}
 
-  TEST(Operator3)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, Operator3)
+{
     std::stringstream out;
 
     out << WhitePawn;
@@ -150,10 +153,11 @@ TESTSUITE(Debug)
     out.str(std::string());
     out << BlackKing;
     ASSERT_EQ("k", out.str());
-  }
+}
 
-  TEST(Operator4)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, Operator4)
+{
     std::stringstream out;
 
     out << Move("e2e4");
@@ -174,10 +178,11 @@ TESTSUITE(Debug)
     out.str(std::string());
     out << PromoteMove(sqH7, sqH8, PieceType::Rook);  // FIXME: tester cas pathologique
     ASSERT_EQ("h7-h8:R", out.str());
-  }
+}
 
-  TEST(Operator5)
-  {
+//------------------------------------------------------------------------------
+TEST(DebugTests, Operator5)
+{
     std::stringstream out;
 
     out << Status::WhiteWon;
@@ -198,5 +203,4 @@ TESTSUITE(Debug)
     out.str(std::string());
     out << Status::Playing;
     ASSERT_EQ("Playing", out.str());
-  }
 }

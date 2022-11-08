@@ -23,16 +23,16 @@
 #
 PROJECT = ChessNeuNeu
 TARGET = $(PROJECT)-UnitTest
-DESCRIPTION = Unit-tests for $(PROJECT)
+DESCRIPTION = Unit tests for $(PROJECT)
 STANDARD = --std=c++14
-BUILD_TYPE := debug
+BUILD_TYPE = debug
 USE_COVERAGE = 1
 
 ###################################################
 # Location of the project directory and Makefiles
 #
-P=..
-M=$(P)/.makefile
+P := ..
+M := $(P)/.makefile
 include $(M)/Makefile.header
 
 ###################################################
@@ -46,39 +46,39 @@ INCLUDES += -I$(P)/src -I$(P)/src/Players -I$(P)/src/Utils -I$(THIRDPART)
 VPATH += $(P)/src $(P)/src/Players $(P)/src/Utils $(P)/src/Chess $(P)/src/GUI $(THIRDPART)
 
 ###################################################
-# Suppress warnings
+# Reduce warnings
 #
 CXXFLAGS = -W -Wall -Wextra -Wshadow
 
 ###################################################
 # Project defines
 #
-DEFINES = -DDATADIR=\"$(DATADIR)\"
+DEFINES += -DDATADIR=\"$(DATADIR)\"
 
 ###################################################
-# Make the list of compiled files
+# Make the list of compiled files for tests
 #
-OBJS = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o UnitTests.o
+OBJS = FEN.o Rules.o Debug.o FENTests.o RulesTests.o DebugTests.o main.o
 #PositionTests.o
 
 ###################################################
 # Set Libraries. For knowing which libraries
 # is needed please read the external/README.md file.
 #
-LINKER_FLAGS += -lcrpcut -ldl
+PKG_LIBS += gtest gmock
 
 ###################################################
-# Compile OpenGLCppWrapper unit tests.
+# Compile the project
 .PHONY: all
 all: $(TARGET)
 
 ###################################################
-# Compile and run unit tests.
+# Compile and launch unit tests and generate the code coverage html report.
 .PHONY: unit-tests
 .PHONY: check
 unit-tests check: $(TARGET)
 	@$(call print-to,"Running","$(TARGET)","$(RAPPORT)","")
-	@$(SANITIZER) ./$(BUILD)/$(TARGET) || (cat $(TARGET).log; return 1)
+	$(SANITIZER) ./$(BUILD)/$(TARGET) $(TU_OPTIONS) || (cat $(TARGET).log; return 1)
 
 ###################################################
 # Sharable informations between all Makefiles

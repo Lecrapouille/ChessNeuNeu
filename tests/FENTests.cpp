@@ -18,16 +18,15 @@
 // along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 //=====================================================================
 
+#include "main.hpp"
 #include "Chess/Rules.hpp"
-#include <crpcut.hpp>
 #include <iostream>
 #include <ostream>
 #include <algorithm>
 
-TESTSUITE(ForsythEdwardsNotation)
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadInit)
 {
-  TEST(LoadInit)
-  {
     Rules rules(Chessboard::Empty);
 
     ASSERT_EQ(true, rules.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"));
@@ -37,10 +36,11 @@ TESTSUITE(ForsythEdwardsNotation)
     ASSERT_EQ(Square::OOB, rules.m_ep);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
-  }
+}
 
-  TEST(LoadEmpty)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadEmpty)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(true, rules.load("8/8/8/8/8/8/8/8 b - -"));
@@ -49,10 +49,11 @@ TESTSUITE(ForsythEdwardsNotation)
     ASSERT_EQ(Square::OOB, rules.m_ep);
     ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::White]);
     ASSERT_EQ(Castle::NoCastle, rules.m_castle[Color::Black]);
-  }
+}
 
-  TEST(Load)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, Load)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(true, rules.load("6k1/5ppp/8/8/8/8/8/R5K1 b - -"));
@@ -72,10 +73,11 @@ TESTSUITE(ForsythEdwardsNotation)
 
     // Check rules.m_board is empty
     ASSERT_EQ(true, Chessboard::Empty == rules.m_board);
-  }
+}
 
-  TEST(LoadEnPassant)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadEnPassant)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(true, rules.load("rnbqkbnr/ppp1pppp/8/8/3pP3/8/PPPP1PPP/RNBQKBNR b KQkq e3"));
@@ -83,42 +85,47 @@ TESTSUITE(ForsythEdwardsNotation)
     ASSERT_EQ(sqE3, rules.m_ep);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::White]);
     ASSERT_EQ(Castle::Both, rules.m_castle[Color::Black]);
-  }
+}
 
 #if 0
-  TEST(LoadTooManyKnights)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadTooManyKnights)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(false, rules.load("1knn3K/1n2n3/1n2n3/4n3/4n3/2nn4/2n4n/2nnnnn1 w - -"));
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(sqE3, rules.m_ep);
-  }
+}
 
-  TEST(LoadFunnyBoard)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadFunnyBoard)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(false, rules.load("qknn2K1/qn2n3/qn2n3/q3n3/q3n3/q1bb4/q1b4r/q1bbbbb1 w - -"));
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(sqE3, rules.m_ep);
-  }
+}
 
-  TEST(LoadTooManyPieces)
-  {
+//------------------------------------------------------------------------------
+TEST(ForsythEdwardsNotation, LoadTooManyPieces)
+{
     Rules rules(Chessboard::Init);
 
     ASSERT_EQ(false, rules.load("qknn2K1/qnp1n3/qn2n3/q3n3/q3n3/q1bb4/q1b4r/q1bbbbb1 w - -"));
     ASSERT_EQ(Color::Black, rules.m_side);
     ASSERT_EQ(sqE3, rules.m_ep);
-  }
+}
 #endif
 
-  // TODO: test castle
+//------------------------------------------------------------------------------
+// TODO: test castle
 
-  // Good FEN: "6k1/5ppp/8/8/8/8/8/R5K1 b - -"
-  TEST(BadFENFormat)
-  {
+//------------------------------------------------------------------------------
+// Good FEN: "6k1/5ppp/8/8/8/8/8/R5K1 b - -"
+TEST(ForsythEdwardsNotation, BadFENFormat)
+{
     Rules rules;
 
     ASSERT_EQ(false, rules.load(""));
@@ -236,5 +243,4 @@ TESTSUITE(ForsythEdwardsNotation)
     ASSERT_EQ(false, rules.load("8/5ppp/8/8/8/8/8/R5K1 b - -"));
 
     // TODO: check number of pieces
-  }
 }
