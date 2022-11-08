@@ -24,6 +24,7 @@
 #include <vector>
 #include <stdexcept>
 #include <stdio.h>
+#include <string.h>
 
 IPC::IPC(std::string const& command)
 {
