@@ -1,6 +1,6 @@
 ##=====================================================================
 ## ChessNeuNeu: Non serious chess engine for learning neural networks.
-## Copyright 2018 Quentin Quadrat <lecrapouille@gmail.com>
+## Copyright 2018 -- 2022 Quentin Quadrat <lecrapouille@gmail.com>
 ##
 ## This file is part of ChessNeuNeu.
 ##
