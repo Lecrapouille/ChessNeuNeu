@@ -22,7 +22,7 @@ Where different players are:
 * `stockfish` for letting play [https://github.com/official-stockfish/Stockfish](Stockfish) (need to be installed).
 * `tcsp` for letting play [http://www.tckerrigan.com/Chess/TSCP/](TCSP) (need to be compiled and installed).
 
-Note: `--white` and `--black` can be shorten by `-w` and `-b`.
+Implicit options will make human player play as White color against the neural network as Black color.
 
 Optional:
 * `board` is the board position using the Forsyth-Edwards

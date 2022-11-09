@@ -15,7 +15,7 @@ TARGET="$2"
 
 ### Delete all previous directories to be sure to have and compile
 ### fresh code source.
-rm -fr CmdParser Loki 2> /dev/null
+rm -fr Loki 2> /dev/null
 
 function cloning
 {
@@ -25,10 +25,6 @@ function cloning
     echo -e "\033[35m*** Cloning: \033[36mhttps://github.com/$REPO\033[00m >= \033[33m$TARGET\033[00m"
     git clone https://github.com/$REPO.git --depth=1 $* > /dev/null
 }
-
-### Library CmdParser is a C++ alternative to C getopt for parsing options like --help
-### License: MIT
-cloning FlorianRappl/CmdParser
 
 ### C++17 chess engine
 ### License: GPL-3.0

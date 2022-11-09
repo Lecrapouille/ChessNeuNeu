@@ -25,7 +25,6 @@
 #include "Players/Loki.hpp"
 #include "Players/NeuNeu.hpp"
 #include "Players/Human.hpp"
-#include "CmdParser/cmdparser.hpp"
 
 // -----------------------------------------------------------------------------
 void ChessNeuNeu::createPlayer(const PlayerType type, const Color side)
@@ -98,14 +97,20 @@ void ChessNeuNeu::init(const PlayerType white, const PlayerType black)
 // -----------------------------------------------------------------------------
 //! \brief Parser the command-line option
 // -----------------------------------------------------------------------------
-static void configure_parser(cli::Parser& parser)
+static std::string getCmdOption(int argc, char* argv[], const std::string& short_option,
+                                const std::string& long_option)
 {
-    parser.set_optional<std::string>
-            ("w", "white", "human", "Define the white player: human | stockfish | loki | tcsp | neuneu");
-    parser.set_optional<std::string>
-            ("b", "black", "neuneu", "Define the black player: human | stockfish | loki | tcsp | neuneu");
-    parser.set_optional<std::string>
-            ("f", "fen", "", "Board position in Forsyth-Edwards notation https://lichess.org/editor");
+    for (int i = 0; i < argc; ++i)
+    {
+        std::string arg(argv[i]);
+        if ((arg == short_option) || (arg == long_option))
+        {
+            if (i+1 < argc)
+                return argv[i+1];
+            return argv[i];
+        }
+    }
+    return {};
 }
 
 // -----------------------------------------------------------------------------
@@ -114,10 +119,19 @@ int main(int argc, char** argv)
     // Initialize random seed
     srand(time(NULL));
 
-    // Initialize the parser of command-line options
-    cli::Parser parser(argc, argv);
-    configure_parser(parser);
-    parser.run_and_exit_if_error();
+    // Help/Usage
+    if (getCmdOption(argc, argv, "-h", "--help") != "")
+    {
+        std::cout << "Usage:\n  " << argv[0] << " --white NAME --black NAME [--fen FEN]\n"
+                  << "With:\n  NAME: human | stockfish | loki | tcsp | neuneu\n"
+                  << "  FEN: Optional oard position in Forsyth-Edwards notation. See https://lichess.org/editor\n";
+        return EXIT_SUCCESS;
+    }
+
+    // Parse the command-line options
+    std::string w(getCmdOption(argc, argv, "-w", "--white"));
+    std::string b(getCmdOption(argc, argv, "-b", "--black"));
+    std::string fen(getCmdOption(argc, argv, "-f", "--fen"));
 
     try
     {
@@ -125,12 +139,11 @@ int main(int argc, char** argv)
 
         // Get Player types from command-line options --white and --black.
         // An exception is thrown if player type is badly typed.
-        PlayerType Whites = playerType(parser.get<std::string>("w"));
-        PlayerType Blacks = playerType(parser.get<std::string>("b"));
+        PlayerType Whites = playerType(w != "" ? w : "human");
+        PlayerType Blacks = playerType(b != "" ? b : "neuneu");
 
         // Optional: start the game with a given chessboard with the
         // comand-line --fen (Forsyth-Edwards notation).
-        std::string fen = parser.get<std::string>("f");
         if (fen.empty())
         {
             chess = std::make_unique<ChessNeuNeu>(Whites, Blacks);
